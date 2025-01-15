@@ -1,5 +1,5 @@
 [package]
-name = "madara_config_common"
+name = "madara_cli_config"
 version.workspace = true
 edition.workspace = true
 homepage.workspace = true
