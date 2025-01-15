@@ -31,20 +31,11 @@ pub fn run_command(
     docker_args: Vec<String>,
     docker_command: Vec<String>,
 ) -> anyhow::Result<()> {
-    // println!("{:?}", docker_command);
-    let asd = cmd!(
+    Ok(Cmd::new(cmd!(
         shell,
         "docker run {docker_args...} {docker_image} {docker_command...}"
-    );
-    // println!("ASD: {}", asd);
-
-    Ok(Cmd::new(asd).run()?)
-
-    // Ok(Cmd::new(cmd!(
-    //     shell,
-    //     "docker run {docker_args...} {docker_image} {docker_command...}"
-    // ))
-    // .run()?)
+    ))
+    .run()?)
 }
 
 pub fn exec_in_container(
