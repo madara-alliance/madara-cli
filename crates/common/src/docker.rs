@@ -56,3 +56,7 @@ pub fn adjust_localhost_for_docker(mut url: Url) -> anyhow::Result<Url> {
     }
     Ok(url)
 }
+
+pub fn build_image(shell: &Shell, path: String, name: String) -> anyhow::Result<()> {
+    Ok(Cmd::new(cmd!(shell, "docker build -t {name} {path}")).run()?)
+}
