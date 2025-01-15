@@ -12,7 +12,7 @@ use xshell::Shell;
 
 use super::args::pathfinder::{PathfinderCreateArgs, PathfinderNetwork, StorageStateTries};
 
-pub fn run(_shell: &Shell) -> anyhow::Result<()> {
+pub fn run(shell: &Shell) -> anyhow::Result<()> {
     logger::info("Input Madara parameters...");
 
     let name = "Madara".to_string();
