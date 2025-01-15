@@ -1,0 +1,18 @@
+[package]
+name = "madara"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+clap_complete.workspace = true
+clap-markdown.workspace = true
+cliclack.workspace = true
+madara_cli_common.workspace = true
+madara_cli_config.workspace = true
+human-panic.workspace = true
+lazy_static.workspace = true
+thiserror.workspace = true
+xshell.workspace = true
+strum.workspace = true
