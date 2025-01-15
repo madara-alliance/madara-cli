@@ -2,15 +2,13 @@ use std::path::PathBuf;
 
 use crate::{
     commands::args::madara::{MadaraCreateArgs, MadaraMode},
-    constants::{MADARA_DOCKER_IMAGE, MSG_STARTING_CONTAINERS_SPINNER},
+    constants::{MADARA_DOCKER_IMAGE, MSG_BUILDING_IMAGE_SPINNER, MSG_STARTING_CONTAINERS_SPINNER},
 };
 
 use anyhow::Context;
 use madara_cli_common::{docker, logger, spinner::Spinner, Prompt, PromptSelect};
 use strum::IntoEnumIterator;
 use xshell::Shell;
-
-use super::args::pathfinder::{PathfinderCreateArgs, PathfinderNetwork, StorageStateTries};
 
 pub fn run(shell: &Shell) -> anyhow::Result<()> {
     logger::info("Input Madara parameters...");
