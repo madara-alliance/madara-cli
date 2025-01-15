@@ -39,7 +39,7 @@ fn main() -> anyhow::Result<()> {
     match run_subcommand(args) {
         Ok(_) => Ok(()),
         Err(_) => {
-            log::error!("{:?}", error);
+            // TODO: add log with the error
             std::process::exit(1);
         }
     }
