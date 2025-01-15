@@ -1,0 +1,26 @@
+[package]
+name = "madara_cli_common"
+version.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+authors.workspace = true
+exclude.workspace = true
+repository.workspace = true
+description.workspace = true
+keywords.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+cliclack.workspace = true
+console.workspace = true
+once_cell.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+serde_yaml.workspace = true
+thiserror.workspace = true
+xshell.workspace = true
+url.workspace = true
+strum.workspace = true
+
