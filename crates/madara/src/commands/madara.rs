@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use crate::{
     commands::args::madara::{MadaraCreateArgs, MadaraMode},
     constants::{
-        MADARA_DOCKER_IMAGE, MADARA_REPO_PATH, MSG_BUILDING_IMAGE_SPINNER,
+        MADARA_COMPOSE_FILE, MADARA_DOCKER_IMAGE, MADARA_REPO_PATH, MSG_BUILDING_IMAGE_SPINNER,
         MSG_STARTING_CONTAINERS_SPINNER,
     },
 };
@@ -45,7 +45,8 @@ fn madara_build_image(shell: &Shell) -> anyhow::Result<()> {
 
 fn madara_run(shell: &Shell, params: MadaraCreateArgs) -> anyhow::Result<()> {
     let name = "madara_node";
-    let docker_args: Vec<String> = vec!["--name".to_string(), name.to_string(), "--rm".to_string()];
+    let _docker_args: Vec<String> =
+        vec!["--name".to_string(), name.to_string(), "--rm".to_string()];
 
     // TODO: implement a better to_string as params must be lowercase
     let mode = match params.mode {
@@ -53,7 +54,7 @@ fn madara_run(shell: &Shell, params: MadaraCreateArgs) -> anyhow::Result<()> {
         _ => panic!("Mode not supported"),
     };
 
-    let command: Vec<String> = vec![
+    let _command: Vec<String> = vec![
         format!("--{}", mode),
         "--name".to_string(),
         params.name,
@@ -61,5 +62,6 @@ fn madara_run(shell: &Shell, params: MadaraCreateArgs) -> anyhow::Result<()> {
         params.base_path.to_string_lossy().to_string(),
     ];
 
-    docker::run_command(shell, MADARA_DOCKER_IMAGE, docker_args, command)
+    let compose_file = format!("{}/{}", MADARA_REPO_PATH, MADARA_COMPOSE_FILE);
+    docker::up(shell, &compose_file, false)
 }
