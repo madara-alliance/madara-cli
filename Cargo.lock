@@ -511,6 +511,7 @@ dependencies = [
  "lazy_static",
  "madara_cli_common",
  "madara_cli_config",
+ "madara_cli_types",
  "strum",
  "thiserror",
  "xshell",
@@ -541,13 +542,14 @@ dependencies = [
  "anyhow",
  "clap",
  "cliclack",
+ "madara_cli_types",
  "strum",
  "thiserror",
  "xshell",
 ]
 
 [[package]]
-name = "madara_types_common"
+name = "madara_cli_types"
 version = "0.0.1"
 dependencies = [
  "anyhow",

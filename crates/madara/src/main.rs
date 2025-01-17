@@ -2,7 +2,6 @@ mod commands;
 
 mod constants;
 use clap::{Parser, Subcommand};
-use cliclack::log;
 use madara_cli_common::config::{init_global_config, GlobalConfig};
 use xshell::Shell;
 
