@@ -3,9 +3,8 @@ mod commands;
 mod constants;
 use clap::{Parser, Subcommand};
 use madara_cli_common::config::{init_global_config, GlobalConfig};
+use madara_cli_config::madara::MadaraRunnerConfigMode;
 use xshell::Shell;
-
-use crate::commands::madara::run;
 
 #[derive(Parser)]
 #[command(name = "Madara CLI")]
@@ -30,6 +29,8 @@ struct MadaraGlobalArgs {
 pub enum MadaraSubcommands {
     /// Create a Madara node
     Create,
+    /// Run Orchestrator ---> AppChain
+    Orchestrator,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -48,8 +49,11 @@ fn run_subcommand(madara_args: Madara) -> anyhow::Result<()> {
     let shell = Shell::new().unwrap();
     init_global_config_inner(&shell, &madara_args.global)?;
 
+    let args = MadaraRunnerConfigMode::default();
+
     match madara_args.command {
-        MadaraSubcommands::Create => run(&shell),
+        MadaraSubcommands::Create => commands::madara::run(args, &shell),
+        MadaraSubcommands::Orchestrator => commands::orchestrator::run(&shell),
     }?;
 
     Ok(())

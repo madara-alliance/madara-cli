@@ -14,6 +14,7 @@ keywords.workspace = true
 anyhow.workspace = true
 clap.workspace = true
 cliclack.workspace = true
+madara_cli_common.workspace = true
 madara_cli_types.workspace = true
 xshell.workspace = true
 thiserror.workspace = true

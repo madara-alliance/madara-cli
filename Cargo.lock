@@ -542,6 +542,7 @@ dependencies = [
  "anyhow",
  "clap",
  "cliclack",
+ "madara_cli_common",
  "madara_cli_types",
  "strum",
  "thiserror",
