@@ -1,5 +1,5 @@
 use madara_cli_common::logger;
-use madara_cli_config::madara::MadaraRunnerConfigMode;
+use madara_cli_config::{madara::MadaraRunnerConfigMode, pathfinder::PathfinderRunnerConfigMode};
 use madara_cli_types::madara::MadaraMode;
 use xshell::Shell;
 
@@ -25,13 +25,13 @@ pub fn run(_shell: &Shell) -> anyhow::Result<()> {
     let shell = Shell::new().unwrap();
     commands::madara::run(args_madara, &shell)?;
 
+    // Collect Pathfinder configuration
+    let args_pathfinder = PathfinderRunnerConfigMode::default();
+    commands::pathfinder::run(args_pathfinder, &shell)?;
+
     // Collect SNOS configuration
 
-    // Collect Pathfinder configuration
-
     // Collect Prover configuration
-
-    // Prom
 
     // Spin up all the necessary services
 
