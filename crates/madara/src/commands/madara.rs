@@ -12,10 +12,10 @@ use crate::constants::{MADARA_RPC_API_KEY_FILE, MADARA_RUNNER_SCRIPT, MSG_ARGS_V
 use anyhow::{anyhow, Context};
 use madara_cli_common::{docker, logger, spinner::Spinner};
 use madara_cli_config::madara::{
-    MadaraPresetType, MadaraRunnerConfigDevnet, MadaraRunnerConfigMode,
+    MadaraPresetType, MadaraRunnerConfigDevnet, MadaraRunnerConfigFullNode, MadaraRunnerConfigMode,
     MadaraRunnerConfigSequencer, MadaraRunnerParams,
 };
-use madara_cli_types::madara::MadaraMode;
+use madara_cli_types::madara::{MadaraMode, MadaraNetwork};
 use xshell::Shell;
 
 pub(crate) fn run(args: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result<()> {
@@ -57,7 +57,7 @@ fn process_params(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
     let runner_params = match &args.params {
         MadaraRunnerParams::Devnet(params) => parse_devnet_params(&args.name, &mode, params),
         MadaraRunnerParams::Sequencer(params) => parse_sequencer_params(&args.name, &mode, params),
-        MadaraRunnerParams::FullNode(_) => panic!("Not supported yet"),
+        MadaraRunnerParams::FullNode(params) => parse_full_node_params(&args.name, &mode, params),
     }?;
 
     let runner_script_path = &format!("{}/{}", MADARA_REPO_PATH, MADARA_RUNNER_SCRIPT);
@@ -194,4 +194,39 @@ fn parse_sequencer_params(
     ];
 
     Ok(devnet_params)
+}
+
+fn parse_full_node_params(
+    name: &String,
+    _mode: &MadaraMode,
+    params: &MadaraRunnerConfigFullNode,
+) -> anyhow::Result<Vec<String>> {
+    let db_path = params
+        .base_path
+        .clone()
+        .expect("Base path must be already set");
+    let network = match params.network {
+        Some(MadaraNetwork::Mainnet) => "main",
+        Some(MadaraNetwork::Testnet) => "test",
+        Some(MadaraNetwork::Integration) => "integration",
+        Some(MadaraNetwork::Devnet) => "devnet",
+        _ => panic!("A network is required"),
+    };
+    let mut full_node_params = vec![
+        format!("--name {}", name),
+        format!("--network {}", network),
+        format!("--full"),
+        format!("--base-path {}", db_path),
+        "--l1-endpoint $RPC_API_KEY".to_string(),
+    ];
+
+    if let Some(true) = &params.rpc_external {
+        full_node_params.push("--rpc-external".to_owned());
+    }
+
+    if let Some(rpc_cors) = &params.rpc_cors {
+        full_node_params.push(format!("--rpc-cors  {}", rpc_cors));
+    }
+
+    Ok(full_node_params)
 }
