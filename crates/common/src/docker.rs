@@ -7,7 +7,7 @@ pub fn up(shell: &Shell, docker_compose_file: &str, detach: bool) -> anyhow::Res
     let args = if detach { vec!["-d"] } else { vec![] };
     let mut cmd = Cmd::new(cmd!(
         shell,
-        "docker compose -f {docker_compose_file} up {args...}"
+        "docker-compose -f {docker_compose_file} up {args...}"
     ));
     cmd = if !detach { cmd.with_force_run() } else { cmd };
     Ok(cmd.run()?)
@@ -16,7 +16,7 @@ pub fn up(shell: &Shell, docker_compose_file: &str, detach: bool) -> anyhow::Res
 pub fn down(shell: &Shell, docker_compose_file: &str) -> anyhow::Result<()> {
     Ok(Cmd::new(cmd!(
         shell,
-        "docker compose -f {docker_compose_file} down -v"
+        "docker-compose -f {docker_compose_file} down -v"
     ))
     .run()?)
 }
