@@ -10,9 +10,8 @@ fi
 exec tini -- ./pathfinder \
   --network custom \
   --chain-id MADARA_DEVNET \
-  --ethereum.url $RPC_API_KEY \
-  --gateway-url http://localhost:8080/gateway \
-  --feeder-gateway-url http://localhost:8080/feeder_gateway \
+  --ethereum.url wss://eth-sepolia.g.alchemy.com/v2/WIUR5JUZXieEBkze6Xs3IOXWhsS840TX \
+  --gateway-url http://madara:8080/gateway --feeder-gateway-url http://madara:8080/feeder_gateway \
   --storage.state-tries archive \
   --data-directory /usr/share/pathfinder/data \
-  --http-rpc 127.0.0.1:9545 
+  --http-rpc 0.0.0.0:9545 
