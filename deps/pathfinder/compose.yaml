@@ -1,0 +1,40 @@
+name: pathfinder_runner
+
+services:
+  pathfinder:
+    image: pathfinder:latest
+    container_name: "pathfinder_runner"
+    cpus: "4.0"
+    mem_limit: "16gb"
+    ports:
+      - 9545:9545
+    labels:
+      - "autoheal=true"
+    environment:
+      - RPC_API_KEY_FILE=/run/secrets/rpc_api_key
+    secrets:
+      - rpc_api_key
+    volumes:
+      - ./data:/usr/share/pathfinder/data
+      - ./pathfinder-runner.sh:/usr/local/bin/runner.sh:ro
+    entrypoint:
+      - /usr/local/bin/runner.sh
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9545/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: on-failure:3
+
+  autoheal:
+    image: willfarrell/autoheal:latest
+    tty: true
+    restart: always
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+
+secrets:
+  rpc_api_key:
+    file: .secrets/rpc_api.secret

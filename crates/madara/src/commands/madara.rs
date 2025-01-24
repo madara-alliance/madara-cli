@@ -190,7 +190,15 @@ fn parse_sequencer_params(
         format!("--{}", mode).to_lowercase(),
         format!("--base-path {}", db_path),
         format!("--preset {}", preset_path),
-        "--l1-endpoint $RPC_API_KEY".to_string(),
+        "--feeder-gateway-enable".to_string(),
+        "--gateway-enable".to_string(),
+        "--gateway-external".to_string(),
+        "--rpc-port 9945".to_string(),
+        "--rpc-cors \"*\"".to_string(),
+        "--gas-price 0".to_string(),
+        "--blob-gas-price 0".to_string(),
+        "--no-l1-sync".to_string(),
+        // "--l1-endpoint $RPC_API_KEY".to_string(),
     ];
 
     Ok(devnet_params)
