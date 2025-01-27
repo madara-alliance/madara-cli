@@ -1,7 +1,31 @@
 services:
+  anvil:
+    image: anvil:latest
+    container_name: anvil
+    cpus: "4.0"
+    mem_limit: "16gb"
+    ports:
+      - "8545:8545"
+    command: /bin/bash -c "anvil --host 0.0.0.0 --block-time 10"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8545/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  core_contract_deployment:
+    image: anvil:latest
+    container_name: script_runner
+    working_dir: /app
+    entrypoint: /bin/bash
+    depends_on:
+      anvil:
+        condition: service_started
+    command: -c "./core_contract_deployment.sh"
+
   madara:
     image: madara:latest
-    container_name: madara_runner_app_chain
+    container_name: madara
     cpus: "4.0"
     mem_limit: "16gb"
     ports:
@@ -9,31 +33,32 @@ services:
       - "8080:8080"
     environment:
       - RPC_API_KEY_FILE=/run/secrets/rpc_api_key
+    depends_on:
+      core_contract_deployment:
+        condition: service_completed_successfully
     secrets:
       - rpc_api_key
     volumes:
       - /var/lib/madara:/tmp/madara
       - ./madara/madara-runner.sh:/usr/local/bin/runner.sh:ro
+      - ./madara/configs/presets:/usr/local/bin/configs/presets
     entrypoint:
       - /usr/local/bin/runner.sh
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9945/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
-    restart: on-failure:3
+    restart: unless-stopped
 
   pathfinder:
     image: pathfinder:latest
     pull_policy: never
-    container_name: pathfinder_runner_app_chain
+    container_name: pathfinder
     cpus: "4.0"
     mem_limit: "16gb"
     ports:
       - "9545:9545"
     environment:
       - RPC_API_KEY_FILE=/run/secrets/rpc_api_key
+    depends_on:
+      madara:
+        condition: service_started
     secrets:
       - rpc_api_key
     volumes:
@@ -41,15 +66,34 @@ services:
       - ./pathfinder/pathfinder-runner.sh:/usr/local/bin/runner.sh:ro
     entrypoint:
       - /usr/local/bin/runner.sh
+    restart: unless-stopped
 
-  autoheal:
-    image: willfarrell/autoheal:latest
-    container_name: autoheal_runner_cli
-    tty: true
-    restart: always
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /var/run/docker.sock:/var/run/docker.sock
+  mongodb:
+    image: mongo
+    ports:
+      - "27017:27017"
+    restart: unless-stopped
+    depends_on:
+      madara:
+        condition: service_started
+
+  localstack:
+    image: localstack/localstack@sha256:763947722c6c8d33d5fbf7e8d52b4bddec5be35274a0998fdc6176d733375314
+    ports:
+      - "4566:4566"
+    restart: unless-stopped
+    depends_on:
+      madara:
+        condition: service_started
+
+  mock-prover:
+    image: ocdbytes/mock-prover:latest
+    ports:
+      - "6000:6000"
+    container_name: mock-prover
+    depends_on:
+      madara:
+        condition: service_started
 
 secrets:
   rpc_api_key:
