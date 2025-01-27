@@ -2,6 +2,7 @@ mod commands;
 
 mod constants;
 use clap::{Parser, Subcommand};
+use cliclack::log;
 use madara_cli_common::config::{init_global_config, GlobalConfig};
 use madara_cli_config::madara::MadaraRunnerConfigMode;
 use xshell::Shell;
@@ -38,7 +39,8 @@ fn main() -> anyhow::Result<()> {
 
     match run_subcommand(args) {
         Ok(_) => Ok(()),
-        Err(_) => {
+        Err(e) => {
+            log::error(e.to_string())?;
             // TODO: add log with the error
             std::process::exit(1);
         }
