@@ -22,7 +22,7 @@ impl ProverRunnerConfig {
 
         let url = match prover {
             ProverType::Dummy => "".to_string(),
-            ProverType::Atlantic => Prompt::new("Input Atlantic proover API key:").ask(),
+            ProverType::Atlantic => Prompt::new("Input Atlantic prover API key:").ask(),
             ProverType::Stone => panic!("Stone prover is not supported yet"),
         };
 

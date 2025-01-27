@@ -3,8 +3,8 @@ use madara_cli_common::{Prompt, PromptSelect};
 use strum::{EnumIter, IntoEnumIterator};
 
 const DEFAULT_CHAIN_ID: &str = "MADARA_DEVNET";
-const DEFAULT_GATEWAY_URL: &str = "http://localhost:8080/gateway";
-const DEFAULT_FEEDER_GATEWAY_URL: &str = "http://localhost:8080/feeder_gateway";
+const DEFAULT_GATEWAY_URL: &str = "http://madara:8080/gateway";
+const DEFAULT_FEEDER_GATEWAY_URL: &str = "http://madara:8080/feeder_gateway";
 const DEFAULT_HTTP_RPC: &str = "127.0.0.1:9545";
 const DEFAULT_DATA_DIRECTORY: &str = "/usr/share/pathfinder/data";
 

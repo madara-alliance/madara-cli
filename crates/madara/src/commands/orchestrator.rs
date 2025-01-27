@@ -18,7 +18,7 @@ pub fn run(_shell: &Shell) -> anyhow::Result<()> {
 
     let services: String = vec!["Madara", "SNOS", "Prover", "Pathfinder", "Anvil"]
         .iter()
-        .map(|arg| format!("  ✅ {}", arg)) // You can replace "✅" with other emojis like "☑️" or custom checkboxes
+        .map(|arg| format!("  ✔ {}", arg))
         .collect::<Vec<_>>()
         .join("\n");
     logger::note("AppChain configuration", services);
@@ -37,7 +37,7 @@ pub fn run(_shell: &Shell) -> anyhow::Result<()> {
     commands::pathfinder::parse_params(&args_pathfinder)?;
 
     // Collect Prover configuration
-    let _args_proover = ProverRunnerConfig::default().fill_values_with_prompt()?;
+    let _args_prover = ProverRunnerConfig::default().fill_values_with_prompt()?;
 
     // Spin up all the necessary services
     let shell = Shell::new().unwrap();
