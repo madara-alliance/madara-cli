@@ -172,33 +172,26 @@ fn parse_sequencer_params(
     mode: &MadaraMode,
     params: &MadaraRunnerConfigSequencer,
 ) -> anyhow::Result<Vec<String>> {
-    // TODO: handle optional params.
-    let db_path = params
-        .base_path
+    let chain_config_path = params
+        .chain_config_path
         .clone()
-        .expect("Base path must be already set");
+        .expect("Chain config file must be set");
 
-    let preset = params.preset.clone().expect("Preset must be already set");
-    let preset_path = if preset.preset_type == MadaraPresetType::Custom {
-        preset.path.expect("Preset path must be set")
-    } else {
-        preset.preset_type.to_string().to_lowercase()
-    };
-
+    // TODO: handle optional params.
     let devnet_params = vec![
         format!("--name {}", name),
         format!("--{}", mode).to_lowercase(),
-        format!("--base-path {}", db_path),
-        format!("--preset {}", preset_path),
+        "--base-path /usr/share/madara/data".to_string(),
+        format!("--chain-config-path {}", chain_config_path),
         "--feeder-gateway-enable".to_string(),
         "--gateway-enable".to_string(),
         "--gateway-external".to_string(),
         "--rpc-port 9945".to_string(),
         "--rpc-cors \"*\"".to_string(),
-        "--gas-price 0".to_string(),
-        "--blob-gas-price 0".to_string(),
-        "--no-l1-sync".to_string(),
-        // "--l1-endpoint $RPC_API_KEY".to_string(),
+        "--gas-price 10".to_string(),
+        "--blob-gas-price 20".to_string(),
+        "--gateway-port 8080".to_string(),
+        "--l1-endpoint http://anvil:8545".to_string(),
     ];
 
     Ok(devnet_params)
