@@ -38,10 +38,7 @@ fn pathfinder_build_image(shell: &Shell) -> anyhow::Result<()> {
 }
 
 fn pathfinder_run(args: PathfinderRunnerConfigMode, shell: &Shell) -> anyhow::Result<()> {
-    let runner_params = parse_params(&args)?;
-
-    let runner_script_path = &format!("{}/{}", PATHFINDER_REPO_PATH, PATHFINDER_RUNNER_SCRIPT);
-    create_runner_script(runner_params, runner_script_path)?;
+    parse_params(&args)?;
 
     let compose_file = format!("{}/{}", PATHFINDER_REPO_PATH, PATHFINDER_COMPOSE_FILE);
     docker::up(shell, &compose_file, false)
@@ -83,7 +80,7 @@ fn create_runner_script(params: Vec<String>, output_path: &str) -> anyhow::Resul
     Ok(())
 }
 
-fn parse_params(params: &PathfinderRunnerConfigMode) -> anyhow::Result<Vec<String>> {
+pub fn parse_params(params: &PathfinderRunnerConfigMode) -> anyhow::Result<()> {
     // TODO: handle optional params.
     let (network, chain_id, gateway_url, feeder_gateway_url, http_rpc, data_directory) =
         params.unwrap_all();
@@ -99,5 +96,8 @@ fn parse_params(params: &PathfinderRunnerConfigMode) -> anyhow::Result<Vec<Strin
         format!("--http-rpc {}", http_rpc),
     ];
 
-    Ok(pathfinder_params)
+    let runner_script_path = &format!("{}/{}", PATHFINDER_REPO_PATH, PATHFINDER_RUNNER_SCRIPT);
+    create_runner_script(pathfinder_params, runner_script_path)?;
+
+    Ok(())
 }

@@ -51,7 +51,7 @@ fn madara_run(shell: &Shell, args: MadaraRunnerConfigMode) -> anyhow::Result<()>
     docker::up(shell, &compose_file, false)
 }
 
-fn process_params(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
+pub fn process_params(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
     let mode = args.mode.expect("Mode must be already set");
 
     let runner_params = match &args.params {
