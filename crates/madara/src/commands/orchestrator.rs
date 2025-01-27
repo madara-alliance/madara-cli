@@ -2,6 +2,7 @@ use madara_cli_common::{docker, logger};
 use madara_cli_config::{
     madara::{MadaraRunnerConfigMode, MadaraRunnerConfigSequencer, MadaraRunnerParams},
     pathfinder::PathfinderRunnerConfigMode,
+    prover::ProverRunnerConfig,
 };
 use madara_cli_types::madara::MadaraMode;
 use xshell::Shell;
@@ -36,6 +37,7 @@ pub fn run(_shell: &Shell) -> anyhow::Result<()> {
     commands::pathfinder::parse_params(&args_pathfinder)?;
 
     // Collect Prover configuration
+    let _args_proover = ProverRunnerConfig::default().fill_values_with_prompt()?;
 
     // Spin up all the necessary services
     let shell = Shell::new().unwrap();
