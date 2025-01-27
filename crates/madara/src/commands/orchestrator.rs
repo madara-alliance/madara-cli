@@ -1,9 +1,15 @@
-use madara_cli_common::logger;
-use madara_cli_config::{madara::MadaraRunnerConfigMode, pathfinder::PathfinderRunnerConfigMode};
+use madara_cli_common::{docker, logger};
+use madara_cli_config::{
+    madara::{MadaraRunnerConfigMode, MadaraRunnerConfigSequencer, MadaraRunnerParams},
+    pathfinder::PathfinderRunnerConfigMode,
+};
 use madara_cli_types::madara::MadaraMode;
 use xshell::Shell;
 
-use crate::commands;
+use crate::{
+    commands,
+    constants::{DEPS_REPO_PATH, ORCHESTRATOR_COMPOSE_FILE},
+};
 
 pub fn run(_shell: &Shell) -> anyhow::Result<()> {
     logger::new_empty_line();
@@ -18,22 +24,27 @@ pub fn run(_shell: &Shell) -> anyhow::Result<()> {
 
     // Collect Madara configuration
     let args_madara = MadaraRunnerConfigMode {
+        name: "Madara".to_string(),
         mode: Some(MadaraMode::Sequencer),
-        ..Default::default()
-    };
-
-    let shell = Shell::new().unwrap();
-    commands::madara::run(args_madara, &shell)?;
+        params: MadaraRunnerParams::Sequencer(MadaraRunnerConfigSequencer::default()),
+    }
+    .fill_values_with_prompt()?;
+    commands::madara::process_params(&args_madara)?;
 
     // Collect Pathfinder configuration
-    let args_pathfinder = PathfinderRunnerConfigMode::default();
-    commands::pathfinder::run(args_pathfinder, &shell)?;
-
-    // Collect SNOS configuration
+    let args_pathfinder = PathfinderRunnerConfigMode::default().fill_values_with_prompt()?;
+    commands::pathfinder::parse_params(&args_pathfinder)?;
 
     // Collect Prover configuration
 
     // Spin up all the necessary services
+    let shell = Shell::new().unwrap();
+    run_orchestrator(&shell)?;
 
     Ok(())
+}
+
+fn run_orchestrator(shell: &Shell) -> anyhow::Result<()> {
+    let compose_file = format!("{}/{}", DEPS_REPO_PATH, ORCHESTRATOR_COMPOSE_FILE);
+    docker::up(shell, &compose_file, false)
 }

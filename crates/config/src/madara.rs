@@ -137,7 +137,7 @@ impl MadaraRunnerConfigSequencer {
 impl Default for MadaraRunnerConfigSequencer {
     fn default() -> Self {
         Self {
-            base_path: None,
+            base_path: Some("madara/data".to_string()),
             chain_config_path: Some("configs/presets/devnet.yaml".to_string()),
         }
     }
