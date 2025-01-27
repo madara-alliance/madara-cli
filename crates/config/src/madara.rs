@@ -4,7 +4,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use clap::{Parser, ValueEnum};
+use clap::{builder::Str, Parser, ValueEnum};
 use madara_cli_common::{Prompt, PromptSelect};
 use madara_cli_types::madara::{MadaraMode, MadaraNetwork};
 use strum::{EnumIter, IntoEnumIterator};
@@ -46,7 +46,7 @@ pub struct MadaraPreset {
 
 pub struct MadaraRunnerConfigSequencer {
     pub base_path: Option<String>,
-    pub preset: Option<MadaraPreset>,
+    pub chain_config_path: Option<String>,
     // l1_endpoint has to be set as environmental variable
 }
 
@@ -107,7 +107,7 @@ impl MadaraRunnerConfigDevnet {
     pub fn fill_values_with_prompt(mut self) -> anyhow::Result<MadaraRunnerConfigDevnet> {
         let base_path = self
             .base_path
-            .unwrap_or_else(|| Prompt::new("Input DB path:").default("./madara-db").ask());
+            .unwrap_or_else(|| Prompt::new("Input DB path:").default("madara/data").ask());
 
         Ok(MadaraRunnerConfigDevnet {
             base_path: Some(base_path),
@@ -119,26 +119,17 @@ impl MadaraRunnerConfigSequencer {
     pub fn fill_values_with_prompt(mut self) -> anyhow::Result<MadaraRunnerConfigSequencer> {
         let base_path = self
             .base_path
-            .unwrap_or_else(|| Prompt::new("Input DB path:").default("./madara-db").ask());
+            .unwrap_or_else(|| Prompt::new("Input DB path:").default("madara/data").ask());
 
-        let preset = self.preset.unwrap_or_else(|| {
-            let preset_type = PromptSelect::new("Select preset:", MadaraPresetType::iter()).ask();
-            let path = if preset_type == MadaraPresetType::Custom {
-                Some(
-                    Prompt::new("Select preset file path")
-                        .default(MADARA_PRESETS_PATH)
-                        .ask(),
-                )
-            } else {
-                None
-            };
-
-            MadaraPreset { preset_type, path }
+        let chain_config_path = self.chain_config_path.unwrap_or_else(|| {
+            Prompt::new("Input chain config path:")
+                .default("configs/presets/devnet.yaml")
+                .ask()
         });
 
         Ok(MadaraRunnerConfigSequencer {
             base_path: Some(base_path),
-            preset: Some(preset),
+            chain_config_path: Some(chain_config_path),
         })
     }
 }
@@ -147,7 +138,7 @@ impl Default for MadaraRunnerConfigSequencer {
     fn default() -> Self {
         Self {
             base_path: None,
-            preset: None,
+            chain_config_path: Some("configs/presets/devnet.yaml".to_string()),
         }
     }
 }
