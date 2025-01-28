@@ -10,8 +10,11 @@ pub const PATHFINDER_COMPOSE_FILE: &str = "compose.yaml";
 pub const ORCHESTRATOR_COMPOSE_FILE: &str = "compose.yaml";
 
 // Cairo-lang constants
-pub const CAIRO_LANG_DOCKER_IMAGE: &str = "cairo_lang";
+pub const CAIRO_LANG_DOCKER_IMAGE: &str = "cairo-lang";
 pub const CAIRO_LANG_COMPOSE_FILE: &str = "compose.yaml";
+
+// Anvil constants
+pub const ANVIL_DOCKER_IMAGE: &str = "anvil";
 
 // CLI messages
 // pub(super) const MSG_STARTING_CONTAINERS_SPINNER: &str = "Starting containers...";
@@ -26,6 +29,8 @@ pub const PATHFINDER_REPO_PATH: &str = "deps/pathfinder";
 pub const PATHFINDER_RUNNER_SCRIPT: &str = "pathfinder-runner.sh";
 
 pub const CAIRO_LANG_REPO_PATH: &str = "deps/cairo-lang";
+
+pub const ANVIL_REPO_PATH: &str = "deps/anvil";
 
 pub const DEPS_REPO_PATH: &str = "deps";
 

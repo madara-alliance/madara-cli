@@ -27,7 +27,7 @@ pub(crate) fn run(args: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result
         .context(MSG_ARGS_VALIDATOR_ERR)?;
 
     let spinner = Spinner::new(MSG_BUILDING_IMAGE_SPINNER);
-    madara_build_image(shell)?;
+    build_image(shell)?;
     spinner.finish();
 
     madara_run(shell, args)?;
@@ -35,7 +35,7 @@ pub(crate) fn run(args: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result
     Ok(())
 }
 
-fn madara_build_image(shell: &Shell) -> anyhow::Result<()> {
+pub fn build_image(shell: &Shell) -> anyhow::Result<()> {
     docker::build_image(
         shell,
         MADARA_REPO_PATH.to_string(),

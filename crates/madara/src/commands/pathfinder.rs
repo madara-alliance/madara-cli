@@ -21,7 +21,7 @@ pub fn run(args: PathfinderRunnerConfigMode, shell: &Shell) -> anyhow::Result<()
         .context(MSG_ARGS_VALIDATOR_ERR)?;
 
     let spinner = Spinner::new(MSG_BUILDING_IMAGE_SPINNER);
-    pathfinder_build_image(shell)?;
+    build_image(shell)?;
     spinner.finish();
 
     pathfinder_run(args, shell)?;
@@ -29,7 +29,7 @@ pub fn run(args: PathfinderRunnerConfigMode, shell: &Shell) -> anyhow::Result<()
     Ok(())
 }
 
-fn pathfinder_build_image(shell: &Shell) -> anyhow::Result<()> {
+pub fn build_image(shell: &Shell) -> anyhow::Result<()> {
     docker::build_image(
         shell,
         PATHFINDER_REPO_PATH.to_string(),

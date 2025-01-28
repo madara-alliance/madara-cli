@@ -1,4 +1,4 @@
-use madara_cli_common::{docker, logger, PromptConfirm};
+use madara_cli_common::{docker, logger, spinner::Spinner, PromptConfirm};
 use madara_cli_config::{
     madara::{MadaraRunnerConfigMode, MadaraRunnerConfigSequencer, MadaraRunnerParams},
     pathfinder::PathfinderRunnerConfigMode,
@@ -9,7 +9,7 @@ use xshell::Shell;
 
 use crate::{
     commands,
-    constants::{DEPS_REPO_PATH, ORCHESTRATOR_COMPOSE_FILE},
+    constants::{DEPS_REPO_PATH, MSG_BUILDING_IMAGE_SPINNER, ORCHESTRATOR_COMPOSE_FILE},
 };
 
 pub fn run(shell: &Shell) -> anyhow::Result<()> {
@@ -36,6 +36,9 @@ pub fn run(shell: &Shell) -> anyhow::Result<()> {
     let rebuild = PromptConfirm::new("Rebuild OS?").ask();
     commands::os::build_os(shell, rebuild)?;
 
+    // Build all images
+    build_images(shell)?;
+
     // Spin up all the necessary services
     run_orchestrator(&shell)?;
 
@@ -45,4 +48,14 @@ pub fn run(shell: &Shell) -> anyhow::Result<()> {
 fn run_orchestrator(shell: &Shell) -> anyhow::Result<()> {
     let compose_file = format!("{}/{}", DEPS_REPO_PATH, ORCHESTRATOR_COMPOSE_FILE);
     docker::up(shell, &compose_file, false)
+}
+
+fn build_images(shell: &Shell) -> anyhow::Result<()> {
+    let spinner = Spinner::new(MSG_BUILDING_IMAGE_SPINNER);
+    commands::madara::build_image(shell)?;
+    commands::pathfinder::build_image(shell)?;
+    commands::anvil::build_image(shell)?;
+    spinner.finish();
+
+    Ok(())
 }
