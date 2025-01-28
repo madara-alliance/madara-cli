@@ -1,4 +1,4 @@
-use madara_cli_common::{docker, logger};
+use madara_cli_common::{docker, logger, PromptConfirm};
 use madara_cli_config::{
     madara::{MadaraRunnerConfigMode, MadaraRunnerConfigSequencer, MadaraRunnerParams},
     pathfinder::PathfinderRunnerConfigMode,
@@ -12,16 +12,9 @@ use crate::{
     constants::{DEPS_REPO_PATH, ORCHESTRATOR_COMPOSE_FILE},
 };
 
-pub fn run(_shell: &Shell) -> anyhow::Result<()> {
+pub fn run(shell: &Shell) -> anyhow::Result<()> {
     logger::new_empty_line();
     logger::intro();
-
-    let services: String = vec!["Madara", "SNOS", "Prover", "Pathfinder", "Anvil"]
-        .iter()
-        .map(|arg| format!("  ✔ {}", arg))
-        .collect::<Vec<_>>()
-        .join("\n");
-    logger::note("AppChain configuration", services);
 
     // Collect Madara configuration
     let args_madara = MadaraRunnerConfigMode {
@@ -39,8 +32,11 @@ pub fn run(_shell: &Shell) -> anyhow::Result<()> {
     // Collect Prover configuration
     let _args_prover = ProverRunnerConfig::default().fill_values_with_prompt()?;
 
+    // Rebuild OS?
+    let rebuild = PromptConfirm::new("Rebuild OS?").ask();
+    commands::os::build_os(shell, rebuild)?;
+
     // Spin up all the necessary services
-    let shell = Shell::new().unwrap();
     run_orchestrator(&shell)?;
 
     Ok(())
