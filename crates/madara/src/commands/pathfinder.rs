@@ -47,14 +47,6 @@ fn pathfinder_run(args: PathfinderRunnerConfigMode, shell: &Shell) -> anyhow::Re
 fn create_runner_script(params: Vec<String>, output_path: &str) -> anyhow::Result<()> {
     let mut script = String::from("#!/bin/sh\n\n");
 
-    // Add check for RPC_API_KEY_FILE
-    script.push_str("if [ -f \"$RPC_API_KEY_FILE\" ]; then\n");
-    script.push_str("  export RPC_API_KEY=$(cat \"$RPC_API_KEY_FILE\")\n");
-    script.push_str("else\n");
-    script.push_str("  echo \"Error: RPC_API_KEY_FILE not found!\" >&2\n");
-    script.push_str("  exit 1\n");
-    script.push_str("fi\n\n");
-
     script.push_str("exec tini -- ./pathfinder \\\n");
 
     // Append Pathfinder parameters
@@ -88,7 +80,7 @@ pub fn parse_params(params: &PathfinderRunnerConfigMode) -> anyhow::Result<()> {
     let pathfinder_params = vec![
         format!("--network {}", network).to_lowercase(),
         format!("--chain-id {}", chain_id),
-        "--ethereum.url $RPC_API_KEY".to_string(),
+        "--ethereum.url http://anvil:8545".to_string(),
         format!("--gateway-url {}", gateway_url),
         format!("--feeder-gateway-url {}", feeder_gateway_url),
         "--storage.state-tries archive".to_string(),
