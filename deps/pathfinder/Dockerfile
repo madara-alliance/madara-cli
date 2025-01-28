@@ -3,7 +3,6 @@ FROM rust:slim-bookworm AS builder
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
-WORKDIR /pathfinder
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -22,14 +21,12 @@ RUN curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v28.3
     rm protoc-28.3-linux-x86_64.zip && \
     protoc --version
 
-# Copy the pathfinder source code
-COPY pathfinder/ .
 
-# Build the pathfinder binary
-RUN cargo build --release --locked --bin pathfinder
-
-# Verify binary presence
-RUN ls -la target/release
+# Clone and build Pathfinder
+RUN git clone https://github.com/Moonsong-Labs/pathfinder.git && \
+    cd pathfinder && \
+    git checkout notlesh/snos-requirements-2024-12-30 && \
+    cargo build --release --bin pathfinder
 
 # Stage 2: Create the runtime image
 FROM debian:bookworm-slim AS runtime
@@ -46,12 +43,10 @@ RUN groupadd --gid 1000 pathfinder && \
     useradd --no-log-init --uid 1000 --gid pathfinder --no-create-home pathfinder
 
 # Set up working directory
-# WORKDIR /usr/share/pathfinder
 WORKDIR /usr/local/bin
 COPY --from=builder /pathfinder/target/release/pathfinder /usr/local/bin/pathfinder
 
 # Set ownership and permissions
-# RUN chown -R pathfinder:pathfinder /usr/share/pathfinder
 RUN chown -R pathfinder:pathfinder /usr/local/bin/pathfinder
 USER pathfinder
 
