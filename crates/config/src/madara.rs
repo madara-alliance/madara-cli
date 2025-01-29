@@ -27,9 +27,6 @@ impl Default for MadaraRunnerConfigDevnet {
 pub struct MadaraRunnerConfigFullNode {
     pub base_path: Option<String>,
     pub network: Option<MadaraNetwork>,
-    pub rpc_port: Option<u16>,
-    pub rpc_cors: Option<String>,
-    pub rpc_external: Option<bool>,
 }
 
 impl MadaraRunnerConfigFullNode {
@@ -42,28 +39,9 @@ impl MadaraRunnerConfigFullNode {
             .network
             .unwrap_or_else(|| PromptSelect::new("Select Network:", MadaraNetwork::iter()).ask());
 
-        let rpc_port = self
-            .rpc_port
-            .unwrap_or_else(|| Prompt::new("Input RPC port:").default("9999").ask());
-
-        let rpc_cors = self.rpc_cors.unwrap_or_else(|| {
-            Prompt::new("Input RPC CORS allowed origins:")
-                .default("all")
-                .ask()
-        });
-
-        let rpc_external = self.rpc_external.unwrap_or_else(|| {
-            Confirm::new("Run RPC externally (on 0.0.0.0):")
-                .interact()
-                .unwrap()
-        });
-
         Ok(MadaraRunnerConfigFullNode {
             base_path: Some(base_path),
             network: Some(network),
-            rpc_port: Some(rpc_port),
-            rpc_cors: Some(rpc_cors),
-            rpc_external: Some(rpc_external),
         })
     }
 }

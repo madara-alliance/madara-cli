@@ -212,21 +212,13 @@ fn parse_full_node_params(
         Some(MadaraNetwork::Devnet) => "devnet",
         _ => panic!("A network is required"),
     };
-    let mut full_node_params = vec![
+    let full_node_params = vec![
         format!("--name {}", name),
         format!("--network {}", network),
         format!("--full"),
         format!("--base-path {}", db_path),
         "--l1-endpoint $RPC_API_KEY".to_string(),
     ];
-
-    if let Some(true) = &params.rpc_external {
-        full_node_params.push("--rpc-external".to_owned());
-    }
-
-    if let Some(rpc_cors) = &params.rpc_cors {
-        full_node_params.push(format!("--rpc-cors  {}", rpc_cors));
-    }
 
     Ok(full_node_params)
 }
