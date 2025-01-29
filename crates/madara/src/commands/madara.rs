@@ -186,6 +186,7 @@ fn parse_sequencer_params(
         "--feeder-gateway-enable".to_string(),
         "--gateway-enable".to_string(),
         "--gateway-external".to_string(),
+        "--rpc-external".to_string(),
         "--rpc-port 9945".to_string(),
         "--rpc-cors \"*\"".to_string(),
         "--gas-price 10".to_string(),
