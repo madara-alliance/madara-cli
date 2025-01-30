@@ -6,7 +6,7 @@ services:
     mem_limit: "16gb"
     ports:
       - "8545:8545"
-    command: /bin/bash -c "anvil --host 0.0.0.0 --block-time 10"
+    command: /bin/bash -c "anvil --host 0.0.0.0 --block-time 1"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8545/health" ]
       interval: 10s
@@ -22,7 +22,7 @@ services:
     depends_on:
       anvil:
         condition: service_started
-    command: -c "./core_contract_deployment.sh"
+    command: -c "sleep 5 && ./core_contract_deployment.sh"
 
   madara:
     image: madara:latest
