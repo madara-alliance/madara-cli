@@ -12,6 +12,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    attach: false
 
   core_contract_deployment:
     image: anvil:latest
@@ -77,6 +78,7 @@ services:
     entrypoint:
       - /usr/local/bin/runner.sh
     restart: unless-stopped
+    attach: false
 
   mongodb:
     image: mongo
@@ -86,6 +88,7 @@ services:
     depends_on:
       madara:
         condition: service_started
+    attach: false
 
   mongo-init:
     image: mongo
@@ -103,6 +106,7 @@ services:
     depends_on:
       madara:
         condition: service_started
+    attach: false
 
   mock-prover:
     image: ocdbytes/mock-prover:latest
@@ -112,6 +116,7 @@ services:
     depends_on:
       madara:
         condition: service_started
+    attach: false
 
 secrets:
   rpc_api_key:
