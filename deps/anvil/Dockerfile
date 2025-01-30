@@ -28,6 +28,7 @@ WORKDIR /app
 COPY MockGPSVerifier.sol /app/
 COPY Starknet.json /app/
 COPY core_contract_deployment.sh /app/
+COPY madara_state_update.sh /app/
 
 # Set the entrypoint
 CMD ["bash"]

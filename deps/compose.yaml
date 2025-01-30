@@ -15,7 +15,7 @@ services:
 
   core_contract_deployment:
     image: anvil:latest
-    container_name: script_runner
+    container_name: core_contract_deployment
     working_dir: /app
     entrypoint: /bin/bash
     depends_on:
@@ -45,6 +45,16 @@ services:
     entrypoint:
       - /usr/local/bin/runner.sh
     restart: unless-stopped
+
+  madara_state_update:
+    image: anvil:latest
+    container_name: state_update
+    working_dir: /app
+    entrypoint: /bin/bash
+    depends_on:
+      madara:
+        condition: service_started
+    command: -c "./madara_state_update.sh"
 
   pathfinder:
     image: pathfinder:latest
