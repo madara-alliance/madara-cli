@@ -1,8 +1,10 @@
 mod commands;
 
 mod constants;
+
 use clap::{Parser, Subcommand};
 use cliclack::log;
+use commands::workspace_dir;
 use madara_cli_common::config::{init_global_config, GlobalConfig};
 use madara_cli_config::madara::MadaraRunnerConfigMode;
 use xshell::Shell;
@@ -48,6 +50,7 @@ fn main() -> anyhow::Result<()> {
 
 fn run_subcommand(madara_args: Madara) -> anyhow::Result<()> {
     let shell = Shell::new().unwrap();
+    shell.change_dir(workspace_dir());
     init_global_config_inner(&shell, &madara_args.global)?;
 
     let args = MadaraRunnerConfigMode::default();

@@ -2,7 +2,7 @@ use std::fs::{self, create_dir_all, File, Permissions};
 
 use std::io::Write;
 use std::os::unix::fs::PermissionsExt;
-use std::path::Path;
+use std::path::PathBuf;
 
 use crate::constants::{
     MADARA_COMPOSE_FILE, MADARA_DOCKER_IMAGE, MADARA_REPO_PATH, MSG_BUILDING_IMAGE_SPINNER,
@@ -17,6 +17,8 @@ use madara_cli_config::madara::{
 };
 use madara_cli_types::madara::{MadaraMode, MadaraNetwork};
 use xshell::Shell;
+
+use super::workspace_dir;
 
 pub(crate) fn run(args: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result<()> {
     logger::info("Input Madara parameters...");
@@ -60,8 +62,10 @@ fn process_params(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
         MadaraRunnerParams::FullNode(params) => parse_full_node_params(&args.name, &mode, params),
     }?;
 
-    let runner_script_path = &format!("{}/{}", MADARA_REPO_PATH, MADARA_RUNNER_SCRIPT);
-    create_runner_script(mode, runner_params, runner_script_path)?;
+    let runner_script_path = workspace_dir()
+        .join(MADARA_REPO_PATH)
+        .join(MADARA_RUNNER_SCRIPT);
+    create_runner_script(mode, runner_params, &runner_script_path)?;
 
     Ok(())
 }
@@ -71,7 +75,7 @@ fn process_params(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
 fn create_runner_script(
     mode: MadaraMode,
     params: Vec<String>,
-    output_path: &str,
+    path: &PathBuf,
 ) -> anyhow::Result<()> {
     let mut script = String::from("#!/bin/sh\n\n");
 
@@ -102,7 +106,6 @@ fn create_runner_script(
     }
 
     // Dump config into madara-runner script
-    let path = Path::new(output_path);
     let mut file = File::create(&path)?;
     file.write_all(script.as_bytes())?;
 
@@ -114,7 +117,9 @@ fn create_runner_script(
 }
 
 fn check_secrets(mode: MadaraMode) -> anyhow::Result<()> {
-    let rpc_api_secret = Path::new(MADARA_REPO_PATH).join(MADARA_RPC_API_KEY_FILE);
+    let rpc_api_secret = workspace_dir()
+        .join(MADARA_REPO_PATH)
+        .join(MADARA_RPC_API_KEY_FILE);
 
     // Create .secrets and missing folders
     if let Some(parent) = rpc_api_secret.parent() {
@@ -221,4 +226,131 @@ fn parse_full_node_params(
     ];
 
     Ok(full_node_params)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::{
+        ffi::OsStr,
+        process::{Child, Command},
+        time::Duration,
+    };
+
+    use enigo::{Direction, Enigo, Key, Keyboard, Settings};
+    use rstest::rstest;
+
+    use crate::workspace_dir;
+
+    pub struct CommandTest {
+        child: Child,
+        enigo: Enigo,
+    }
+
+    impl CommandTest {
+        pub fn new<S: AsRef<OsStr>>(command: &str, args: Vec<S>) -> anyhow::Result<Self> {
+            let _ = std::process::Command::new(env!("CARGO"))
+                .arg("build")
+                .arg(command)
+                .output()
+                .unwrap();
+            let bin = workspace_dir().join("target/debug").join(command);
+            let child = Command::new(bin)
+                .args(args)
+                .spawn()
+                .expect("Failed to start process");
+            let _ = std::process::Command::new("docker")
+                .arg("stop")
+                .arg("madara_runner")
+                .output()
+                .unwrap();
+            let _ = std::process::Command::new("docker")
+                .arg("rm")
+                .arg("madara_runner")
+                .output()
+                .unwrap();
+            let enigo = Enigo::new(&Settings::default()).unwrap();
+
+            Ok(Self { child, enigo })
+        }
+
+        // Simulate keypress
+        pub fn press_key(&mut self, key: Key) {
+            std::thread::sleep(Duration::from_millis(200));
+            self.enigo.key(key, Direction::Click).unwrap();
+        }
+
+        pub fn type_text(&mut self, text: &str) {
+            std::thread::sleep(Duration::from_millis(200));
+            for c in text.chars() {
+                std::thread::sleep(Duration::from_millis(200));
+                self.press_key(Key::Unicode(c));
+            }
+        }
+
+        pub fn wait_for_status(&mut self, status: &str) -> anyhow::Result<()> {
+            fn get_container_status() -> String {
+                let output = std::process::Command::new("docker")
+                    .arg("inspect")
+                    .arg("--format='{{.State.Status}}'")
+                    .arg("madara_runner")
+                    .output()
+                    .unwrap();
+                let binding = String::from_utf8_lossy(&output.stdout);
+                let string = binding.trim();
+                let first_last_off: &str = &string[1..string.len() - 1];
+                first_last_off.to_owned()
+            }
+            loop {
+                std::thread::sleep(Duration::from_millis(1000));
+                let c_status = get_container_status();
+                let is_valid = c_status == status;
+                if is_valid {
+                    self.child.kill().unwrap();
+                    break;
+                }
+                if c_status == "exited" {
+                    self.child.kill().unwrap();
+                    panic!("Unexpected container exit")
+                }
+            }
+            Ok(())
+        }
+    }
+
+    impl Drop for CommandTest {
+        fn drop(&mut self) {
+            self.child.kill().unwrap();
+            let _ = std::process::Command::new("docker")
+                .arg("stop")
+                .arg("madara_runner")
+                .output()
+                .unwrap();
+        }
+    }
+
+    #[rstest]
+    // #[timeout(Duration::from_secs(60))]
+    fn test_madara_devnet_create() {
+        let mut command = CommandTest::new("madara", vec!["create"]).unwrap();
+        command.press_key(enigo::Key::Return); // Select the first option (DEVNET)
+        command.type_text("tmp_devnet_db"); // Select the custom DB
+        command.press_key(enigo::Key::Return); // Start the process
+        command.wait_for_status("running").unwrap();
+    }
+
+    #[rstest]
+    // #[timeout(Duration::from_secs(120))]
+    #[should_panic]
+    fn test_madara_full_node_create() {
+        let mut command = CommandTest::new("madara", vec!["create"]).unwrap();
+        command.press_key(enigo::Key::DownArrow); // Scroll to FullNode
+        command.press_key(enigo::Key::DownArrow); // Scroll to FullNode
+        command.press_key(enigo::Key::Return); // Start the process
+        command.type_text("tmp_full"); // Select the custom DB
+
+        command.press_key(enigo::Key::Return); // Start the process
+        command.press_key(enigo::Key::Return); // Start the process
+
+        let _output = command.wait_for_status("running").unwrap();
+    }
 }

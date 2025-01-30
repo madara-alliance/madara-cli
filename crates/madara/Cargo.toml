@@ -17,3 +17,8 @@ lazy_static.workspace = true
 thiserror.workspace = true
 xshell.workspace = true
 strum.workspace = true
+
+
+[dev-dependencies]
+rstest = "0.24.0"
+enigo = "0.3.0"

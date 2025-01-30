@@ -1,0 +1,24 @@
+name: Task - Run Command Integration tests
+
+on:
+  workflow_dispatch:
+  workflow_call:
+  pull_request:
+
+jobs:
+  rust_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "cache"
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.81
+
+      - name: Run integration tests
+        run: |
+          cargo test -p madara -- --test-threads=1
+        env:
+          PROPTEST_CASES: 2
