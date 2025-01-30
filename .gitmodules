@@ -1,3 +1,6 @@
 [submodule "deps/madara"]
 	path = deps/madara
 	url = git@github.com:madara-alliance/madara.git
+[submodule "deps/madara-orchestrator"]
+	path = deps/madara-orchestrator
+	url = git@github.com:madara-alliance/madara-orchestrator.git
