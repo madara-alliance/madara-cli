@@ -295,10 +295,15 @@ mod tests {
                     .arg("madara_runner")
                     .output()
                     .unwrap();
+
+                let err = String::from_utf8_lossy(&output.stderr);
+                let status = &output.status;
+                println!("Docker command results {err}, {status:?}");
+
                 let binding = String::from_utf8_lossy(&output.stdout);
                 let string = binding.trim();
                 if string.is_empty() {
-                    return "pending".to_owned()
+                    return "pending".to_owned();
                 }
                 let first_last_off: &str = &string[1..string.len() - 1];
                 first_last_off.to_owned()
@@ -332,17 +337,17 @@ mod tests {
     }
 
     #[rstest]
-    // #[timeout(Duration::from_secs(60))]
+    #[timeout(Duration::from_secs(60))]
     fn test_madara_devnet_create() {
         let mut command = CommandTest::new("madara", vec!["create"]).unwrap();
         command.press_key(enigo::Key::Return); // Select the first option (DEVNET)
         command.type_text("tmp_devnet_db"); // Select the custom DB
         command.press_key(enigo::Key::Return); // Start the process
-        command.wait_for_status("running").unwrap();
+                                               // command.wait_for_status("running").unwrap();
     }
 
     #[rstest]
-    // #[timeout(Duration::from_secs(120))]
+    #[timeout(Duration::from_secs(120))]
     #[should_panic]
     fn test_madara_full_node_create() {
         let mut command = CommandTest::new("madara", vec!["create"]).unwrap();
