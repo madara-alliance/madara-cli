@@ -38,7 +38,6 @@ pub(crate) fn run(args: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result
 }
 
 fn madara_build_image(shell: &Shell) -> anyhow::Result<()> {
-    panic!("Called Build Image");
     docker::build_image(
         shell,
         MADARA_REPO_PATH.to_string(),
