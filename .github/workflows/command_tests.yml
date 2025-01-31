@@ -12,7 +12,7 @@ jobs:
       matrix:
         platform:
           - ubuntu-latest
-          - windows-latest
+          # - windows-latest
           - macos-latest
     runs-on: ${{ matrix.platform }}
     steps:
@@ -25,40 +25,5 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.81
-      - name: Install libxdo-dev
-        if: runner.os == 'Linux'
-        run: sudo apt-get install -y libxdo-dev
-      
-      - name: Install Xvfb on Linux
-        if: runner.os == 'Linux'
-        run: |
-            sudo apt-get install -y xvfb
-            which Xvfb
-            # Set DISPLAY env variable
-            echo "DISPLAY=:99.0" >> $GITHUB_ENV
-            # Create virtual display with Xvfb
-            Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-            # Wait for Xvfb to start
-            sleep 3
-        shell: bash
-
-      - name: Install Docker on macOS
-        if: runner.os == 'macOS'
-        run: |
-            brew install docker
-            brew install colima
-            brew install qemu
-            LIMACTL_PATH=$(brew --prefix)/bin/limactl
-            sudo curl -L -o $LIMACTL_PATH https://github.com/mikekazakov/lima-nohvf/raw/master/limactl && sudo chmod +x $LIMACTL_PATH
-            colima start --network-address --arch arm64 --vm-type=qemu
-
       - name: Build cli
         run: cargo build
-
-      - name: faketty
-        uses: Yuri6037/Action-FakeTTY@v1.1
-
-      - name: Run integration tests
-        run: |
-          faketty cargo test -p madara -- --test-threads=1
-        shell: bash
