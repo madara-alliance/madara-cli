@@ -225,6 +225,8 @@ fn parse_full_node_params(
         "--l1-endpoint $RPC_API_KEY".to_string(),
     ];
 
+    println!("Got PARAMS: {full_node_params:?}");
+
     Ok(full_node_params)
 }
 
