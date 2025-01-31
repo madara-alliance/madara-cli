@@ -37,8 +37,10 @@ jobs:
       - name: Build cli
         run: cargo build
 
-      - name: Run integration tests
+      - name: faketty
         uses: Yuri6037/Action-FakeTTY@v1.1
+
+      - name: Run integration tests
         run: |
-          cargo test -p madara -- --test-threads=1
+          faketty cargo test -p madara -- --test-threads=1
         shell: bash
