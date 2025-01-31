@@ -12,6 +12,9 @@ use crate::{
     constants::{DEPS_REPO_PATH, MSG_BUILDING_IMAGE_SPINNER, ORCHESTRATOR_COMPOSE_FILE},
 };
 
+pub const ORCHESTRATOR_REPO_PATH: &str = "deps/orchestrator";
+pub const ORCHESTRATOR_DOCKER_IMAGE: &str = "orchestrator";
+
 pub fn run(shell: &Shell) -> anyhow::Result<()> {
     logger::new_empty_line();
     logger::intro();
@@ -55,7 +58,18 @@ fn build_images(shell: &Shell) -> anyhow::Result<()> {
     commands::madara::build_image(shell)?;
     commands::pathfinder::build_image(shell)?;
     commands::anvil::build_image(shell)?;
+    build_image(shell)?;
     spinner.finish();
+
+    Ok(())
+}
+
+fn build_image(shell: &Shell) -> anyhow::Result<()> {
+    docker::build_image(
+        shell,
+        ORCHESTRATOR_REPO_PATH.to_string(),
+        ORCHESTRATOR_DOCKER_IMAGE.to_string(),
+    )?;
 
     Ok(())
 }
