@@ -297,6 +297,9 @@ mod tests {
                     .unwrap();
                 let binding = String::from_utf8_lossy(&output.stdout);
                 let string = binding.trim();
+                if string.is_empty() {
+                    return "pending".to_owned()
+                }
                 let first_last_off: &str = &string[1..string.len() - 1];
                 first_last_off.to_owned()
             }
