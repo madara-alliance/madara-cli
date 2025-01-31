@@ -42,6 +42,10 @@ jobs:
             sleep 3
         shell: bash
 
+      - name: Install Docker on macOS
+        if: runner.os == 'macOS'
+        run: brew install docker
+
       - name: Build cli
         run: cargo build
 
