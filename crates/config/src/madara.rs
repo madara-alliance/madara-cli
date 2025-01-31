@@ -33,7 +33,7 @@ impl MadaraRunnerConfigFullNode {
     pub fn fill_values_with_prompt(mut self) -> anyhow::Result<MadaraRunnerConfigFullNode> {
         let base_path = self
             .base_path
-            .unwrap_or_else(|| Prompt::new("Input DB path:").default("./madara-db").ask());
+            .unwrap_or_else(|| Prompt::new("Input DB path:").default("./madara-fullnode-db").ask());
 
         let network = self
             .network
@@ -128,7 +128,7 @@ impl MadaraRunnerConfigDevnet {
     pub fn fill_values_with_prompt(mut self) -> anyhow::Result<MadaraRunnerConfigDevnet> {
         let base_path = self
             .base_path
-            .unwrap_or_else(|| Prompt::new("Input DB path:").default("./madara-db").ask());
+            .unwrap_or_else(|| Prompt::new("Input DB path:").default("./madara-devnet-db").ask());
 
         Ok(MadaraRunnerConfigDevnet {
             base_path: Some(base_path),
@@ -140,7 +140,7 @@ impl MadaraRunnerConfigSequencer {
     pub fn fill_values_with_prompt(mut self) -> anyhow::Result<MadaraRunnerConfigSequencer> {
         let base_path = self
             .base_path
-            .unwrap_or_else(|| Prompt::new("Input DB path:").default("./madara-db").ask());
+            .unwrap_or_else(|| Prompt::new("Input DB path:").default("./madara-sequencer-db").ask());
 
         let preset = self.preset.unwrap_or_else(|| {
             let preset_type = PromptSelect::new("Select preset:", MadaraPresetType::iter()).ask();
