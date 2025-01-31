@@ -40,5 +40,4 @@ jobs:
       - name: Run integration tests
         run: |
           cargo test -p madara -- --test-threads=1
-        env:
-          PROPTEST_CASES: 2
+        shell: bash
