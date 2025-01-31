@@ -348,7 +348,6 @@ mod tests {
 
     #[rstest]
     #[timeout(Duration::from_secs(120))]
-    #[should_panic]
     fn test_madara_full_node_create() {
         let mut command = CommandTest::new("madara", vec!["create"]).unwrap();
         command.press_key(enigo::Key::DownArrow); // Scroll to FullNode
