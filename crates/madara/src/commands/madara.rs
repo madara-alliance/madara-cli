@@ -343,7 +343,7 @@ mod tests {
         command.press_key(enigo::Key::Return); // Select the first option (DEVNET)
         command.type_text("tmp_devnet_db"); // Select the custom DB
         command.press_key(enigo::Key::Return); // Start the process
-                                               // command.wait_for_status("running").unwrap();
+        command.wait_for_status("running").unwrap();
     }
 
     #[rstest]
