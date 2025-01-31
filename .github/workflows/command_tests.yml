@@ -20,6 +20,19 @@ jobs:
           toolchain: 1.81
       - name: Install libxdo-dev
         run: sudo apt-get install -y libxdo-dev
+      
+      - name: Install Xvfb on Linux
+        if: runner.os == 'Linux'
+        run: |
+            sudo apt-get install -y xvfb
+            which Xvfb
+            # Set DISPLAY env variable
+            echo "DISPLAY=:99.0" >> $GITHUB_ENV
+            # Create virtual display with Xvfb
+            Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+            # Wait for Xvfb to start
+            sleep 3
+        shell: bash
 
       - name: Build cli
         run: cargo build
