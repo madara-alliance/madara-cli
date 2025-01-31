@@ -21,6 +21,9 @@ jobs:
       - name: Install libxdo-dev
         run: sudo apt-get install -y libxdo-dev
 
+      - name: Build cli
+        run: cargo build
+
       - name: Run integration tests
         run: |
           cargo test -p madara -- --test-threads=1
