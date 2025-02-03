@@ -3,31 +3,13 @@ use std::io::Write;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 
-use anyhow::Context;
-use madara_cli_common::{docker, logger, spinner::Spinner};
+use madara_cli_common::docker;
 use madara_cli_config::pathfinder::PathfinderRunnerConfigMode;
 use xshell::Shell;
 
-use crate::constants::{
-    MSG_ARGS_VALIDATOR_ERR, MSG_BUILDING_IMAGE_SPINNER, PATHFINDER_COMPOSE_FILE,
-    PATHFINDER_DOCKER_IMAGE, PATHFINDER_REPO_PATH, PATHFINDER_RUNNER_SCRIPT,
-};
-
-pub fn run(args: PathfinderRunnerConfigMode, shell: &Shell) -> anyhow::Result<()> {
-    logger::info("Input Pathfinder parameters...");
-
-    let args = args
-        .fill_values_with_prompt()
-        .context(MSG_ARGS_VALIDATOR_ERR)?;
-
-    let spinner = Spinner::new(MSG_BUILDING_IMAGE_SPINNER);
-    build_image(shell)?;
-    spinner.finish();
-
-    pathfinder_run(args, shell)?;
-
-    Ok(())
-}
+const PATHFINDER_DOCKER_IMAGE: &str = "pathfinder";
+const PATHFINDER_REPO_PATH: &str = "deps/pathfinder";
+const PATHFINDER_RUNNER_SCRIPT: &str = "pathfinder-runner.sh";
 
 pub fn build_image(shell: &Shell) -> anyhow::Result<()> {
     docker::build_image(
@@ -35,13 +17,6 @@ pub fn build_image(shell: &Shell) -> anyhow::Result<()> {
         PATHFINDER_REPO_PATH.to_string(),
         PATHFINDER_DOCKER_IMAGE.to_string(),
     )
-}
-
-fn pathfinder_run(args: PathfinderRunnerConfigMode, shell: &Shell) -> anyhow::Result<()> {
-    parse_params(&args)?;
-
-    let compose_file = format!("{}/{}", PATHFINDER_REPO_PATH, PATHFINDER_COMPOSE_FILE);
-    docker::up(shell, &compose_file, false)
 }
 
 fn create_runner_script(params: Vec<String>, output_path: &str) -> anyhow::Result<()> {

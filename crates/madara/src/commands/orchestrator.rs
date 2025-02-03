@@ -9,11 +9,12 @@ use xshell::Shell;
 
 use crate::{
     commands,
-    constants::{DEPS_REPO_PATH, MSG_BUILDING_IMAGE_SPINNER, ORCHESTRATOR_COMPOSE_FILE},
+    constants::{DEPS_REPO_PATH, MSG_BUILDING_IMAGE_SPINNER},
 };
 
-pub const ORCHESTRATOR_REPO_PATH: &str = "deps/orchestrator";
-pub const ORCHESTRATOR_DOCKER_IMAGE: &str = "orchestrator";
+const ORCHESTRATOR_REPO_PATH: &str = "deps/orchestrator";
+const ORCHESTRATOR_DOCKER_IMAGE: &str = "orchestrator";
+const ORCHESTRATOR_COMPOSE_FILE: &str = "compose.yaml";
 
 pub fn run(shell: &Shell) -> anyhow::Result<()> {
     logger::new_empty_line();

@@ -1,10 +1,11 @@
 use madara_cli_common::{docker, spinner::Spinner};
 use xshell::Shell;
 
-use crate::constants::{
-    CAIRO_LANG_COMPOSE_FILE, CAIRO_LANG_DOCKER_IMAGE, CAIRO_LANG_REPO_PATH,
-    MSG_BUILDING_IMAGE_SPINNER,
-};
+use crate::constants::MSG_BUILDING_IMAGE_SPINNER;
+
+const CAIRO_LANG_REPO_PATH: &str = "deps/cairo-lang";
+const CAIRO_LANG_DOCKER_IMAGE: &str = "cairo-lang";
+const CAIRO_LANG_COMPOSE_FILE: &str = "compose.yaml";
 
 pub fn build_os(shell: &Shell, rebuild: bool) -> anyhow::Result<()> {
     // TODO: Check if OS file is present. If not, build image and copy OS anyways

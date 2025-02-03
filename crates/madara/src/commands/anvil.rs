@@ -1,7 +1,8 @@
 use madara_cli_common::docker;
 use xshell::Shell;
 
-use crate::constants::{ANVIL_DOCKER_IMAGE, ANVIL_REPO_PATH};
+const ANVIL_REPO_PATH: &str = "deps/anvil";
+const ANVIL_DOCKER_IMAGE: &str = "anvil";
 
 pub fn build_image(shell: &Shell) -> anyhow::Result<()> {
     docker::build_image(

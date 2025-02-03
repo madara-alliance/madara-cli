@@ -22,10 +22,29 @@ impl Default for MadaraRunnerConfigDevnet {
     }
 }
 
+#[derive(Debug, Default)]
 pub struct MadaraRunnerConfigFullNode {
-    network: MadaraNetwork,
-    rpc_external: bool,
-    l1_endpoint: Option<String>,
+    pub base_path: Option<String>,
+    pub network: Option<MadaraNetwork>,
+}
+
+impl MadaraRunnerConfigFullNode {
+    pub fn fill_values_with_prompt(mut self) -> anyhow::Result<MadaraRunnerConfigFullNode> {
+        let base_path = self.base_path.unwrap_or_else(|| {
+            Prompt::new("Input DB path:")
+                .default("./madara-fullnode-db")
+                .ask()
+        });
+
+        let network = self
+            .network
+            .unwrap_or_else(|| PromptSelect::new("Select Network:", MadaraNetwork::iter()).ask());
+
+        Ok(MadaraRunnerConfigFullNode {
+            base_path: Some(base_path),
+            network: Some(network),
+        })
+    }
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq, Default, EnumIter, strum::Display)]
@@ -92,6 +111,9 @@ impl MadaraRunnerConfigMode {
             MadaraMode::Sequencer => MadaraRunnerParams::Sequencer(
                 MadaraRunnerConfigSequencer::default().fill_values_with_prompt()?,
             ),
+            MadaraMode::FullNode => MadaraRunnerParams::FullNode(
+                MadaraRunnerConfigFullNode::default().fill_values_with_prompt()?,
+            ),
             _ => panic!("Not supported yet"),
         };
 
@@ -105,9 +127,11 @@ impl MadaraRunnerConfigMode {
 
 impl MadaraRunnerConfigDevnet {
     pub fn fill_values_with_prompt(mut self) -> anyhow::Result<MadaraRunnerConfigDevnet> {
-        let base_path = self
-            .base_path
-            .unwrap_or_else(|| Prompt::new("Input DB path:").default("madara/data").ask());
+        let base_path = self.base_path.unwrap_or_else(|| {
+            Prompt::new("Input DB path:")
+                .default("./madara-devnet-db")
+                .ask()
+        });
 
         Ok(MadaraRunnerConfigDevnet {
             base_path: Some(base_path),
@@ -117,9 +141,11 @@ impl MadaraRunnerConfigDevnet {
 
 impl MadaraRunnerConfigSequencer {
     pub fn fill_values_with_prompt(mut self) -> anyhow::Result<MadaraRunnerConfigSequencer> {
-        let base_path = self
-            .base_path
-            .unwrap_or_else(|| Prompt::new("Input DB path:").default("madara/data").ask());
+        let base_path = self.base_path.unwrap_or_else(|| {
+            Prompt::new("Input DB path:")
+                .default("./madara-sequencer-db")
+                .ask()
+        });
 
         let chain_config_path = self.chain_config_path.unwrap_or_else(|| {
             Prompt::new("Input chain config path:")

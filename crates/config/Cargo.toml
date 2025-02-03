@@ -19,3 +19,4 @@ madara_cli_types.workspace = true
 xshell.workspace = true
 thiserror.workspace = true
 strum.workspace = true
+serde.workspace = true
