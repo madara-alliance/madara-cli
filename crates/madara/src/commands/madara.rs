@@ -7,9 +7,9 @@ use std::path::PathBuf;
 use crate::constants::{
     MADARA_COMPOSE_FILE, MADARA_DOCKER_IMAGE, MADARA_REPO_PATH, MSG_BUILDING_IMAGE_SPINNER,
 };
-use crate::constants::{MADARA_RPC_API_KEY_FILE, MADARA_RUNNER_SCRIPT, MSG_ARGS_VALIDATOR_ERR};
+use crate::constants::{MADARA_RPC_API_KEY_FILE, MADARA_RUNNER_SCRIPT};
 
-use anyhow::{anyhow, Context};
+use anyhow::anyhow;
 use madara_cli_common::{docker, logger, spinner::Spinner};
 use madara_cli_config::compose::Compose;
 use madara_cli_config::madara::{
@@ -23,11 +23,6 @@ use super::workspace_dir;
 
 pub(crate) fn run(args: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result<()> {
     logger::info("Input Madara parameters...");
-
-    // let params = MadaraRunnerConfigMode::default();
-    let args = args
-        .fill_values_with_prompt()
-        .context(MSG_ARGS_VALIDATOR_ERR)?;
 
     let spinner = Spinner::new(MSG_BUILDING_IMAGE_SPINNER);
     madara_build_image(shell)?;
@@ -48,14 +43,12 @@ fn madara_build_image(shell: &Shell) -> anyhow::Result<()> {
 
 fn madara_run(shell: &Shell, args: MadaraRunnerConfigMode) -> anyhow::Result<()> {
     process_params(&args)?;
-    check_secrets(args.mode.expect("Mode must be already set"))?;
+    let mode = args.mode();
+    check_secrets(&mode)?;
 
     let default_file = format!("{}/{}", MADARA_REPO_PATH, MADARA_COMPOSE_FILE);
     let mut compose: Compose = serde_yml::from_slice(&fs::read(default_file)?)?;
-    let container_name = match args.mode {
-        Some(mode) => format!("madara-{}", mode.to_string().to_lowercase()),
-        None => unreachable!("A valid mode must be provided"),
-    };
+    let container_name = format!("madara-{}", mode.to_string().to_lowercase());
     let compose_file = format!("{}/{}.yaml", MADARA_REPO_PATH, container_name);
     compose.services.get_mut("madara").unwrap().container_name = Some(container_name);
 
@@ -65,8 +58,7 @@ fn madara_run(shell: &Shell, args: MadaraRunnerConfigMode) -> anyhow::Result<()>
 }
 
 fn process_params(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
-    let mode = args.mode.expect("Mode must be already set");
-
+    let mode = args.mode();
     let runner_params = match &args.params {
         MadaraRunnerParams::Devnet(params) => parse_devnet_params(&args.name, &mode, params),
         MadaraRunnerParams::Sequencer(params) => parse_sequencer_params(&args.name, &mode, params),
@@ -76,7 +68,7 @@ fn process_params(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
     let runner_script_path = workspace_dir()
         .join(MADARA_REPO_PATH)
         .join(MADARA_RUNNER_SCRIPT);
-    create_runner_script(mode, runner_params, &runner_script_path)?;
+    create_runner_script(&mode, runner_params, &runner_script_path)?;
 
     Ok(())
 }
@@ -84,7 +76,7 @@ fn process_params(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
 /// This will receive the necessary params to launch Madara and it'll overwrite `madara-runner.sh`,
 /// so it can be used by docker-compose file to spin up the node
 fn create_runner_script(
-    mode: MadaraMode,
+    mode: &MadaraMode,
     params: Vec<String>,
     path: &PathBuf,
 ) -> anyhow::Result<()> {
@@ -127,7 +119,7 @@ fn create_runner_script(
     Ok(())
 }
 
-fn check_secrets(mode: MadaraMode) -> anyhow::Result<()> {
+fn check_secrets(mode: &MadaraMode) -> anyhow::Result<()> {
     let rpc_api_secret = workspace_dir()
         .join(MADARA_REPO_PATH)
         .join(MADARA_RPC_API_KEY_FILE);
@@ -168,11 +160,7 @@ fn parse_devnet_params(
     mode: &MadaraMode,
     params: &MadaraRunnerConfigDevnet,
 ) -> anyhow::Result<Vec<String>> {
-    // TODO: handle optional params.
-    let db_path = params
-        .base_path
-        .clone()
-        .expect("Base path must be already set");
+    let db_path = &params.base_path;
 
     let devnet_params = vec![
         format!("--name {}", name),
@@ -190,16 +178,13 @@ fn parse_sequencer_params(
     params: &MadaraRunnerConfigSequencer,
 ) -> anyhow::Result<Vec<String>> {
     // TODO: handle optional params.
-    let db_path = params
-        .base_path
-        .clone()
-        .expect("Base path must be already set");
+    let db_path = &params.base_path;
 
-    let preset = params.preset.clone().expect("Preset must be already set");
+    let preset = &params.preset;
     let preset_path = if preset.preset_type == MadaraPresetType::Custom {
-        preset.path.expect("Preset path must be set")
+        preset.path.as_ref().expect("Preset path must be set")
     } else {
-        preset.preset_type.to_string().to_lowercase()
+        &preset.preset_type.to_string().to_lowercase()
     };
 
     let devnet_params = vec![
@@ -219,16 +204,12 @@ fn parse_full_node_params(
     _mode: &MadaraMode,
     params: &MadaraRunnerConfigFullNode,
 ) -> anyhow::Result<Vec<String>> {
-    let db_path = params
-        .base_path
-        .clone()
-        .expect("Base path must be already set");
+    let db_path = &params.base_path;
     let network = match params.network {
-        Some(MadaraNetwork::Mainnet) => "main",
-        Some(MadaraNetwork::Testnet) => "test",
-        Some(MadaraNetwork::Integration) => "integration",
-        Some(MadaraNetwork::Devnet) => "devnet",
-        _ => panic!("A network is required"),
+        MadaraNetwork::Mainnet => "main",
+        MadaraNetwork::Testnet => "test",
+        MadaraNetwork::Integration => "integration",
+        MadaraNetwork::Devnet => "devnet",
     };
     let full_node_params = vec![
         format!("--name {}", name),

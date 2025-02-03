@@ -1,4 +1,4 @@
-name: Task - Run Command Integration tests
+name: Task - Validate commands
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  rust_test:
+  test:
     strategy:
       fail-fast: false
       matrix:
@@ -27,3 +27,9 @@ jobs:
           toolchain: 1.81
       - name: Build cli
         run: cargo build
+      - name: Check devnet
+        run: cargo run -p madara create devnet
+      - name: Check sequencer
+        run: cargo run -p madara create sequencer --preset-type sepolia
+      - name: Check full-node
+        run: cargo run -p madara create full-node --network devnet
