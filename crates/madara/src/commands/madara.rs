@@ -178,6 +178,7 @@ fn parse_devnet_params(
         format!("--name {}", name),
         format!("--{}", mode).to_lowercase(),
         format!("--base-path {}", db_path),
+        "--rpc-external".to_string(),
     ];
 
     Ok(devnet_params)
@@ -207,6 +208,7 @@ fn parse_sequencer_params(
         format!("--base-path {}", db_path),
         format!("--preset {}", preset_path),
         "--l1-endpoint $RPC_API_KEY".to_string(),
+        "--rpc-external".to_string(),
     ];
 
     Ok(devnet_params)
