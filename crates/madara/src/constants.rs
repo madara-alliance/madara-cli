@@ -2,20 +2,6 @@
 pub const MADARA_DOCKER_IMAGE: &str = "madara";
 pub const MADARA_COMPOSE_FILE: &str = "compose.yaml";
 
-// Pathfinder constants
-pub const PATHFINDER_DOCKER_IMAGE: &str = "pathfinder";
-pub const PATHFINDER_COMPOSE_FILE: &str = "compose.yaml";
-
-// Orchestrator constants
-pub const ORCHESTRATOR_COMPOSE_FILE: &str = "compose.yaml";
-
-// Cairo-lang constants
-pub const CAIRO_LANG_DOCKER_IMAGE: &str = "cairo-lang";
-pub const CAIRO_LANG_COMPOSE_FILE: &str = "compose.yaml";
-
-// Anvil constants
-pub const ANVIL_DOCKER_IMAGE: &str = "anvil";
-
 // CLI messages
 // pub(super) const MSG_STARTING_CONTAINERS_SPINNER: &str = "Starting containers...";
 pub(super) const MSG_BUILDING_IMAGE_SPINNER: &str = "Building image...";

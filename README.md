@@ -9,4 +9,6 @@ This is a Command Line Interface (CLI) designed to simplify the process of setti
 
 By using this CLI, you can streamline the node setup process and get started with your Madara project quickly and efficiently.
 
-
+## Usage
+- git submodule update --init --recursive
+- cargo run create

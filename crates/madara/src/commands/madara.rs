@@ -13,8 +13,8 @@ use anyhow::{anyhow, Context};
 use madara_cli_common::Prompt;
 use madara_cli_common::{docker, logger, spinner::Spinner};
 use madara_cli_config::madara::{
-    MadaraPresetType, MadaraRunnerConfigDevnet, MadaraRunnerConfigMode,
-    MadaraRunnerConfigSequencer, MadaraRunnerParams,
+    MadaraRunnerConfigDevnet, MadaraRunnerConfigMode, MadaraRunnerConfigSequencer,
+    MadaraRunnerParams,
 };
 use madara_cli_types::madara::MadaraMode;
 use xshell::Shell;
@@ -136,8 +136,6 @@ fn check_secrets(mode: MadaraMode) -> anyhow::Result<()> {
         _ => {}
     }
 
-    // TODO: handle missing file for other modes
-
     Ok(())
 }
 
@@ -156,6 +154,7 @@ fn parse_devnet_params(
         format!("--name {}", name),
         format!("--{}", mode).to_lowercase(),
         format!("--base-path {}", db_path),
+        "--rpc-external".to_string(),
     ];
 
     Ok(devnet_params)
