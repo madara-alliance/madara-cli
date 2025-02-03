@@ -80,7 +80,9 @@ COPY --from=builder /usr/src/madara-orchestrator/migrations ./migrations
 
 # To be fixed by this https://github.com/keep-starknet-strange/snos/issues/404
 RUN mkdir -p /usr/local/cargo/git/checkouts/snos-59fe8329bb16fe65/662d170/crates/starknet-os/kzg
+RUN mkdir -p /usr/local/cargo/git/checkouts/snos-59fe8329bb16fe65/2c47281/crates/starknet-os/kzg
 COPY --from=builder /usr/src/madara-orchestrator/crates/da-clients/ethereum/trusted_setup.txt /usr/local/cargo/git/checkouts/snos-59fe8329bb16fe65/662d170/crates/starknet-os/kzg/trusted_setup.txt
+COPY --from=builder /usr/src/madara-orchestrator/crates/da-clients/ethereum/trusted_setup.txt /usr/local/cargo/git/checkouts/snos-59fe8329bb16fe65/2c47281/crates/starknet-os/kzg/trusted_setup.txt
 COPY --from=builder /usr/src/madara-orchestrator/crates/da-clients/ethereum/trusted_setup.txt /usr/src/madara-orchestrator/crates/settlement-clients/ethereum/src/trusted_setup.txt
 
 # COPY ./crates/da-clients/ethereum/trusted_setup.txt /usr/local/cargo/git/checkouts/snos-59fe8329bb16fe65/662d170/crates/starknet-os/kzg/trusted_setup.txt
