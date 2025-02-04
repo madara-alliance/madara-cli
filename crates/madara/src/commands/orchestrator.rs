@@ -1,10 +1,8 @@
-use madara_cli_common::{docker, logger, spinner::Spinner, PromptConfirm};
+use madara_cli_common::{docker, logger, spinner::Spinner};
 use madara_cli_config::{
-    madara::{MadaraRunnerConfigMode, MadaraRunnerConfigSequencer, MadaraRunnerParams},
-    pathfinder::PathfinderRunnerConfigMode,
+    madara::MadaraRunnerConfigMode, pathfinder::PathfinderRunnerConfigMode,
     prover::ProverRunnerConfig,
 };
-use madara_cli_types::madara::MadaraMode;
 use xshell::Shell;
 
 use crate::{
@@ -16,17 +14,11 @@ const ORCHESTRATOR_REPO_PATH: &str = "deps/orchestrator";
 const ORCHESTRATOR_DOCKER_IMAGE: &str = "orchestrator";
 const ORCHESTRATOR_COMPOSE_FILE: &str = "compose.yaml";
 
-pub fn run(shell: &Shell) -> anyhow::Result<()> {
+pub(crate) fn run(args_madara: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result<()> {
     logger::new_empty_line();
     logger::intro();
 
     // Collect Madara configuration
-    let args_madara = MadaraRunnerConfigMode {
-        name: "Madara".to_string(),
-        mode: Some(MadaraMode::Sequencer),
-        params: MadaraRunnerParams::Sequencer(MadaraRunnerConfigSequencer::default()),
-    }
-    .fill_values_with_prompt()?;
     commands::madara::process_params(&args_madara)?;
 
     // Collect Pathfinder configuration
@@ -35,10 +27,6 @@ pub fn run(shell: &Shell) -> anyhow::Result<()> {
 
     // Collect Prover configuration
     let _args_prover = ProverRunnerConfig::default().fill_values_with_prompt()?;
-
-    // Rebuild OS?
-    let rebuild = PromptConfirm::new("Rebuild OS?").ask();
-    commands::os::build_os(shell, rebuild)?;
 
     // Build all images
     build_images(shell)?;

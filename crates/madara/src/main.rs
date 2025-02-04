@@ -32,8 +32,6 @@ struct MadaraGlobalArgs {
 pub enum MadaraSubcommands {
     /// Create a Madara node
     Create,
-    /// Run Orchestrator ---> AppChain
-    Orchestrator,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -57,7 +55,6 @@ fn run_subcommand(madara_args: Madara) -> anyhow::Result<()> {
 
     match madara_args.command {
         MadaraSubcommands::Create => commands::madara::run(args, &shell),
-        MadaraSubcommands::Orchestrator => commands::orchestrator::run(&shell),
     }?;
 
     Ok(())

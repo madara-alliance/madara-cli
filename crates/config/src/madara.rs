@@ -73,6 +73,7 @@ pub enum MadaraRunnerParams {
     Devnet(MadaraRunnerConfigDevnet),
     Sequencer(MadaraRunnerConfigSequencer),
     FullNode(MadaraRunnerConfigFullNode),
+    AppChain(MadaraRunnerConfigSequencer),
 }
 
 impl Default for MadaraRunnerParams {
@@ -114,7 +115,9 @@ impl MadaraRunnerConfigMode {
             MadaraMode::FullNode => MadaraRunnerParams::FullNode(
                 MadaraRunnerConfigFullNode::default().fill_values_with_prompt()?,
             ),
-            _ => panic!("Not supported yet"),
+            MadaraMode::AppChain => {
+                MadaraRunnerParams::AppChain(MadaraRunnerConfigSequencer::default())
+            }
         };
 
         Ok(MadaraRunnerConfigMode {
