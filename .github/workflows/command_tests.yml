@@ -1,0 +1,29 @@
+name: Task - Run Command Integration tests
+
+on:
+  workflow_dispatch:
+  workflow_call:
+  pull_request:
+
+jobs:
+  rust_test:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - ubuntu-latest
+          # - windows-latest
+          - macos-latest
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "cache"
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.81
+      - name: Build cli
+        run: cargo build
