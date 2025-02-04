@@ -30,7 +30,6 @@ pub(crate) fn run(args: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result
         .context(MSG_ARGS_VALIDATOR_ERR)?;
 
     let mode = args.mode.expect("Mode must be already set");
-
     match mode {
         MadaraMode::AppChain => orchestrator::run(args, shell)?,
         _ => {
