@@ -1,3 +1,3 @@
+pub mod compose;
 pub mod constants;
 pub mod madara;
-pub mod compose;
