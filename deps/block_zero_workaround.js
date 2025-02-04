@@ -1,3 +1,8 @@
+// SNOS is unable to process block 0, so we need to manually add an entry to the database to simulate 
+// that block 0 has been settled into L1.
+// This is a necessary step to allow the orchestrator to continue processing blocks, 
+// as it would otherwise become stuck.
+
 db = connect("mongodb://mongodb:27017/orchestrator");
 
 db.jobs.insertOne({
