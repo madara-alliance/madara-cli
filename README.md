@@ -12,5 +12,3 @@ By using this CLI, you can streamline the node setup process and get started wit
 ## Usage
 - git submodule update --init --recursive
 - cargo run create
-
-
