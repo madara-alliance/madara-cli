@@ -25,11 +25,45 @@ jobs:
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.81
+      - name: Install Docker on macOS
+        if: runner.os == 'macOS'
+        run: |
+          brew install docker
+          brew install colima
+          colima start
       - name: Build cli
         run: cargo build
+
+      - name: Create health check script with timeout
+        run: |
+          echo '#!/bin/bash
+          CONTAINERNAME=$1
+          TIMEOUT=$2
+          INTERVAL=1
+          ELAPSED_TIME=0
+          until [ "$(docker inspect -f {{.State.Health.Status}} $CONTAINERNAME)" == "healthy" ]; do
+            if (( $(echo "$ELAPSED_TIME >= $TIMEOUT" | bc -l) )); then
+              echo "Timeout reached: Container $CONTAINERNAME did not become healthy within $TIMEOUT seconds."
+              exit 1
+            fi
+            sleep $INTERVAL
+            ELAPSED_TIME=$(echo "$ELAPSED_TIME + $INTERVAL" | bc -l)
+          done
+          echo "Container $CONTAINERNAME is healthy."
+          ' > /tmp/health_check.sh
+          chmod +x /tmp/health_check.sh
+
       - name: Check devnet
-        run: cargo run -p madara create devnet
+        run: |
+          cargo run -p madara create devnet &
+          /tmp/health_check.sh madara-devnet 300
+
       - name: Check sequencer
-        run: cargo run -p madara create sequencer --preset-type sepolia
+        run: |
+          cargo run -p madara create sequencer --preset-type sepolia
+          /tmp/health_check.sh madara-sequencer 300
+
       - name: Check full-node
-        run: cargo run -p madara create full-node --network devnet
+        run: |
+          cargo run -p madara create full-node --network devnet
+          /tmp/health_check.sh madara-devnet 300
