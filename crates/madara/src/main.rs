@@ -15,7 +15,7 @@ use xshell::Shell;
 #[command(about = "Madara CLI to easily spin up nodes")]
 struct Madara {
     #[command(subcommand)]
-    command: MadaraSubcommands,
+    command: Option<MadaraSubcommands>,
     #[clap(flatten)]
     global: MadaraGlobalArgs,
 }
@@ -31,14 +31,16 @@ struct MadaraGlobalArgs {
 #[derive(Subcommand, Debug)]
 pub enum MadaraSubcommands {
     /// Create a Madara node
-    Create,
+    Create {
+        #[clap(flatten)]
+        args: MadaraRunnerConfigMode,
+    },
     /// Run Orchestrator ---> AppChain
     Orchestrator,
 }
 
 fn main() -> anyhow::Result<()> {
     let args = Madara::parse();
-
     match run_subcommand(args) {
         Ok(_) => Ok(()),
         Err(e) => {
@@ -53,11 +55,14 @@ fn run_subcommand(madara_args: Madara) -> anyhow::Result<()> {
     shell.change_dir(workspace_dir());
     init_global_config_inner(&shell, &madara_args.global)?;
 
-    let args = MadaraRunnerConfigMode::default();
-
     match madara_args.command {
-        MadaraSubcommands::Create => commands::madara::run(args, &shell),
-        MadaraSubcommands::Orchestrator => commands::orchestrator::run(&shell),
+        Some(MadaraSubcommands::Create { args }) => commands::madara::run(args, &shell),
+        Some(MadaraSubcommands::Orchestrator) => commands::orchestrator::run(&shell),
+        None => {
+            log::info("No commands entered, switching to interactive mode...")?;
+            let args = MadaraRunnerConfigMode::fill_values_with_prompt()?;
+            commands::madara::run(args, &shell)
+        }
     }?;
 
     Ok(())

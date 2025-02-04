@@ -1,6 +1,5 @@
 use madara_cli_common::logger;
 use madara_cli_config::madara::MadaraRunnerConfigMode;
-use madara_cli_types::madara::MadaraMode;
 use xshell::Shell;
 
 use crate::commands;
@@ -17,10 +16,7 @@ pub fn run(_shell: &Shell) -> anyhow::Result<()> {
     logger::note("AppChain configuration", services);
 
     // Collect Madara configuration
-    let args_madara = MadaraRunnerConfigMode {
-        mode: Some(MadaraMode::Sequencer),
-        ..Default::default()
-    };
+    let args_madara = MadaraRunnerConfigMode::default();
 
     let shell = Shell::new().unwrap();
     commands::madara::run(args_madara, &shell)?;

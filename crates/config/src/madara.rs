@@ -1,10 +1,12 @@
 #![allow(unused)]
 use std::{
-    default,
     path::{Path, PathBuf},
+    default,
 };
 
-use clap::{Parser, ValueEnum};
+use clap::{
+    error::ErrorKind, ArgMatches, Args, Command, FromArgMatches, Parser, Subcommand, ValueEnum,
+};
 use cliclack::Confirm;
 use madara_cli_common::{Prompt, PromptSelect};
 use madara_cli_types::madara::{MadaraMode, MadaraNetwork};
@@ -12,40 +14,37 @@ use strum::{EnumIter, IntoEnumIterator};
 
 use crate::constants::MADARA_PRESETS_PATH;
 
-#[derive(Debug, Parser)]
+// ===============================
+// Struct Definitions
+// ===============================
+
+/// Configuration for Madara Devnet Runner
+#[derive(Debug, Parser, Clone)]
 pub struct MadaraRunnerConfigDevnet {
-    pub base_path: Option<String>,
+    #[arg(short, long, default_value = "./madara-devnet-db")]
+    pub base_path: String,
 }
 
-impl Default for MadaraRunnerConfigDevnet {
-    fn default() -> Self {
-        Self { base_path: None }
-    }
-}
-
-#[derive(Debug, Default)]
+/// Configuration for Madara Full Node Runner
+#[derive(Debug, Default, Clone, Parser)]
 pub struct MadaraRunnerConfigFullNode {
-    pub base_path: Option<String>,
-    pub network: Option<MadaraNetwork>,
+    #[arg(short, long, default_value = "./madara-fullnode-db")]
+    pub base_path: String,
+    #[arg(short, long)]
+    pub network: MadaraNetwork,
 }
 
-impl MadaraRunnerConfigFullNode {
-    pub fn fill_values_with_prompt(mut self) -> anyhow::Result<MadaraRunnerConfigFullNode> {
-        let base_path = self
-            .base_path
-            .unwrap_or_else(|| Prompt::new("Input DB path:").default("./madara-fullnode-db").ask());
-
-        let network = self
-            .network
-            .unwrap_or_else(|| PromptSelect::new("Select Network:", MadaraNetwork::iter()).ask());
-
-        Ok(MadaraRunnerConfigFullNode {
-            base_path: Some(base_path),
-            network: Some(network),
-        })
-    }
+/// Configuration for Madara Sequencer Runner
+#[derive(Debug, Clone, Parser)]
+pub struct MadaraRunnerConfigSequencer {
+    #[clap(flatten)]
+    pub preset: MadaraPreset,
+    #[arg(short, long, default_value = "./madara-sequencer-db")]
+    pub base_path: String,
+    // l1_endpoint has to be set as an environmental variable
 }
 
+/// Madara preset type (e.g., Sepolia, Mainnet, etc.)
 #[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq, Default, EnumIter, strum::Display)]
 pub enum MadaraPresetType {
     #[default]
@@ -56,93 +55,57 @@ pub enum MadaraPresetType {
     Custom,
 }
 
-#[derive(Clone)]
+/// Madara preset configuration (Type and optional path)
+#[derive(Debug, Clone, Args)]
 pub struct MadaraPreset {
+    #[arg(short, long)]
     pub preset_type: MadaraPresetType,
+    #[arg(long)]
     pub path: Option<String>,
 }
 
-pub struct MadaraRunnerConfigSequencer {
-    pub base_path: Option<String>,
-    pub preset: Option<MadaraPreset>,
-    // l1_endpoint has to be set as environmental variable
-}
-
+/// Enum representing all available Madara Runner configurations
+#[derive(Debug, Clone)]
 pub enum MadaraRunnerParams {
     Devnet(MadaraRunnerConfigDevnet),
     Sequencer(MadaraRunnerConfigSequencer),
     FullNode(MadaraRunnerConfigFullNode),
 }
 
-impl Default for MadaraRunnerParams {
-    fn default() -> Self {
-        Self::Devnet(MadaraRunnerConfigDevnet::default())
-    }
-}
-
+/// Configuration for Madara Runner mode (with selected parameters)
+#[derive(Debug, Clone, Args)]
 pub struct MadaraRunnerConfigMode {
+    #[arg(short, long, default_value = "Madara")]
     pub name: String,
-    pub mode: Option<MadaraMode>,
+    #[clap(subcommand)]
     pub params: MadaraRunnerParams,
 }
 
-impl Default for MadaraRunnerConfigMode {
-    fn default() -> Self {
-        Self {
-            name: String::new(),
-            mode: None,
-            params: MadaraRunnerParams::default(),
-        }
-    }
-}
+// ===============================
+// Implementations
+// ===============================
 
-impl MadaraRunnerConfigMode {
-    pub fn fill_values_with_prompt(mut self) -> anyhow::Result<MadaraRunnerConfigMode> {
-        let name = "Madara".to_string();
-        let mode = self
-            .mode
-            .unwrap_or_else(|| PromptSelect::new("Select Madara mode:", MadaraMode::iter()).ask());
+impl MadaraRunnerConfigFullNode {
+    /// Fill FullNode configuration using interactive prompts
+    pub fn fill_values_with_prompt() -> anyhow::Result<MadaraRunnerConfigFullNode> {
+        let base_path = Prompt::new("Input DB path:")
+            .default("./madara-fullnode-db")
+            .ask();
 
-        let params = match mode {
-            MadaraMode::Devnet => MadaraRunnerParams::Devnet(
-                MadaraRunnerConfigDevnet::default().fill_values_with_prompt()?,
-            ),
-            MadaraMode::Sequencer => MadaraRunnerParams::Sequencer(
-                MadaraRunnerConfigSequencer::default().fill_values_with_prompt()?,
-            ),
-            MadaraMode::FullNode => MadaraRunnerParams::FullNode(
-                MadaraRunnerConfigFullNode::default().fill_values_with_prompt()?,
-            ),
-            _ => panic!("Not supported yet"),
-        };
+        let network = PromptSelect::new("Select Network:", MadaraNetwork::iter()).ask();
 
-        Ok(MadaraRunnerConfigMode {
-            name: name,
-            mode: Some(mode),
-            params,
-        })
-    }
-}
-
-impl MadaraRunnerConfigDevnet {
-    pub fn fill_values_with_prompt(mut self) -> anyhow::Result<MadaraRunnerConfigDevnet> {
-        let base_path = self
-            .base_path
-            .unwrap_or_else(|| Prompt::new("Input DB path:").default("./madara-devnet-db").ask());
-
-        Ok(MadaraRunnerConfigDevnet {
-            base_path: Some(base_path),
-        })
+        Ok(MadaraRunnerConfigFullNode { base_path, network })
     }
 }
 
 impl MadaraRunnerConfigSequencer {
-    pub fn fill_values_with_prompt(mut self) -> anyhow::Result<MadaraRunnerConfigSequencer> {
-        let base_path = self
-            .base_path
-            .unwrap_or_else(|| Prompt::new("Input DB path:").default("./madara-sequencer-db").ask());
+    /// Fill Sequencer configuration using interactive prompts
+    pub fn fill_values_with_prompt() -> anyhow::Result<MadaraRunnerConfigSequencer> {
+        let base_path = Prompt::new("Input DB path:")
+            .default("./madara-sequencer-db")
+            .ask();
 
-        let preset = self.preset.unwrap_or_else(|| {
+        let preset = {
             let preset_type = PromptSelect::new("Select preset:", MadaraPresetType::iter()).ask();
             let path = if preset_type == MadaraPresetType::Custom {
                 Some(
@@ -155,20 +118,99 @@ impl MadaraRunnerConfigSequencer {
             };
 
             MadaraPreset { preset_type, path }
-        });
+        };
 
-        Ok(MadaraRunnerConfigSequencer {
-            base_path: Some(base_path),
-            preset: Some(preset),
-        })
+        Ok(MadaraRunnerConfigSequencer { base_path, preset })
     }
 }
 
-impl Default for MadaraRunnerConfigSequencer {
+impl MadaraRunnerConfigDevnet {
+    /// Fill Devnet configuration using interactive prompts
+    pub fn fill_values_with_prompt() -> anyhow::Result<MadaraRunnerConfigDevnet> {
+        let base_path = Prompt::new("Input DB path:")
+            .default("./madara-devnet-db")
+            .ask();
+
+        Ok(MadaraRunnerConfigDevnet { base_path })
+    }
+}
+
+impl MadaraRunnerConfigMode {
+    /// Retrieve MadaraMode from current configuration
+    pub fn mode(&self) -> MadaraMode {
+        match &self.params {
+            MadaraRunnerParams::Devnet(_) => MadaraMode::Devnet,
+            MadaraRunnerParams::Sequencer(_) => MadaraMode::Sequencer,
+            MadaraRunnerParams::FullNode(_) => MadaraMode::FullNode,
+        }
+    }
+
+    /// Fill MadaraRunnerConfigMode with prompts based on selected mode
+    pub fn fill_values_with_prompt() -> anyhow::Result<MadaraRunnerConfigMode> {
+        let name = "Madara".to_string();
+        let mode: MadaraMode = PromptSelect::new("Select Madara mode:", MadaraMode::iter()).ask();
+
+        let params = match mode {
+            MadaraMode::Devnet => MadaraRunnerParams::Devnet(MadaraRunnerConfigDevnet::fill_values_with_prompt()?),
+            MadaraMode::Sequencer => MadaraRunnerParams::Sequencer(MadaraRunnerConfigSequencer::fill_values_with_prompt()?),
+            MadaraMode::FullNode => MadaraRunnerParams::FullNode(MadaraRunnerConfigFullNode::fill_values_with_prompt()?),
+            _ => panic!("Not supported yet"),
+        };
+
+        Ok(MadaraRunnerConfigMode { name, params })
+    }
+}
+
+impl FromArgMatches for MadaraRunnerParams {
+    fn from_arg_matches(matches: &ArgMatches) -> Result<Self, clap::error::Error> {
+        match matches.subcommand() {
+            Some(("devnet", args)) => Ok(Self::Devnet(MadaraRunnerConfigDevnet::from_arg_matches(args)?)),
+            Some(("full-node", args)) => Ok(Self::FullNode(MadaraRunnerConfigFullNode::from_arg_matches(args)?)),
+            Some(("sequencer", args)) => Ok(Self::Sequencer(MadaraRunnerConfigSequencer::from_arg_matches(args)?)),
+            Some((_, _)) => Err(clap::error::Error::raw(ErrorKind::InvalidSubcommand, "Valid subcommands are `devnet`, `full-node` and `sequencer`")),
+            None => Err(clap::error::Error::raw(ErrorKind::MissingSubcommand, "Valid subcommands are `devnet`, `full-node` and `sequencer`")),
+        }
+    }
+
+    fn update_from_arg_matches(&mut self, matches: &ArgMatches) -> Result<(), clap::error::Error> {
+        match matches.subcommand() {
+            Some(("devnet", args)) => *self = Self::Devnet(MadaraRunnerConfigDevnet::from_arg_matches(args)?),
+            Some(("full-node", args)) => *self = Self::FullNode(MadaraRunnerConfigFullNode::from_arg_matches(args)?),
+            Some(("sequencer", args)) => *self = Self::Sequencer(MadaraRunnerConfigSequencer::from_arg_matches(args)?),
+            Some((_, _)) => return Err(clap::error::Error::raw(ErrorKind::InvalidSubcommand, "Valid subcommands are `devnet`, `full-node` and `sequencer`")),
+            None => (),
+        };
+        Ok(())
+    }
+}
+
+impl Subcommand for MadaraRunnerParams {
+    fn augment_subcommands(cmd: Command) -> Command {
+        cmd.subcommand(MadaraRunnerConfigDevnet::augment_args(Command::new("devnet")))
+            .subcommand(MadaraRunnerConfigFullNode::augment_args(Command::new("full-node")))
+            .subcommand(MadaraRunnerConfigSequencer::augment_args(Command::new("sequencer")))
+            .subcommand_required(true)
+    }
+
+    fn augment_subcommands_for_update(cmd: Command) -> Command {
+        cmd.subcommand(MadaraRunnerConfigDevnet::augment_args(Command::new("devnet")))
+            .subcommand(MadaraRunnerConfigFullNode::augment_args(Command::new("full-node")))
+            .subcommand(MadaraRunnerConfigSequencer::augment_args(Command::new("sequencer")))
+            .subcommand_required(true)
+    }
+
+    fn has_subcommand(name: &str) -> bool {
+        matches!(name, "devnet" | "full-node" | "sequencer")
+    }
+}
+
+impl Default for MadaraRunnerConfigMode {
     fn default() -> Self {
         Self {
-            base_path: None,
-            preset: None,
+            name: "Madara".to_owned(),
+            params: MadaraRunnerParams::Devnet(MadaraRunnerConfigDevnet {
+                base_path: "./madara-devnet-db".to_owned(),
+            }),
         }
     }
 }
