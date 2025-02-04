@@ -19,7 +19,7 @@ use madara_cli_config::madara::{
 use madara_cli_types::madara::{MadaraMode, MadaraNetwork};
 use xshell::Shell;
 
-use super::workspace_dir;
+use super::{orchestrator, workspace_dir};
 
 pub(crate) fn run(args: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result<()> {
     logger::info("Input Madara parameters...");
@@ -29,11 +29,18 @@ pub(crate) fn run(args: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result
         .fill_values_with_prompt()
         .context(MSG_ARGS_VALIDATOR_ERR)?;
 
-    let spinner = Spinner::new(MSG_BUILDING_IMAGE_SPINNER);
-    build_image(shell)?;
-    spinner.finish();
+    let mode = args.mode.expect("Mode must be already set");
 
-    madara_run(shell, args)?;
+    match mode {
+        MadaraMode::AppChain => orchestrator::run(args, shell)?,
+        _ => {
+            let spinner = Spinner::new(MSG_BUILDING_IMAGE_SPINNER);
+            build_image(shell)?;
+            spinner.finish();
+
+            madara_run(shell, args)?;
+        }
+    };
 
     Ok(())
 }
@@ -71,6 +78,7 @@ pub fn process_params(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
         MadaraRunnerParams::Devnet(params) => parse_devnet_params(&args.name, &mode, params),
         MadaraRunnerParams::Sequencer(params) => parse_sequencer_params(&args.name, &mode, params),
         MadaraRunnerParams::FullNode(params) => parse_full_node_params(&args.name, &mode, params),
+        MadaraRunnerParams::AppChain(params) => parse_appchain_params(&args.name, params),
     }?;
 
     let runner_script_path = workspace_dir()
@@ -195,7 +203,7 @@ fn parse_sequencer_params(
         .expect("Chain config file must be set");
 
     // TODO: handle optional params.
-    let devnet_params = vec![
+    let sequencer_params = vec![
         format!("--name {}", name),
         format!("--{}", mode).to_lowercase(),
         "--base-path /usr/share/madara/data".to_string(),
@@ -212,7 +220,7 @@ fn parse_sequencer_params(
         "--l1-endpoint http://anvil:8545".to_string(),
     ];
 
-    Ok(devnet_params)
+    Ok(sequencer_params)
 }
 
 fn parse_full_node_params(
@@ -241,4 +249,33 @@ fn parse_full_node_params(
     ];
 
     Ok(full_node_params)
+}
+
+fn parse_appchain_params(
+    name: &String,
+    params: &MadaraRunnerConfigSequencer,
+) -> anyhow::Result<Vec<String>> {
+    let chain_config_path = params
+        .chain_config_path
+        .clone()
+        .expect("Chain config file must be set");
+
+    let appchain_params = vec![
+        format!("--name {}", name),
+        "--sequencer".to_string(),
+        "--base-path /usr/share/madara/data".to_string(),
+        format!("--chain-config-path {}", chain_config_path),
+        "--feeder-gateway-enable".to_string(),
+        "--gateway-enable".to_string(),
+        "--gateway-external".to_string(),
+        "--rpc-external".to_string(),
+        "--rpc-port 9945".to_string(),
+        "--rpc-cors \"*\"".to_string(),
+        "--gas-price 10".to_string(),
+        "--blob-gas-price 20".to_string(),
+        "--gateway-port 8080".to_string(),
+        "--l1-endpoint http://anvil:8545".to_string(),
+    ];
+
+    Ok(appchain_params)
 }
