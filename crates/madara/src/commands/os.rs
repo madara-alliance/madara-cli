@@ -7,6 +7,7 @@ const CAIRO_LANG_REPO_PATH: &str = "deps/cairo-lang";
 const CAIRO_LANG_DOCKER_IMAGE: &str = "cairo-lang";
 const CAIRO_LANG_COMPOSE_FILE: &str = "compose.yaml";
 
+#[allow(unused)]
 pub fn build_os(shell: &Shell, rebuild: bool) -> anyhow::Result<()> {
     // TODO: Check if OS file is present. If not, build image and copy OS anyways
     if rebuild {

@@ -1,4 +1,4 @@
-use madara_cli_common::{docker, logger, spinner::Spinner, PromptConfirm};
+use madara_cli_common::{docker, logger, spinner::Spinner};
 use madara_cli_config::{
     madara::MadaraRunnerConfigMode, pathfinder::PathfinderRunnerConfigMode,
     prover::ProverRunnerConfig,
@@ -27,10 +27,6 @@ pub(crate) fn run(args_madara: MadaraRunnerConfigMode, shell: &Shell) -> anyhow:
 
     // Collect Prover configuration
     let _args_prover = ProverRunnerConfig::default().fill_values_with_prompt()?;
-
-    // Rebuild OS?
-    let rebuild = PromptConfirm::new("Rebuild OS?").ask();
-    commands::os::build_os(shell, rebuild)?;
 
     // Build all images
     build_images(shell)?;
