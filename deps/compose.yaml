@@ -32,13 +32,9 @@ services:
     ports:
       - "9945:9945"
       - "8080:8080"
-    environment:
-      - RPC_API_KEY_FILE=/run/secrets/rpc_api_key
     depends_on:
       core_contract_deployment:
         condition: service_completed_successfully
-    secrets:
-      - rpc_api_key
     volumes:
       - ./madara/data:/usr/share/madara/data
       - ./madara/madara-runner.sh:/usr/local/bin/runner.sh:ro
@@ -65,13 +61,9 @@ services:
     mem_limit: "16gb"
     ports:
       - "9545:9545"
-    environment:
-      - RPC_API_KEY_FILE=/run/secrets/rpc_api_key
     depends_on:
       madara:
         condition: service_started
-    secrets:
-      - rpc_api_key
     volumes:
       - ./pathfinder/data:/usr/share/pathfinder/data
       - ./pathfinder/pathfinder-runner.sh:/usr/local/bin/runner.sh:ro
@@ -134,7 +126,3 @@ services:
       madara:
         condition: service_started
     attach: false
-
-secrets:
-  rpc_api_key:
-    file: madara/.secrets/rpc_api.secret
