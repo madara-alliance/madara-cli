@@ -13,7 +13,7 @@ pub enum ProverType {
     #[default]
     Dummy,
     Atlantic,
-    Stone,
+    Stwo,
 }
 
 impl ProverRunnerConfig {
@@ -23,7 +23,7 @@ impl ProverRunnerConfig {
         let url = match prover {
             ProverType::Dummy => "".to_string(),
             ProverType::Atlantic => Prompt::new("Input Atlantic prover API key:").ask(),
-            ProverType::Stone => panic!("Stone prover is not supported yet"),
+            ProverType::Stwo => panic!("Stwo prover is not supported yet"),
         };
 
         Ok(ProverRunnerConfig { url })
