@@ -10,7 +10,9 @@ use crate::{
     constants::{DEPS_REPO_PATH, MSG_BUILDING_IMAGE_SPINNER},
 };
 
+use dotenvy::from_filename;
 use minijinja::{context, Environment};
+use std::env;
 use std::fs;
 
 const ORCHESTRATOR_REPO_PATH: &str = "deps/orchestrator";
@@ -30,8 +32,14 @@ pub(crate) fn run(args_madara: MadaraRunnerConfigMode, shell: &Shell) -> anyhow:
     let args_pathfinder = PathfinderRunnerConfigMode::default().fill_values_with_prompt()?;
     commands::pathfinder::parse_params(&args_pathfinder)?;
 
+    // Check if the ATLANTIC_API was already set
+    let env_output = format!("{}/{}", ORCHESTRATOR_REPO_PATH, ORCHESTRATOR_ENV_FILE);
+    let _ = from_filename(env_output);
+    let prev_atlantic_api = env::var("MADARA_ORCHESTRATOR_ATLANTIC_API_KEY")
+        .unwrap_or_else(|_| "ATLANTIC_API_KEY".to_string());
+
     // Collect Prover configuration
-    let args_prover = ProverRunnerConfig::default().fill_values_with_prompt()?;
+    let args_prover = ProverRunnerConfig::default().fill_values_with_prompt(&prev_atlantic_api)?;
     populate_orchestrator_env(&args_prover)?;
 
     // Build all images

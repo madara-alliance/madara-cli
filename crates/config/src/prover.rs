@@ -17,12 +17,17 @@ pub enum ProverType {
 }
 
 impl ProverRunnerConfig {
-    pub fn fill_values_with_prompt(self) -> anyhow::Result<ProverRunnerConfig> {
+    pub fn fill_values_with_prompt(
+        self,
+        prev_atlantic_api: &str,
+    ) -> anyhow::Result<ProverRunnerConfig> {
         let prover = PromptSelect::new("Select Prover:", ProverType::iter()).ask();
 
         let url = match prover {
-            ProverType::Dummy => "".to_string(),
-            ProverType::Atlantic => Prompt::new("Input Atlantic prover API key:").ask(),
+            ProverType::Dummy => prev_atlantic_api.to_string(),
+            ProverType::Atlantic => Prompt::new("Input Atlantic prover API key:")
+                .default(prev_atlantic_api)
+                .ask(),
             ProverType::Stwo => panic!("Stwo prover is not supported yet"),
         };
 
