@@ -12,6 +12,7 @@ cliclack.workspace = true
 madara_cli_common.workspace = true
 madara_cli_config.workspace = true
 madara_cli_types.workspace = true
+minijinja.workspace = true
 human-panic.workspace = true
 lazy_static.workspace = true
 thiserror.workspace = true

@@ -118,7 +118,7 @@ services:
     cpus: "4.0"
     mem_limit: "16gb"
     volumes:
-      - ./orchestrator/.env.test:/usr/local/bin/.env
+      - ./orchestrator/.env:/usr/local/bin/.env
       - ./orchestrator/run_orchestrator.sh:/usr/local/bin/run_orchestrator.sh
     entrypoint:
       - /usr/local/bin/run_orchestrator.sh
