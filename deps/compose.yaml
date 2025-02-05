@@ -1,0 +1,128 @@
+services:
+  anvil:
+    image: anvil:latest
+    container_name: anvil
+    cpus: "4.0"
+    mem_limit: "16gb"
+    ports:
+      - "8545:8545"
+    command: /bin/bash -c "anvil --host 0.0.0.0 --block-time 1"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8545/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    attach: false
+
+  core_contract_deployment:
+    image: anvil:latest
+    container_name: core_contract_deployment
+    working_dir: /app
+    entrypoint: /bin/bash
+    depends_on:
+      anvil:
+        condition: service_started
+    command: -c "sleep 5 && ./core_contract_deployment.sh"
+
+  madara:
+    image: madara:latest
+    container_name: madara
+    cpus: "4.0"
+    mem_limit: "16gb"
+    ports:
+      - "9945:9945"
+      - "8080:8080"
+    depends_on:
+      core_contract_deployment:
+        condition: service_completed_successfully
+    volumes:
+      - ./madara/data:/usr/share/madara/data
+      - ./madara/madara-runner.sh:/usr/local/bin/runner.sh:ro
+      - ./madara/configs/presets:/usr/local/bin/configs/presets
+    entrypoint:
+      - /usr/local/bin/runner.sh
+    restart: unless-stopped
+
+  madara_state_update:
+    image: anvil:latest
+    container_name: state_update
+    working_dir: /app
+    entrypoint: /bin/bash
+    depends_on:
+      madara:
+        condition: service_started
+    command: -c "sleep 10 && ./madara_state_update.sh"
+
+  pathfinder:
+    image: pathfinder:latest
+    pull_policy: never
+    container_name: pathfinder
+    cpus: "4.0"
+    mem_limit: "16gb"
+    ports:
+      - "9545:9545"
+    depends_on:
+      madara:
+        condition: service_started
+    volumes:
+      - ./pathfinder/data:/usr/share/pathfinder/data
+      - ./pathfinder/pathfinder-runner.sh:/usr/local/bin/runner.sh:ro
+    entrypoint:
+      - /usr/local/bin/runner.sh
+    restart: unless-stopped
+    attach: false
+
+  mongodb:
+    image: mongo
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    restart: unless-stopped
+    depends_on:
+      madara:
+        condition: service_started
+    attach: false
+
+  snos_block_zero_workaround:
+    image: mongo
+    depends_on:
+      - mongodb
+    entrypoint: [ "bash", "-c", "sleep 5 && mongosh --host mongodb --eval 'load(\"/init.js\")'" ]
+    volumes:
+      - ./block_zero_workaround.js:/init.js
+
+  localstack:
+    image: localstack/localstack@sha256:763947722c6c8d33d5fbf7e8d52b4bddec5be35274a0998fdc6176d733375314
+    container_name: localstack
+    ports:
+      - "4566:4566"
+    restart: unless-stopped
+    depends_on:
+      madara:
+        condition: service_started
+    attach: false
+
+  prover:
+    image: ocdbytes/mock-prover:latest
+    container_name: prover
+    ports:
+      - "6000:6000"
+    depends_on:
+      madara:
+        condition: service_started
+    attach: false
+
+  orchestrator:
+    image: orchestrator:latest
+    container_name: orchestrator
+    cpus: "4.0"
+    mem_limit: "16gb"
+    volumes:
+      - ./orchestrator/.env.test:/usr/local/bin/.env
+      - ./orchestrator/run_orchestrator.sh:/usr/local/bin/run_orchestrator.sh
+    entrypoint:
+      - /usr/local/bin/run_orchestrator.sh
+    depends_on:
+      madara:
+        condition: service_started
+    attach: false

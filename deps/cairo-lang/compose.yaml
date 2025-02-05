@@ -1,0 +1,6 @@
+services:
+  os-builder:
+    image: cairo-lang:latest
+    volumes:
+      - ./build:/build
+    command: bash -c "cp /app/os_latest.json /build"
