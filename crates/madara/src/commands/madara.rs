@@ -35,7 +35,7 @@ pub(crate) fn run(args: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result
         _ => {
             check_secrets(args.mode.expect("Mode must be already set"))?;
             let spinner = Spinner::new(MSG_BUILDING_IMAGE_SPINNER);
-            madara_build_image(shell)?;
+            build_image(shell)?;
             spinner.finish();
             madara_run(shell, args)?;
         }
