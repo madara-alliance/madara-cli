@@ -33,7 +33,6 @@ pub(crate) fn run(args: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result
     match mode {
         MadaraMode::AppChain => orchestrator::run(args, shell)?,
         _ => {
-            check_secrets(args.mode.expect("Mode must be already set"))?;
             let spinner = Spinner::new(MSG_BUILDING_IMAGE_SPINNER);
             build_image(shell)?;
             spinner.finish();
