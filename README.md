@@ -31,7 +31,6 @@ Usage: madara [OPTIONS] [COMMAND]
 
 Commands:
   create        Create a Madara node
-  orchestrator  Run Orchestrator ---> AppChain
   help          Print this message or the help of the given subcommand(s)
 
 Options:

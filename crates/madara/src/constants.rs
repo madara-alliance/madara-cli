@@ -10,3 +10,5 @@ pub(super) const MSG_BUILDING_IMAGE_SPINNER: &str = "Building image...";
 pub const MADARA_REPO_PATH: &str = "deps/madara";
 pub const MADARA_RUNNER_SCRIPT: &str = "madara-runner.sh";
 pub const MADARA_RPC_API_KEY_FILE: &str = ".secrets/rpc_api.secret";
+
+pub const DEPS_REPO_PATH: &str = "deps";

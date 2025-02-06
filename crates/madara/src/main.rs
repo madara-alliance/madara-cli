@@ -35,8 +35,6 @@ pub enum MadaraSubcommands {
         #[clap(flatten)]
         args: MadaraRunnerConfigMode,
     },
-    /// Run Orchestrator ---> AppChain
-    Orchestrator,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -57,7 +55,6 @@ fn run_subcommand(madara_args: Madara) -> anyhow::Result<()> {
 
     match madara_args.command {
         Some(MadaraSubcommands::Create { args }) => commands::madara::run(args, &shell),
-        Some(MadaraSubcommands::Orchestrator) => commands::orchestrator::run(&shell),
         None => {
             log::info("No commands entered, switching to interactive mode...")?;
             let args = MadaraRunnerConfigMode::fill_values_with_prompt()?;

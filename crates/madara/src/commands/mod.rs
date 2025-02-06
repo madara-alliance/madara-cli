@@ -1,7 +1,10 @@
 use std::path::{Path, PathBuf};
 
+pub mod anvil;
 pub mod madara;
 pub mod orchestrator;
+pub mod os;
+pub mod pathfinder;
 
 pub(crate) fn workspace_dir() -> PathBuf {
     let output = std::process::Command::new(env!("CARGO"))

@@ -13,27 +13,31 @@ use anyhow::anyhow;
 use madara_cli_common::{docker, logger, spinner::Spinner};
 use madara_cli_config::compose::Compose;
 use madara_cli_config::madara::{
-    MadaraPresetType, MadaraRunnerConfigDevnet, MadaraRunnerConfigFullNode, MadaraRunnerConfigMode,
+    MadaraRunnerConfigDevnet, MadaraRunnerConfigFullNode, MadaraRunnerConfigMode,
     MadaraRunnerConfigSequencer, MadaraRunnerParams,
 };
 use madara_cli_types::madara::{MadaraMode, MadaraNetwork};
 use xshell::Shell;
 
-use super::workspace_dir;
+use super::{orchestrator, workspace_dir};
 
 pub(crate) fn run(args: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result<()> {
     logger::info("Input Madara parameters...");
-
-    let spinner = Spinner::new(MSG_BUILDING_IMAGE_SPINNER);
-    madara_build_image(shell)?;
-    spinner.finish();
-
-    madara_run(shell, args)?;
+    let mode = args.mode();
+    match mode {
+        MadaraMode::AppChain => orchestrator::run(args, shell)?,
+        _ => {
+            let spinner = Spinner::new(MSG_BUILDING_IMAGE_SPINNER);
+            build_image(shell)?;
+            spinner.finish();
+            madara_run(shell, args)?;
+        }
+    };
 
     Ok(())
 }
 
-fn madara_build_image(shell: &Shell) -> anyhow::Result<()> {
+pub fn build_image(shell: &Shell) -> anyhow::Result<()> {
     docker::build_image(
         shell,
         MADARA_REPO_PATH.to_string(),
@@ -57,12 +61,13 @@ fn madara_run(shell: &Shell, args: MadaraRunnerConfigMode) -> anyhow::Result<()>
     docker::up(shell, &compose_file, false)
 }
 
-fn process_params(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
+pub fn process_params(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
     let mode = args.mode();
     let runner_params = match &args.params {
         MadaraRunnerParams::Devnet(params) => parse_devnet_params(&args.name, &mode, params),
         MadaraRunnerParams::Sequencer(params) => parse_sequencer_params(&args.name, &mode, params),
         MadaraRunnerParams::FullNode(params) => parse_full_node_params(&args.name, &mode, params),
+        MadaraRunnerParams::AppChain(params) => parse_appchain_params(&args.name, params),
     }?;
 
     let runner_script_path = workspace_dir()
@@ -177,26 +182,28 @@ fn parse_sequencer_params(
     mode: &MadaraMode,
     params: &MadaraRunnerConfigSequencer,
 ) -> anyhow::Result<Vec<String>> {
+    let chain_config_path = &params
+        .chain_config_path;
+
     // TODO: handle optional params.
-    let db_path = &params.base_path;
-
-    let preset = &params.preset;
-    let preset_path = if preset.preset_type == MadaraPresetType::Custom {
-        preset.path.as_ref().expect("Preset path must be set")
-    } else {
-        &preset.preset_type.to_string().to_lowercase()
-    };
-
-    let devnet_params = vec![
+    let sequencer_params = vec![
         format!("--name {}", name),
         format!("--{}", mode).to_lowercase(),
-        format!("--base-path {}", db_path),
-        format!("--preset {}", preset_path),
-        "--l1-endpoint $RPC_API_KEY".to_string(),
+        "--base-path /usr/share/madara/data".to_string(),
+        format!("--chain-config-path {}", chain_config_path),
+        "--feeder-gateway-enable".to_string(),
+        "--gateway-enable".to_string(),
+        "--gateway-external".to_string(),
         "--rpc-external".to_string(),
+        "--rpc-port 9945".to_string(),
+        "--rpc-cors \"*\"".to_string(),
+        "--gas-price 10".to_string(),
+        "--blob-gas-price 20".to_string(),
+        "--gateway-port 8080".to_string(),
+        "--l1-endpoint http://anvil:8545".to_string(),
     ];
 
-    Ok(devnet_params)
+    Ok(sequencer_params)
 }
 
 fn parse_full_node_params(
@@ -221,4 +228,31 @@ fn parse_full_node_params(
     ];
 
     Ok(full_node_params)
+}
+
+fn parse_appchain_params(
+    name: &String,
+    params: &MadaraRunnerConfigSequencer,
+) -> anyhow::Result<Vec<String>> {
+    let chain_config_path = &params
+        .chain_config_path;
+
+    let appchain_params = vec![
+        format!("--name {}", name),
+        "--sequencer".to_string(),
+        "--base-path /usr/share/madara/data".to_string(),
+        format!("--chain-config-path {}", chain_config_path),
+        "--feeder-gateway-enable".to_string(),
+        "--gateway-enable".to_string(),
+        "--gateway-external".to_string(),
+        "--rpc-external".to_string(),
+        "--rpc-port 9945".to_string(),
+        "--rpc-cors \"*\"".to_string(),
+        "--gas-price 10".to_string(),
+        "--blob-gas-price 20".to_string(),
+        "--gateway-port 8080".to_string(),
+        "--l1-endpoint http://anvil:8545".to_string(),
+    ];
+
+    Ok(appchain_params)
 }
