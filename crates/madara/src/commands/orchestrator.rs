@@ -1,7 +1,8 @@
 use madara_cli_common::{docker, logger, spinner::Spinner};
 use madara_cli_config::{
-    madara::MadaraRunnerConfigMode, pathfinder::PathfinderRunnerConfigMode,
-    prover::ProverRunnerConfig,
+    madara::MadaraRunnerConfigMode,
+    pathfinder::PathfinderRunnerConfigMode,
+    prover::{ProverRunnerConfig, ProverType},
 };
 use xshell::Shell;
 
@@ -20,6 +21,8 @@ const ORCHESTRATOR_DOCKER_IMAGE: &str = "orchestrator";
 const ORCHESTRATOR_COMPOSE_FILE: &str = "compose.yaml";
 const ORCHESTRATOR_ENV_TEMPLATE_FILE: &str = ".env.template";
 const ORCHESTRATOR_ENV_FILE: &str = ".env";
+const ORCHESTRATOR_RUNNER_TEMPLATE_FILE: &str = "run_orchestrator.template";
+const ORCHESTRATOR_RUNNER_FILE: &str = "run_orchestrator.sh";
 
 pub(crate) fn run(args_madara: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result<()> {
     logger::new_empty_line();
@@ -41,6 +44,7 @@ pub(crate) fn run(args_madara: MadaraRunnerConfigMode, shell: &Shell) -> anyhow:
     // Collect Prover configuration
     let args_prover = ProverRunnerConfig::default().fill_values_with_prompt(&prev_atlantic_api)?;
     populate_orchestrator_env(&args_prover)?;
+    pupolate_orchestrator_runner(&args_prover)?;
 
     // Build all images
     build_images(shell)?;
@@ -98,6 +102,37 @@ fn populate_orchestrator_env(prover_config: &ProverRunnerConfig) -> anyhow::Resu
     let tmpl = env.get_template("env_template").unwrap();
     let rendered = tmpl.render(&data).expect("Template rendering failed");
     fs::write(env_output, rendered).expect("Failed to write .env");
+
+    Ok(())
+}
+
+fn pupolate_orchestrator_runner(prover_config: &ProverRunnerConfig) -> anyhow::Result<()> {
+    let runner_template = format!(
+        "{}/{}",
+        ORCHESTRATOR_REPO_PATH, ORCHESTRATOR_RUNNER_TEMPLATE_FILE
+    );
+    let runner_output = format!("{}/{}", ORCHESTRATOR_REPO_PATH, ORCHESTRATOR_RUNNER_FILE);
+
+    // Read the template file
+    let template =
+        fs::read_to_string(runner_template).expect("Failed to read run_orchestrator.template");
+
+    // Set up MiniJinja
+    let mut env = Environment::new();
+    env.add_template("env_template", &template)
+        .expect("Failed to add template");
+
+    let prover = match prover_config.prover_type {
+        ProverType::Dummy => "sharp",
+        ProverType::Atlantic => "atlantic",
+        ProverType::Stwo => panic!("Not supported yet"),
+    };
+    let data = context! {PROVER_TYPE => prover};
+
+    // Render the template
+    let tmpl = env.get_template("env_template").unwrap();
+    let rendered = tmpl.render(&data).expect("Template rendering failed");
+    fs::write(runner_output, rendered).expect("Failed to write .env");
 
     Ok(())
 }

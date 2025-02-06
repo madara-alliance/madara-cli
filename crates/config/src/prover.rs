@@ -5,6 +5,7 @@ use madara_cli_common::{Prompt, PromptSelect};
 
 #[derive(Default)]
 pub struct ProverRunnerConfig {
+    pub prover_type: ProverType,
     pub url: String,
 }
 
@@ -21,9 +22,9 @@ impl ProverRunnerConfig {
         self,
         prev_atlantic_api: &str,
     ) -> anyhow::Result<ProverRunnerConfig> {
-        let prover = PromptSelect::new("Select Prover:", ProverType::iter()).ask();
+        let prover_type = PromptSelect::new("Select Prover:", ProverType::iter()).ask();
 
-        let url = match prover {
+        let url = match prover_type {
             ProverType::Dummy => prev_atlantic_api.to_string(),
             ProverType::Atlantic => Prompt::new("Input Atlantic prover API key:")
                 .default(prev_atlantic_api)
@@ -31,6 +32,6 @@ impl ProverRunnerConfig {
             ProverType::Stwo => panic!("Stwo prover is not supported yet"),
         };
 
-        Ok(ProverRunnerConfig { url })
+        Ok(ProverRunnerConfig { prover_type, url })
     }
 }

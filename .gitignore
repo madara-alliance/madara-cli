@@ -1,3 +1,4 @@
 target
 
 deps/orchestrator/.env
+deps/orchestrator/run_orchestrator.sh
