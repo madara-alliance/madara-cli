@@ -60,14 +60,14 @@ jobs:
       - name: Check devnet
         run: |
           cargo run -p madara create devnet &
-          # /tmp/health_check.sh madara-devnet 1200
+          /tmp/health_check.sh madara-devnet 1200
 
       - name: Check sequencer
         run: |
-          cargo run -p madara create sequencer --preset-type sepolia &
-          # /tmp/health_check.sh madara-sequencer 300
+          cargo run -p madara create sequencer &
+          /tmp/health_check.sh madara-sequencer 300
 
       - name: Check full-node
         run: |
           cargo run -p madara create full-node --network devnet &
-          # /tmp/health_check.sh madara-devnet 300
+          /tmp/health_check.sh madara-devnet 300

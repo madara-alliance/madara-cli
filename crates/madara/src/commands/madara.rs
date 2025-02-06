@@ -27,9 +27,13 @@ pub(crate) fn run(args: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result
     match mode {
         MadaraMode::AppChain => orchestrator::run(args, shell)?,
         _ => {
-            let spinner = Spinner::new(MSG_BUILDING_IMAGE_SPINNER);
-            build_image(shell)?;
-            spinner.finish();
+            // TODO: @whichqua resolve if we should build the image or use one from the registry
+            if !ci_info::is_ci() {
+                let spinner = Spinner::new(MSG_BUILDING_IMAGE_SPINNER);
+                build_image(shell)?;
+                spinner.finish();
+            }
+
             madara_run(shell, args)?;
         }
     };
@@ -55,6 +59,11 @@ fn madara_run(shell: &Shell, args: MadaraRunnerConfigMode) -> anyhow::Result<()>
     let container_name = format!("madara-{}", mode.to_string().to_lowercase());
     let compose_file = format!("{}/{}.yaml", MADARA_REPO_PATH, container_name);
     compose.services.get_mut("madara").unwrap().container_name = Some(container_name);
+
+    // TODO: @whichqua resolve if we should build the image or use one from the registry
+    if ci_info::is_ci() {
+        compose.services.get_mut("madara").unwrap().image = "whichqua/madara:latest".to_string();
+    }
 
     fs::write(&compose_file, serde_yml::to_string(&compose)?)?;
 
@@ -182,8 +191,7 @@ fn parse_sequencer_params(
     mode: &MadaraMode,
     params: &MadaraRunnerConfigSequencer,
 ) -> anyhow::Result<Vec<String>> {
-    let chain_config_path = &params
-        .chain_config_path;
+    let chain_config_path = &params.chain_config_path;
 
     // TODO: handle optional params.
     let sequencer_params = vec![
@@ -234,8 +242,7 @@ fn parse_appchain_params(
     name: &String,
     params: &MadaraRunnerConfigSequencer,
 ) -> anyhow::Result<Vec<String>> {
-    let chain_config_path = &params
-        .chain_config_path;
+    let chain_config_path = &params.chain_config_path;
 
     let appchain_params = vec![
         format!("--name {}", name),
