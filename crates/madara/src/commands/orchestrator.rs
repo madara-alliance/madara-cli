@@ -18,6 +18,7 @@ use std::fs;
 
 const ORCHESTRATOR_REPO_PATH: &str = "deps/orchestrator";
 const ORCHESTRATOR_DOCKER_IMAGE: &str = "orchestrator";
+const ORCHESTRATOR_COMPOSE_TEMPLATE_FILE: &str = "compose.template";
 const ORCHESTRATOR_COMPOSE_FILE: &str = "compose.yaml";
 const ORCHESTRATOR_ENV_TEMPLATE_FILE: &str = ".env.template";
 const ORCHESTRATOR_ENV_FILE: &str = ".env";
@@ -45,6 +46,7 @@ pub(crate) fn run(args_madara: MadaraRunnerConfigMode, shell: &Shell) -> anyhow:
     let args_prover = ProverRunnerConfig::default().fill_values_with_prompt(&prev_atlantic_api)?;
     populate_orchestrator_env(&args_prover)?;
     pupolate_orchestrator_runner(&args_prover)?;
+    pupolate_orchestrator_compose(&args_prover)?;
 
     // Build all images
     build_images(shell)?;
@@ -119,7 +121,7 @@ fn pupolate_orchestrator_runner(prover_config: &ProverRunnerConfig) -> anyhow::R
 
     // Set up MiniJinja
     let mut env = Environment::new();
-    env.add_template("env_template", &template)
+    env.add_template("runner_template", &template)
         .expect("Failed to add template");
 
     let prover = match prover_config.prover_type {
@@ -130,9 +132,30 @@ fn pupolate_orchestrator_runner(prover_config: &ProverRunnerConfig) -> anyhow::R
     let data = context! {PROVER_TYPE => prover};
 
     // Render the template
-    let tmpl = env.get_template("env_template").unwrap();
+    let tmpl = env.get_template("runner_template").unwrap();
     let rendered = tmpl.render(&data).expect("Template rendering failed");
-    fs::write(runner_output, rendered).expect("Failed to write .env");
+    fs::write(runner_output, rendered).expect("Failed to write run_orchestrator");
+
+    Ok(())
+}
+
+fn pupolate_orchestrator_compose(prover_config: &ProverRunnerConfig) -> anyhow::Result<()> {
+    let compose_template = format!("{}/{}", DEPS_REPO_PATH, ORCHESTRATOR_COMPOSE_TEMPLATE_FILE);
+    let compose_output = format!("{}/{}", DEPS_REPO_PATH, ORCHESTRATOR_COMPOSE_FILE);
+
+    // Read the template file
+    let template = fs::read_to_string(compose_template).expect("Failed to read compose.template");
+
+    // Set up MiniJinja
+    let mut env = Environment::new();
+    env.add_template("compose_template", &template)
+        .expect("Failed to add template");
+    let data = context! {ENABLE_DUMMY_PROVER => prover_config.prover_type == ProverType::Dummy};
+
+    // Render the template
+    let tmpl = env.get_template("compose_template").unwrap();
+    let rendered = tmpl.render(&data).expect("Template rendering failed");
+    fs::write(compose_output, rendered).expect("Failed to write compose.yaml");
 
     Ok(())
 }
