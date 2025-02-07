@@ -29,8 +29,10 @@ jobs:
         if: runner.os == 'macOS'
         run: |
             brew install docker
+            brew install docker-compose
             brew install colima
             brew install qemu
+            sudo ln -s /opt/homebrew/bin/docker-compose /opt/homebrew/bin/docker/cli-plugins/docker-compose
             LIMACTL_PATH=$(brew --prefix)/bin/limactl
             sudo curl -L -o $LIMACTL_PATH https://github.com/mikekazakov/lima-nohvf/raw/master/limactl && sudo chmod +x $LIMACTL_PATH
             colima start --network-address --arch arm64 --vm-type=qemu
@@ -60,14 +62,14 @@ jobs:
       - name: Check devnet
         run: |
           cargo run -p madara create devnet &
-          /tmp/health_check.sh madara-devnet 1200
-
-      - name: Check sequencer
-        run: |
-          cargo run -p madara create sequencer &
-          /tmp/health_check.sh madara-sequencer 300
+          /tmp/health_check.sh madara-devnet 120
 
       - name: Check full-node
         run: |
           cargo run -p madara create full-node --network devnet &
-          /tmp/health_check.sh madara-devnet 300
+          /tmp/health_check.sh madara-devnet 120
+
+      - name: Check sequencer
+        run: |
+          cargo run -p madara create sequencer &
+          /tmp/health_check.sh madara-sequencer 120
