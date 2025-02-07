@@ -4,13 +4,11 @@ use std::io::Write;
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 
-use crate::constants::{
-    MADARA_COMPOSE_FILE, MADARA_DOCKER_IMAGE, MADARA_REPO_PATH, MSG_BUILDING_IMAGE_SPINNER,
-};
+use crate::constants::{MADARA_COMPOSE_FILE, MADARA_REPO_PATH};
 use crate::constants::{MADARA_RPC_API_KEY_FILE, MADARA_RUNNER_SCRIPT};
 
 use anyhow::anyhow;
-use madara_cli_common::{docker, logger, spinner::Spinner};
+use madara_cli_common::{docker, logger};
 use madara_cli_config::compose::Compose;
 use madara_cli_config::madara::{
     MadaraRunnerConfigDevnet, MadaraRunnerConfigFullNode, MadaraRunnerConfigMode,
@@ -27,26 +25,11 @@ pub(crate) fn run(args: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result
     match mode {
         MadaraMode::AppChain => orchestrator::run(args, shell)?,
         _ => {
-            // TODO: @whichqua resolve if we should build the image or use one from the registry
-            if !ci_info::is_ci() {
-                let spinner = Spinner::new(MSG_BUILDING_IMAGE_SPINNER);
-                build_image(shell)?;
-                spinner.finish();
-            }
-
             madara_run(shell, args)?;
         }
     };
 
     Ok(())
-}
-
-pub fn build_image(shell: &Shell) -> anyhow::Result<()> {
-    docker::build_image(
-        shell,
-        MADARA_REPO_PATH.to_string(),
-        MADARA_DOCKER_IMAGE.to_string(),
-    )
 }
 
 fn madara_run(shell: &Shell, args: MadaraRunnerConfigMode) -> anyhow::Result<()> {
@@ -60,10 +43,7 @@ fn madara_run(shell: &Shell, args: MadaraRunnerConfigMode) -> anyhow::Result<()>
     let compose_file = format!("{}/{}.yaml", MADARA_REPO_PATH, container_name);
     compose.services.get_mut("madara").unwrap().container_name = Some(container_name);
 
-    // TODO: @whichqua resolve if we should build the image or use one from the registry
-    if ci_info::is_ci() {
-        compose.services.get_mut("madara").unwrap().image = "whichqua/madara:latest".to_string();
-    }
+    compose.services.get_mut("madara").unwrap().image = args.image;
 
     fs::write(&compose_file, serde_yml::to_string(&compose)?)?;
 

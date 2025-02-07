@@ -44,7 +44,6 @@ fn run_orchestrator(shell: &Shell) -> anyhow::Result<()> {
 
 fn build_images(shell: &Shell) -> anyhow::Result<()> {
     let spinner = Spinner::new(MSG_BUILDING_IMAGE_SPINNER);
-    commands::madara::build_image(shell)?;
     commands::pathfinder::build_image(shell)?;
     commands::anvil::build_image(shell)?;
     build_image(shell)?;

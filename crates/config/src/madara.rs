@@ -12,7 +12,7 @@ use madara_cli_common::{Prompt, PromptSelect};
 use madara_cli_types::madara::{MadaraMode, MadaraNetwork};
 use strum::{EnumIter, IntoEnumIterator};
 
-use crate::constants::MADARA_PRESETS_PATH;
+use crate::constants::{MADARA_DOCKER_IMAGE, MADARA_PRESETS_PATH};
 
 /// Configuration for Madara Devnet Runner
 #[derive(Debug, Parser, Clone)]
@@ -72,6 +72,11 @@ pub enum MadaraRunnerParams {
 pub struct MadaraRunnerConfigMode {
     #[arg(short, long, default_value = "Madara")]
     pub name: String,
+
+    // TODO: @whichqua Replace this when we have an official image
+    #[arg(short, long, default_value = MADARA_DOCKER_IMAGE)]
+    pub image: String,
+
     #[clap(subcommand)]
     pub params: MadaraRunnerParams,
 }
@@ -100,7 +105,7 @@ impl MadaraRunnerConfigSequencer {
 
         let chain_config_path = {
             Prompt::new("Input chain config path:")
-                .default("configs/presets/devnet.yaml")
+                .default("deps/madara/configs/presets/devnet.yaml")
                 .ask()
         };
 
@@ -137,7 +142,6 @@ impl MadaraRunnerConfigMode {
     pub fn fill_values_with_prompt() -> anyhow::Result<MadaraRunnerConfigMode> {
         let name = "Madara".to_string();
         let mode: MadaraMode = PromptSelect::new("Select Madara mode:", MadaraMode::iter()).ask();
-
         let params = match mode {
             MadaraMode::Devnet => {
                 MadaraRunnerParams::Devnet(MadaraRunnerConfigDevnet::fill_values_with_prompt()?)
@@ -151,7 +155,11 @@ impl MadaraRunnerConfigMode {
             _ => panic!("Not supported yet"),
         };
 
-        Ok(MadaraRunnerConfigMode { name, params })
+        Ok(MadaraRunnerConfigMode {
+            name,
+            image: MADARA_DOCKER_IMAGE.to_owned(),
+            params,
+        })
     }
 }
 
@@ -240,6 +248,7 @@ impl Default for MadaraRunnerConfigMode {
             params: MadaraRunnerParams::Devnet(MadaraRunnerConfigDevnet {
                 base_path: "./madara-devnet-db".to_owned(),
             }),
+            image: MADARA_DOCKER_IMAGE.to_owned()
         }
     }
 }
