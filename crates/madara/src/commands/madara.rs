@@ -45,6 +45,11 @@ fn madara_run(shell: &Shell, args: MadaraRunnerConfigMode) -> anyhow::Result<()>
 
     compose.services.get_mut("madara").unwrap().image = args.image;
 
+    if ci_info::is_ci() {
+        // Some CI environments such as macos are limited
+        compose.services.get_mut("madara").unwrap().cpus = Some("1".to_owned());
+    }
+
     fs::write(&compose_file, serde_yml::to_string(&compose)?)?;
 
     docker::up(shell, &compose_file, false)

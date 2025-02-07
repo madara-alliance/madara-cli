@@ -18,3 +18,4 @@ thiserror.workspace = true
 xshell.workspace = true
 strum.workspace = true
 serde_yml = "0.0.12"
+ci_info = "0.14.14"

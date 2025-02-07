@@ -248,7 +248,7 @@ impl Default for MadaraRunnerConfigMode {
             params: MadaraRunnerParams::Devnet(MadaraRunnerConfigDevnet {
                 base_path: "./madara-devnet-db".to_owned(),
             }),
-            image: MADARA_DOCKER_IMAGE.to_owned()
+            image: MADARA_DOCKER_IMAGE.to_owned(),
         }
     }
 }
