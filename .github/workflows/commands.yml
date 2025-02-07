@@ -32,7 +32,8 @@ jobs:
             brew install docker-compose
             brew install colima
             brew install qemu
-            sudo ln -s /opt/homebrew/bin/docker-compose /opt/homebrew/bin/docker/cli-plugins/docker-compose
+            mkdir -p ~/.docker/cli-plugins
+            ln -sfn $HOMEBREW_PREFIX/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
             LIMACTL_PATH=$(brew --prefix)/bin/limactl
             sudo curl -L -o $LIMACTL_PATH https://github.com/mikekazakov/lima-nohvf/raw/master/limactl && sudo chmod +x $LIMACTL_PATH
             colima start --network-address --arch arm64 --vm-type=qemu
