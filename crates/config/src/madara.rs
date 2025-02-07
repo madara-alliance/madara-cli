@@ -12,7 +12,11 @@ use madara_cli_common::{Prompt, PromptSelect};
 use madara_cli_types::madara::{MadaraMode, MadaraNetwork};
 use strum::{EnumIter, IntoEnumIterator};
 
-use crate::constants::{MADARA_DOCKER_IMAGE, MADARA_PRESETS_PATH};
+use crate::{
+    constants::{MADARA_DOCKER_IMAGE, MADARA_PRESETS_PATH},
+    pathfinder::PathfinderRunnerConfigMode,
+    prover::ProverRunnerConfig,
+};
 
 /// Configuration for Madara Devnet Runner
 #[derive(Debug, Parser, Clone)]
@@ -37,6 +41,18 @@ pub struct MadaraRunnerConfigSequencer {
     pub chain_config_path: String,
     #[arg(short, long, default_value = "./madara-sequencer-db")]
     pub base_path: String,
+}
+
+/// Configuration for Madara Appchain Runner
+#[derive(Debug, Clone, Parser)]
+pub struct MadaraRunnerConfigAppChain {
+    #[arg(short, long, default_value = "configs/presets/devnet.yaml")]
+    pub chain_config_path: String,
+
+    // #[clap(flatten)]
+    // pathfinder_config: PathfinderRunnerConfigMode,
+    #[clap(flatten)]
+    prover_config: ProverRunnerConfig,
 }
 
 /// Madara preset type (e.g., Sepolia, Mainnet, etc.)
@@ -64,7 +80,7 @@ pub enum MadaraRunnerParams {
     Devnet(MadaraRunnerConfigDevnet),
     Sequencer(MadaraRunnerConfigSequencer),
     FullNode(MadaraRunnerConfigFullNode),
-    AppChain(MadaraRunnerConfigSequencer),
+    AppChain(MadaraRunnerConfigAppChain),
 }
 
 /// Configuration for Madara Runner mode (with selected parameters)
@@ -175,13 +191,16 @@ impl FromArgMatches for MadaraRunnerParams {
             Some(("sequencer", args)) => Ok(Self::Sequencer(
                 MadaraRunnerConfigSequencer::from_arg_matches(args)?,
             )),
+            Some(("app-chain", args)) => Ok(Self::AppChain(
+                MadaraRunnerConfigAppChain::from_arg_matches(args)?,
+            )),
             Some((_, _)) => Err(clap::error::Error::raw(
                 ErrorKind::InvalidSubcommand,
                 "Valid subcommands are `devnet`, `full-node` and `sequencer`",
             )),
             None => Err(clap::error::Error::raw(
                 ErrorKind::MissingSubcommand,
-                "Valid subcommands are `devnet`, `full-node` and `sequencer`",
+                "Valid subcommands are `devnet`, `full-node`, `sequencer` and `app-chain`",
             )),
         }
     }
@@ -200,7 +219,7 @@ impl FromArgMatches for MadaraRunnerParams {
             Some((_, _)) => {
                 return Err(clap::error::Error::raw(
                     ErrorKind::InvalidSubcommand,
-                    "Valid subcommands are `devnet`, `full-node` and `sequencer`",
+                    "Valid subcommands are `devnet`, `full-node`, `sequencer` and `app-chain`",
                 ))
             }
             None => (),
@@ -220,6 +239,9 @@ impl Subcommand for MadaraRunnerParams {
         .subcommand(MadaraRunnerConfigSequencer::augment_args(Command::new(
             "sequencer",
         )))
+        .subcommand(MadaraRunnerConfigAppChain::augment_args(Command::new(
+            "app-chain",
+        )))
         .subcommand_required(true)
     }
 
@@ -233,11 +255,14 @@ impl Subcommand for MadaraRunnerParams {
         .subcommand(MadaraRunnerConfigSequencer::augment_args(Command::new(
             "sequencer",
         )))
+        .subcommand(MadaraRunnerConfigAppChain::augment_args(Command::new(
+            "app-chain",
+        )))
         .subcommand_required(true)
     }
 
     fn has_subcommand(name: &str) -> bool {
-        matches!(name, "devnet" | "full-node" | "sequencer")
+        matches!(name, "devnet" | "full-node" | "sequencer" | "app-chain")
     }
 }
 

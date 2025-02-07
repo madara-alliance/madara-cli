@@ -11,8 +11,8 @@ use anyhow::anyhow;
 use madara_cli_common::{docker, logger};
 use madara_cli_config::compose::Compose;
 use madara_cli_config::madara::{
-    MadaraRunnerConfigDevnet, MadaraRunnerConfigFullNode, MadaraRunnerConfigMode,
-    MadaraRunnerConfigSequencer, MadaraRunnerParams,
+    MadaraRunnerConfigAppChain, MadaraRunnerConfigDevnet, MadaraRunnerConfigFullNode,
+    MadaraRunnerConfigMode, MadaraRunnerConfigSequencer, MadaraRunnerParams,
 };
 use madara_cli_types::madara::{MadaraMode, MadaraNetwork};
 use xshell::Shell;
@@ -44,6 +44,16 @@ fn madara_run(shell: &Shell, args: MadaraRunnerConfigMode) -> anyhow::Result<()>
     compose.services.get_mut("madara").unwrap().container_name = Some(container_name);
 
     compose.services.get_mut("madara").unwrap().image = args.image;
+
+    if let MadaraMode::Sequencer = mode {
+        compose
+            .services
+            .get_mut("madara")
+            .unwrap()
+            .volumes
+            .as_mut()
+            .map(|v| v.push("./configs/presets:/usr/local/bin/configs/presets".to_owned()));
+    }
 
     if ci_info::is_ci() {
         // Some CI environments such as macos are limited
@@ -193,7 +203,7 @@ fn parse_sequencer_params(
         "--gas-price 10".to_string(),
         "--blob-gas-price 20".to_string(),
         "--gateway-port 8080".to_string(),
-        "--l1-endpoint http://anvil:8545".to_string(),
+        "--l1-endpoint $RPC_API_KEY".to_string(),
     ];
 
     Ok(sequencer_params)
@@ -225,7 +235,7 @@ fn parse_full_node_params(
 
 fn parse_appchain_params(
     name: &String,
-    params: &MadaraRunnerConfigSequencer,
+    params: &MadaraRunnerConfigAppChain,
 ) -> anyhow::Result<Vec<String>> {
     let chain_config_path = &params.chain_config_path;
 

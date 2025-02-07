@@ -1,4 +1,4 @@
-use clap::ValueEnum;
+use clap::{Args, ValueEnum};
 use madara_cli_common::{Prompt, PromptSelect};
 use strum::{EnumIter, IntoEnumIterator};
 
@@ -16,6 +16,7 @@ pub enum PathfinderNetwork {
     Mainnet,
 }
 
+#[derive(Debug, Clone, Args)]
 pub struct PathfinderRunnerConfigMode {
     pub network: Option<PathfinderNetwork>,
     pub chain_id: Option<String>,

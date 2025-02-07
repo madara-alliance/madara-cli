@@ -3,9 +3,12 @@ use strum::{EnumIter, IntoEnumIterator};
 
 use madara_cli_common::{Prompt, PromptSelect};
 
-#[derive(Default)]
+#[derive(Debug, Default, Clone, clap::Parser)]
 pub struct ProverRunnerConfig {
-    pub url: String,
+    pub prover: ProverType,
+    /// API key for Atlantic prover (required if using Atlantic)
+    #[arg(long, required_if_eq("prover", "atlantic"))]
+    pub api_key: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq, Default, EnumIter, strum::Display)]
@@ -20,12 +23,12 @@ impl ProverRunnerConfig {
     pub fn fill_values_with_prompt(self) -> anyhow::Result<ProverRunnerConfig> {
         let prover = PromptSelect::new("Select Prover:", ProverType::iter()).ask();
 
-        let url = match prover {
-            ProverType::Dummy => "".to_string(),
-            ProverType::Atlantic => Prompt::new("Input Atlantic prover API key:").ask(),
+        let api_key = match prover {
+            ProverType::Dummy => None,
+            ProverType::Atlantic => Some(Prompt::new("Input Atlantic prover API key:").ask()),
             ProverType::Stwo => panic!("Stwo prover is not supported yet"),
         };
 
-        Ok(ProverRunnerConfig { url })
+        Ok(ProverRunnerConfig { api_key, prover })
     }
 }
