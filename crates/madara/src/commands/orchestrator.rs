@@ -16,6 +16,9 @@ use minijinja::{context, Environment};
 use std::env;
 use std::fs;
 
+use std::fs::Permissions;
+use std::os::unix::fs::PermissionsExt;
+
 const ORCHESTRATOR_REPO_PATH: &str = "deps/orchestrator";
 const ORCHESTRATOR_DOCKER_IMAGE: &str = "orchestrator";
 const ORCHESTRATOR_COMPOSE_TEMPLATE_FILE: &str = "compose.template";
@@ -134,7 +137,10 @@ fn pupolate_orchestrator_runner(prover_config: &ProverRunnerConfig) -> anyhow::R
     // Render the template
     let tmpl = env.get_template("runner_template").unwrap();
     let rendered = tmpl.render(&data).expect("Template rendering failed");
-    fs::write(runner_output, rendered).expect("Failed to write run_orchestrator");
+    fs::write(&runner_output, rendered).expect("Failed to write run_orchestrator");
+
+    let perms = Permissions::from_mode(0o755);
+    fs::set_permissions(&runner_output, perms)?;
 
     Ok(())
 }
