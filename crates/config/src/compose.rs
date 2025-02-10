@@ -4,9 +4,6 @@ use std::collections::HashMap;
 /// Represents the entire configuration.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Compose {
-    /// The name of the runner.
-    pub name: String,
-
     /// A map of service names to their configurations.
     pub services: HashMap<String, Service>,
 
