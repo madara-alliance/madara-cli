@@ -20,7 +20,7 @@ pub enum ProverType {
 }
 
 impl ProverRunnerConfig {
-    pub fn fill_values_with_prompt(self) -> anyhow::Result<ProverRunnerConfig> {
+    pub fn fill_values_with_prompt() -> anyhow::Result<ProverRunnerConfig> {
         let prover = PromptSelect::new("Select Prover:", ProverType::iter()).ask();
 
         let api_key = match prover {

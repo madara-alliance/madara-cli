@@ -49,10 +49,28 @@ pub struct MadaraRunnerConfigAppChain {
     #[arg(short, long, default_value = "configs/presets/devnet.yaml")]
     pub chain_config_path: String,
 
-    // #[clap(flatten)]
-    // pathfinder_config: PathfinderRunnerConfigMode,
     #[clap(flatten)]
-    prover_config: ProverRunnerConfig,
+    pub prover_config: ProverRunnerConfig,
+
+    #[clap(flatten)]
+    pub pathfinder_config: PathfinderRunnerConfigMode,
+}
+
+impl MadaraRunnerConfigAppChain {
+    /// Fill AppChain configuration using interactive prompts
+    pub fn fill_values_with_prompt() -> anyhow::Result<MadaraRunnerConfigAppChain> {
+        let chain_config_path = Prompt::new("Input chain config path:")
+            .default("configs/presets/devnet.yaml")
+            .ask();
+
+        let prover_config = ProverRunnerConfig::fill_values_with_prompt()?;
+
+        Ok(MadaraRunnerConfigAppChain {
+            chain_config_path,
+            prover_config,
+            pathfinder_config: PathfinderRunnerConfigMode::default(),
+        })
+    }
 }
 
 /// Madara preset type (e.g., Sepolia, Mainnet, etc.)
@@ -168,7 +186,9 @@ impl MadaraRunnerConfigMode {
             MadaraMode::FullNode => {
                 MadaraRunnerParams::FullNode(MadaraRunnerConfigFullNode::fill_values_with_prompt()?)
             }
-            _ => panic!("Not supported yet"),
+            MadaraMode::AppChain => {
+                MadaraRunnerParams::AppChain(MadaraRunnerConfigAppChain::fill_values_with_prompt()?)
+            }
         };
 
         Ok(MadaraRunnerConfigMode {

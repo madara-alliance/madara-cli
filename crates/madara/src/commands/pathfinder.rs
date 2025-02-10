@@ -48,12 +48,19 @@ fn create_runner_script(params: Vec<String>, output_path: &str) -> anyhow::Resul
 }
 
 pub fn parse_params(params: &PathfinderRunnerConfigMode) -> anyhow::Result<()> {
-    // TODO: handle optional params.
-    let (network, chain_id, gateway_url, feeder_gateway_url, http_rpc, data_directory) =
-        params.unwrap_all();
+    // TODO: handle ethereum_wss.
+    let PathfinderRunnerConfigMode {
+        network,
+        chain_id,
+        gateway_url,
+        feeder_gateway_url,
+        http_rpc,
+        data_directory,
+        ..
+    } = params;
 
     let pathfinder_params = vec![
-        format!("--network {}", network).to_lowercase(),
+        format!("--network {}", network.to_string().to_lowercase()),
         format!("--chain-id {}", chain_id),
         "--ethereum.url http://anvil:8545".to_string(),
         format!("--gateway-url {}", gateway_url),

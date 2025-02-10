@@ -8,7 +8,7 @@ use crate::constants::{MADARA_COMPOSE_FILE, MADARA_REPO_PATH};
 use crate::constants::{MADARA_RPC_API_KEY_FILE, MADARA_RUNNER_SCRIPT};
 
 use anyhow::anyhow;
-use madara_cli_common::{docker, logger};
+use madara_cli_common::docker;
 use madara_cli_config::compose::Compose;
 use madara_cli_config::madara::{
     MadaraRunnerConfigAppChain, MadaraRunnerConfigDevnet, MadaraRunnerConfigFullNode,
@@ -20,7 +20,6 @@ use xshell::Shell;
 use super::{orchestrator, workspace_dir};
 
 pub(crate) fn run(args: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result<()> {
-    logger::info("Input Madara parameters...");
     let mode = args.mode();
     match mode {
         MadaraMode::AppChain => orchestrator::run(args, shell)?,

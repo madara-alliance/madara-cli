@@ -1,8 +1,5 @@
 use madara_cli_common::{docker, logger, spinner::Spinner};
-use madara_cli_config::{
-    madara::MadaraRunnerConfigMode, pathfinder::PathfinderRunnerConfigMode,
-    prover::ProverRunnerConfig,
-};
+use madara_cli_config::madara::{MadaraRunnerConfigMode, MadaraRunnerParams};
 use xshell::Shell;
 
 use crate::{
@@ -16,17 +13,17 @@ const ORCHESTRATOR_COMPOSE_FILE: &str = "compose.yaml";
 
 pub(crate) fn run(args_madara: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result<()> {
     logger::new_empty_line();
-    logger::intro();
-
     // Collect Madara configuration
     commands::madara::process_params(&args_madara)?;
 
-    // Collect Pathfinder configuration
-    let args_pathfinder = PathfinderRunnerConfigMode::default().fill_values_with_prompt()?;
-    commands::pathfinder::parse_params(&args_pathfinder)?;
+    let args = match args_madara.params {
+        MadaraRunnerParams::AppChain(args) => args,
+        _ => unreachable!("AppChain config expected"),
+    };
+    commands::pathfinder::parse_params(&args.pathfinder_config)?;
 
     // Collect Prover configuration
-    let _args_prover = ProverRunnerConfig::default().fill_values_with_prompt()?;
+    let _args_prover = &args.prover_config;
 
     // Build all images
     build_images(shell)?;
