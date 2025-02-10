@@ -28,15 +28,15 @@ jobs:
       - name: Install Docker on macOS
         if: runner.os == 'macOS'
         run: |
-            brew install docker
-            brew install docker-compose
-            brew install colima
-            brew install qemu
-            mkdir -p ~/.docker/cli-plugins
-            ln -sfn $HOMEBREW_PREFIX/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
-            LIMACTL_PATH=$(brew --prefix)/bin/limactl
-            sudo curl -L -o $LIMACTL_PATH https://github.com/mikekazakov/lima-nohvf/raw/master/limactl && sudo chmod +x $LIMACTL_PATH
-            colima start --network-address --arch arm64 --vm-type=qemu
+          brew install docker
+          brew install docker-compose
+          brew install colima
+          brew install qemu
+          mkdir -p ~/.docker/cli-plugins
+          ln -sfn $HOMEBREW_PREFIX/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
+          LIMACTL_PATH=$(brew --prefix)/bin/limactl
+          sudo curl -L -o $LIMACTL_PATH https://github.com/mikekazakov/lima-nohvf/raw/master/limactl && sudo chmod +x $LIMACTL_PATH
+          colima start --network-address --arch arm64 --vm-type=qemu
 
       - name: Build cli
         run: cargo build
@@ -68,7 +68,12 @@ jobs:
       - name: Check full-node
         run: |
           cargo run -p madara create full-node --network devnet &
-          /tmp/health_check.sh madara-devnet 120
+          /tmp/health_check.sh madara-full-node 120
+
+      - name: Check app-chain
+        run: |
+          cargo run -p madara create app-chain dummy &
+          /tmp/health_check.sh madara-app-chain 360
 
       - name: Check sequencer
         run: |
