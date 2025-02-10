@@ -96,5 +96,3 @@ pub struct Secret {
     /// The file path to the secret.
     pub file: String,
 }
-
-

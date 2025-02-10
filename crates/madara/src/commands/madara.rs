@@ -10,6 +10,8 @@ use crate::constants::{
 use crate::constants::{MADARA_RPC_API_KEY_FILE, MADARA_RUNNER_SCRIPT, MSG_ARGS_VALIDATOR_ERR};
 
 use anyhow::{anyhow, Context};
+use cliclack::log;
+use madara_cli_common::Prompt;
 use madara_cli_common::{docker, logger, spinner::Spinner};
 use madara_cli_config::compose::Compose;
 use madara_cli_config::madara::{
@@ -23,8 +25,6 @@ use super::{orchestrator, workspace_dir};
 
 pub(crate) fn run(args: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result<()> {
     logger::info("Input Madara parameters...");
-
-    // let params = MadaraRunnerConfigMode::default();
     let args = args
         .fill_values_with_prompt()
         .context(MSG_ARGS_VALIDATOR_ERR)?;
@@ -36,7 +36,6 @@ pub(crate) fn run(args: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result
             let spinner = Spinner::new(MSG_BUILDING_IMAGE_SPINNER);
             build_image(shell)?;
             spinner.finish();
-
             madara_run(shell, args)?;
         }
     };
@@ -135,38 +134,60 @@ fn create_runner_script(
 }
 
 fn check_secrets(mode: MadaraMode) -> anyhow::Result<()> {
-    let rpc_api_secret = workspace_dir()
-        .join(MADARA_REPO_PATH)
-        .join(MADARA_RPC_API_KEY_FILE);
+    match mode {
+        MadaraMode::Sequencer | MadaraMode::FullNode => {
+            let rpc_api_secret = PathBuf::new()
+                .join(MADARA_REPO_PATH)
+                .join(MADARA_RPC_API_KEY_FILE);
 
-    // Create .secrets and missing folders
-    if let Some(parent) = rpc_api_secret.parent() {
-        if !parent.exists() {
-            println!("Creating missing directories: {}", parent.display());
-            create_dir_all(parent)
-                .map_err(|e| anyhow!("Failed to create directories {}: {}", parent.display(), e))?;
-        }
-    }
-
-    // TODO: handle missing file for other modes
-    if !rpc_api_secret.exists() {
-        match mode {
-            MadaraMode::Devnet => {
-                println!("Creating empty file: {}", rpc_api_secret.display());
-                File::create(&rpc_api_secret).map_err(|e| {
-                    anyhow!("Failed to create file {}: {}", rpc_api_secret.display(), e)
-                })?;
+            // Create .secrets and missing folders
+            if let Some(parent) = rpc_api_secret.parent() {
+                if !parent.exists() {
+                    log::info(format!(
+                        "Creating missing directories: {}",
+                        parent.display()
+                    ))?;
+                    create_dir_all(parent).map_err(|e| {
+                        anyhow!("Failed to create directories {}: {}", parent.display(), e)
+                    })?;
+                }
             }
-            _ => {
-                return Err(anyhow!(
-                    "RPC API file must be provided for mode {:?} at {}",
-                    mode,
-                    rpc_api_secret.display()
-                ));
+            if !rpc_api_secret.exists() {
+                let rpc_api_url: String = Prompt::new("Input RPC_API url:").ask();
+                log::info(format!("Creating file: {}", rpc_api_secret.display()))?;
+                fs::write(rpc_api_secret, rpc_api_url)?;
+            } else {
+                let rpc_api_url = fs::read_to_string(&rpc_api_secret)?;
+                let rpc_api_url: String = Prompt::new("Input RPC_API url:")
+                    .default(&rpc_api_url)
+                    .ask();
+                fs::write(rpc_api_secret, rpc_api_url)?;
             }
         }
-    }
+        MadaraMode::Devnet => {
+            let rpc_api_secret = PathBuf::new()
+                .join(MADARA_REPO_PATH)
+                .join(MADARA_RPC_API_KEY_FILE);
 
+            // Create .secrets and missing folders
+            if let Some(parent) = rpc_api_secret.parent() {
+                if !parent.exists() {
+                    log::info(format!(
+                        "Creating missing directories: {}",
+                        parent.display()
+                    ))?;
+                    create_dir_all(parent).map_err(|e| {
+                        anyhow!("Failed to create directories {}: {}", parent.display(), e)
+                    })?;
+                }
+            }
+            if !rpc_api_secret.exists() {
+                log::info(format!("Creating file: {}", rpc_api_secret.display()))?;
+                fs::write(rpc_api_secret, "")?;
+            }
+        }
+        MadaraMode::AppChain => {}
+    }
     Ok(())
 }
 
