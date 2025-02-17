@@ -38,17 +38,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tini \
     && rm -rf /var/lib/apt/lists/*
 
-# Create a non-root user
-RUN groupadd --gid 1000 pathfinder && \
-    useradd --no-log-init --uid 1000 --gid pathfinder --no-create-home pathfinder
-
 # Set up working directory
 WORKDIR /usr/local/bin
 COPY --from=builder /pathfinder/target/release/pathfinder /usr/local/bin/pathfinder
-
-# Set ownership and permissions
-RUN chown -R pathfinder:pathfinder /usr/local/bin/pathfinder
-USER pathfinder
 
 # Expose RPC port
 EXPOSE 9545
