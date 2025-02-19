@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# Sleep until all the services are up and running
+for i in $(seq 60 -1 1); do
+    echo "Starting Orchestrator in $i seconds..."
+    sleep 1
+done
+
+# Orchestrator setup
+./orchestrator setup --aws --aws-s3 --aws-sqs --aws-sns --aws-event-bridge --event-bridge-type {{ EVENT_BRIDGE_TYPE | default("rule") }}
+
+# Orchestrator run
+RUST_LOG=info ./orchestrator run --{{ PROVER_TYPE | default("sharp") }} --{{ AWS_ENABLED | default("aws") }} --{{ SETTLEMENT_NETWORK | default("settle-on-ethereum") }} --aws-s3 --aws-sqs --aws-sns --{{ DA_NETWORK | default("da-on-ethereum") }} --mongodb

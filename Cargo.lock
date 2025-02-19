@@ -209,6 +209,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "dotenvy"
+version = "0.15.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1aaf95b3e5c8f23aa320147307562d361db0ae0d51242340f558153b4eb2439b"
+
+[[package]]
 name = "encode_unicode"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -517,11 +523,13 @@ dependencies = [
  "clap-markdown",
  "clap_complete",
  "cliclack",
+ "dotenvy",
  "human-panic",
  "lazy_static",
  "madara_cli_common",
  "madara_cli_config",
  "madara_cli_types",
+ "minijinja",
  "serde_yml",
  "strum",
  "thiserror",
@@ -578,6 +586,15 @@ name = "memchr"
 version = "2.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
+
+[[package]]
+name = "minijinja"
+version = "2.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cff7b8df5e85e30b87c2b0b3f58ba3a87b68e133738bf512a7713769326dbca9"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "miniz_oxide"
