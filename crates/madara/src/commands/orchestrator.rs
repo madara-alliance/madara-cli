@@ -24,7 +24,7 @@ const ORCHESTRATOR_DOCKER_IMAGE: &str = "orchestrator";
 const ORCHESTRATOR_COMPOSE_TEMPLATE_FILE: &str = "compose.template";
 const ORCHESTRATOR_COMPOSE_FILE: &str = "compose.yaml";
 const ORCHESTRATOR_ENV_TEMPLATE_FILE: &str = ".env.template";
-const ORCHESTRATOR_ENV_FILE: &str = ".env";
+const ORCHESTRATOR_ENV_PATH: &str = "deps/orchestrator/.env";
 const ORCHESTRATOR_RUNNER_TEMPLATE_FILE: &str = "run_orchestrator.template";
 const ORCHESTRATOR_RUNNER_FILE: &str = "run_orchestrator.sh";
 
@@ -39,17 +39,17 @@ pub(crate) fn run(args_madara: MadaraRunnerConfigMode, shell: &Shell) -> anyhow:
     let args_pathfinder = PathfinderRunnerConfigMode::default().fill_values_with_prompt()?;
     commands::pathfinder::parse_params(&args_pathfinder)?;
 
-    // Check if the ATLANTIC_API was already set
-    let env_output = format!("{}/{}", ORCHESTRATOR_REPO_PATH, ORCHESTRATOR_ENV_FILE);
-    let _ = from_filename(env_output);
+    // Read and load the env variables from deps/orchestrator/.env if the file was created.
+    // On the first run, fallback to `ATLANTIC_API` to give the user a hint about what is needed in that field
+    let _ = from_filename(ORCHESTRATOR_ENV_PATH.to_string());
     let prev_atlantic_api = env::var("MADARA_ORCHESTRATOR_ATLANTIC_API_KEY")
         .unwrap_or_else(|_| "ATLANTIC_API_KEY".to_string());
 
     // Collect Prover configuration
     let args_prover = ProverRunnerConfig::default().fill_values_with_prompt(&prev_atlantic_api)?;
     populate_orchestrator_env(&args_prover)?;
-    pupolate_orchestrator_runner(&args_prover)?;
-    pupolate_orchestrator_compose(&args_prover)?;
+    populate_orchestrator_runner(&args_prover)?;
+    populate_orchestrator_compose(&args_prover)?;
 
     // Build all images
     build_images(shell)?;
@@ -91,7 +91,7 @@ fn populate_orchestrator_env(prover_config: &ProverRunnerConfig) -> anyhow::Resu
         "{}/{}",
         ORCHESTRATOR_REPO_PATH, ORCHESTRATOR_ENV_TEMPLATE_FILE
     );
-    let env_output = format!("{}/{}", ORCHESTRATOR_REPO_PATH, ORCHESTRATOR_ENV_FILE);
+    let env_output = ORCHESTRATOR_ENV_PATH.to_string();
 
     // Read the template file
     let template = fs::read_to_string(env_template).expect("Failed to read .env.template");
@@ -111,7 +111,7 @@ fn populate_orchestrator_env(prover_config: &ProverRunnerConfig) -> anyhow::Resu
     Ok(())
 }
 
-fn pupolate_orchestrator_runner(prover_config: &ProverRunnerConfig) -> anyhow::Result<()> {
+fn populate_orchestrator_runner(prover_config: &ProverRunnerConfig) -> anyhow::Result<()> {
     let runner_template = format!(
         "{}/{}",
         ORCHESTRATOR_REPO_PATH, ORCHESTRATOR_RUNNER_TEMPLATE_FILE
@@ -145,7 +145,7 @@ fn pupolate_orchestrator_runner(prover_config: &ProverRunnerConfig) -> anyhow::R
     Ok(())
 }
 
-fn pupolate_orchestrator_compose(prover_config: &ProverRunnerConfig) -> anyhow::Result<()> {
+fn populate_orchestrator_compose(prover_config: &ProverRunnerConfig) -> anyhow::Result<()> {
     let compose_template = format!("{}/{}", DEPS_REPO_PATH, ORCHESTRATOR_COMPOSE_TEMPLATE_FILE);
     let compose_output = format!("{}/{}", DEPS_REPO_PATH, ORCHESTRATOR_COMPOSE_FILE);
 
