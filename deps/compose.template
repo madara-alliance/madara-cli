@@ -14,16 +14,15 @@ services:
       retries: 10
     attach: false
 
-  core_contract_deployment:
-    image: anvil:latest
-    container_name: core_contract_deployment
-    working_dir: /app
-    entrypoint: /bin/bash
-    depends_on:
-      anvil:
-        condition: service_started
-    command: -c "sleep 5 && ./core_contract_deployment.sh"
-
+  bootstrapper_l1:
+    image: bootstrapper:latest
+    container_name: bootstrapper
+    volumes:
+      - ./bootstrapper/devnet.json:/usr/local/bin/devnet.json
+    # command: "--mode setup-l1 --config devnet.json"
+    # command: /bin/bash -c "sleep 5 && --mode setup-l1 --config devnet.json"
+    entrypoint: [ "/bin/sh", "-c", "sleep 20 && exec madara-bootstrapper --mode setup-l1 --config devnet.json" ]
+  
   madara:
     image: madara:latest
     container_name: madara
