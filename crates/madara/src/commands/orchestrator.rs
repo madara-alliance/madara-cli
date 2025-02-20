@@ -1,15 +1,13 @@
 use madara_cli_common::{docker, logger, spinner::Spinner};
 use madara_cli_config::{
+    bootstrapper::BootstrapperConfig,
     madara::MadaraRunnerConfigMode,
     pathfinder::PathfinderRunnerConfigMode,
     prover::{ProverRunnerConfig, ProverType},
 };
 use xshell::Shell;
 
-use crate::{
-    commands,
-    constants::{DEPS_REPO_PATH, MSG_BUILDING_IMAGE_SPINNER},
-};
+use crate::{commands, constants::DEPS_REPO_PATH};
 
 use dotenvy::from_filename;
 use minijinja::{context, Environment};
@@ -35,6 +33,8 @@ pub(crate) fn run(args_madara: MadaraRunnerConfigMode, shell: &Shell) -> anyhow:
     // Collect Madara configuration
     commands::madara::process_params(&args_madara)?;
 
+    let args_bootstrapper = BootstrapperConfig::fill_values_with_prompt()?;
+
     // Collect Pathfinder configuration
     let args_pathfinder = PathfinderRunnerConfigMode::default().fill_values_with_prompt()?;
     commands::pathfinder::parse_params(&args_pathfinder)?;
@@ -49,7 +49,7 @@ pub(crate) fn run(args_madara: MadaraRunnerConfigMode, shell: &Shell) -> anyhow:
     let args_prover = ProverRunnerConfig::default().fill_values_with_prompt(&prev_atlantic_api)?;
     populate_orchestrator_env(&args_prover)?;
     populate_orchestrator_runner(&args_prover)?;
-    populate_orchestrator_compose(&args_prover)?;
+    populate_orchestrator_compose(&args_prover, &args_bootstrapper)?;
 
     // Build all images
     build_images(shell)?;
@@ -66,10 +66,19 @@ fn run_orchestrator(shell: &Shell) -> anyhow::Result<()> {
 }
 
 fn build_images(shell: &Shell) -> anyhow::Result<()> {
-    let spinner = Spinner::new(MSG_BUILDING_IMAGE_SPINNER);
+    let spinner = Spinner::new("Building Madara image...");
     commands::madara::build_image(shell)?;
+    spinner.finish();
+    let spinner = Spinner::new("Building Pathfinder image...");
     commands::pathfinder::build_image(shell)?;
+    spinner.finish();
+    let spinner = Spinner::new("Building Anvil image...");
     commands::anvil::build_image(shell)?;
+    spinner.finish();
+    let spinner = Spinner::new("Building Bootstrapper image...");
+    commands::bootstrapper::build_image(shell)?;
+    spinner.finish();
+    let spinner = Spinner::new("Building Orchestrator image...");
     build_image(shell)?;
     spinner.finish();
 
@@ -145,7 +154,10 @@ fn populate_orchestrator_runner(prover_config: &ProverRunnerConfig) -> anyhow::R
     Ok(())
 }
 
-fn populate_orchestrator_compose(prover_config: &ProverRunnerConfig) -> anyhow::Result<()> {
+fn populate_orchestrator_compose(
+    prover_config: &ProverRunnerConfig,
+    bootstrapper_config: &BootstrapperConfig,
+) -> anyhow::Result<()> {
     let compose_template = format!("{}/{}", DEPS_REPO_PATH, ORCHESTRATOR_COMPOSE_TEMPLATE_FILE);
     let compose_output = format!("{}/{}", DEPS_REPO_PATH, ORCHESTRATOR_COMPOSE_FILE);
 
@@ -156,7 +168,7 @@ fn populate_orchestrator_compose(prover_config: &ProverRunnerConfig) -> anyhow::
     let mut env = Environment::new();
     env.add_template("compose_template", &template)
         .expect("Failed to add template");
-    let data = context! {ENABLE_DUMMY_PROVER => prover_config.prover_type == ProverType::Dummy};
+    let data = context! {ENABLE_DUMMY_PROVER => prover_config.prover_type == ProverType::Dummy, ENABLE_BOOTSTRAPER_L2_SETUP => bootstrapper_config.deploy_l2_contracts};
 
     // Render the template
     let tmpl = env.get_template("compose_template").unwrap();
