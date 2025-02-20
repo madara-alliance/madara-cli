@@ -6,22 +6,18 @@ services:
     mem_limit: "16gb"
     ports:
       - "8545:8545"
-    command: /bin/bash -c "anvil --host 0.0.0.0 --block-time 1"
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8545/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-    attach: false
+    command: /bin/bash -c "anvil --host 0.0.0.0 --block-time 1 --code-size-limit 300000"
 
   bootstrapper_l1:
     image: bootstrapper:latest
-    container_name: bootstrapper
+    container_name: bootstrapper_l1
+    depends_on:
+      anvil:
+        condition: service_started
     volumes:
       - ./bootstrapper/devnet.json:/usr/local/bin/devnet.json
-    # command: "--mode setup-l1 --config devnet.json"
-    # command: /bin/bash -c "sleep 5 && --mode setup-l1 --config devnet.json"
-    entrypoint: [ "/bin/sh", "-c", "sleep 20 && exec madara-bootstrapper --mode setup-l1 --config devnet.json" ]
+    command: "--mode setup-l1 --config devnet.json"
+    attach: false
   
   madara:
     image: madara:latest
@@ -32,7 +28,7 @@ services:
       - "9945:9945"
       - "8080:8080"
     depends_on:
-      core_contract_deployment:
+      bootstrapper_l1:
         condition: service_completed_successfully
     volumes:
       - ./madara/data:/usr/share/madara/data
@@ -42,7 +38,22 @@ services:
       - /usr/local/bin/runner.sh
     restart: unless-stopped
 
-  madara_state_update:
+
+
+{%- if ENABLE_BOOTSTRAPER_L2_SETUP %}
+  bootstrapper_l2:
+    image: bootstrapper:latest
+    container_name: bootstrapper_l2
+    depends_on:
+      madara:
+        condition: service_started
+    volumes:
+      - ./bootstrapper/artifacts:/app/artifacts
+      - ./bootstrapper/devnet.json:/app/src/configs/devnet.json
+    command: -c "sleep 5 && cargo run --release -- --mode setup-l2 --config src/configs/devnet.json"
+    attach: false
+{%- else %}
+    madara_state_update:
     image: anvil:latest
     container_name: state_update
     working_dir: /app
@@ -51,6 +62,7 @@ services:
       madara:
         condition: service_started
     command: -c "sleep 10 && ./madara_state_update.sh"
+{%- endif %}
 
   pathfinder:
     image: pathfinder:latest
@@ -123,7 +135,13 @@ services:
       - ./orchestrator/run_orchestrator.sh:/usr/local/bin/run_orchestrator.sh
     entrypoint:
       - /usr/local/bin/run_orchestrator.sh
+{%- if ENABLE_BOOTSTRAPER_L2_SETUP %}
     depends_on:
-      madara:
-        condition: service_started
+      bootstrapper_l2:
+        condition: service_completed_successfully
+{%- else %}
+    depends_on:
+      madara_state_update:
+        condition: service_completed_successfully
+{%- endif %}
     attach: false
