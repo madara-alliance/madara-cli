@@ -49,7 +49,6 @@ services:
       madara:
         condition: service_started
     volumes:
-      - ./bootstrapper/artifacts:/app/artifacts
       - ./bootstrapper/devnet.json:/app/src/configs/devnet.json
     command: -c "sleep 5 && cargo run --release -- --mode setup-l2 --config src/configs/devnet.json"
     attach: false
