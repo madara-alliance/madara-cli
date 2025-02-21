@@ -7,6 +7,7 @@ services:
     ports:
       - "8545:8545"
     command: /bin/bash -c "anvil --host 0.0.0.0 --block-time 1 --code-size-limit 300000"
+    attach: false
 
   bootstrapper_l1:
     image: bootstrapper:latest
@@ -15,8 +16,8 @@ services:
       anvil:
         condition: service_started
     volumes:
-      - ./bootstrapper/devnet.json:/usr/local/bin/devnet.json
-    command: "--mode setup-l1 --config devnet.json"
+      - ./bootstrapper/devnet.json:/app/src/configs/devnet.json
+    command: -c "sleep 5 && cargo run --release -- --mode setup-l1 --config src/configs/devnet.json"
     attach: false
   
   madara:
