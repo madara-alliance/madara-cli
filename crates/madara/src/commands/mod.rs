@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf};
 
 pub mod anvil;
+pub mod bootstrapper;
 pub mod madara;
 pub mod orchestrator;
 pub mod os;
