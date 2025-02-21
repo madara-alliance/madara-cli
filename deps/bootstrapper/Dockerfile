@@ -40,12 +40,13 @@ RUN if [ ! -f "$SOLC_PATH" ]; then \
 # Set working directory
 WORKDIR /app
 
-# Copy source files
-COPY . .
+# Clone repository
+RUN git clone --branch update-cairo-0.9.0 --recurse-submodules https://github.com/starknet-io/starkgate-contracts.git .
 
 # Build application
 RUN rm -rf build && \
     ./build.sh
+
 # ==============================================
 # Image that builds the remaining contracts and bootstrapper
 # starkgate-contracts-latest, braavos-account-cairo and argent-contracts-starknet
@@ -142,9 +143,9 @@ RUN . "$HOME/.asdf/asdf.sh" && \
     asdf install scarb 2.6.3 && \
     SOLC=/usr/local/bin/solc make argent-contracts-starknet
 
-COPY --from=starkgate_contracts_legacy /app/starkgate-artifacts/starkware/starknet/apps/starkgate/artifacts/cairo/token_bridge_1.json ./artifacts/legacy_token_bridge.json
-COPY --from=starkgate_contracts_legacy /app/starkgate-artifacts/starkware/starknet/std_contracts/upgradability_proxy/proxy.json ./artifacts/proxy_starkgate.json
-COPY --from=starkgate_contracts_legacy /app/starkgate-artifacts/starkware/starknet/std_contracts/ERC20/ERC20.json ./artifacts/ERC20.json
+COPY --from=starkgate_contracts_legacy /app/build/Release/src/starkware/starknet/apps/starkgate/artifacts/cairo/token_bridge_1.json /app/artifacts/legacy_token_bridge.json
+COPY --from=starkgate_contracts_legacy /app/build/Release/src/starkware/starknet/std_contracts/upgradability_proxy/proxy.json /app/artifacts/proxy_starkgate.json
+COPY --from=starkgate_contracts_legacy /app/build/Release/src/starkware/starknet/std_contracts/ERC20/ERC20.json /app/artifacts/ERC20.json
 
 RUN export PATH="/usr/local/bin:$PATH" && cargo build --release --workspace --bin madara-bootstrapper
 
