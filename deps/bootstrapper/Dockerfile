@@ -1,6 +1,54 @@
 # ==============================================
-# Karnot Bootstrapper
+# Image that builds stargate_contracts_old
+FROM python:3.7-slim-bullseye AS starkgate_contracts_legacy
+
+# Set shell options for better error handling
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    make \
+    libgmp-dev \
+    g++ \
+    python3-dev \
+    npm \
+    unzip \
+    curl \
+    cmake \
+    git \
+    # sudo \
+    vim \
+    # libboost-all-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python and other dependencies in a single layer
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir cmake==3.22 && \
+    npm install -g --unsafe-perm ganache-cli@6.12.2
+
+# Install specific solc version
+ENV SOLC_VERSION="0.6.12"
+ENV SOLC_PATH="/usr/local/bin/solc-$SOLC_VERSION"
+
+RUN if [ ! -f "$SOLC_PATH" ]; then \
+    echo "Installing solc $SOLC_VERSION..." && \
+    apt-get update && apt-get install -y wget && \
+    wget https://github.com/ethereum/solidity/releases/download/v${SOLC_VERSION}/solc-static-linux -O "$SOLC_PATH" && \
+    chmod +x "$SOLC_PATH"; \
+    fi
+
+# Set working directory
+WORKDIR /app
+
+# Copy source files
+COPY . .
+
+# Build application
+RUN rm -rf build && \
+    ./build.sh
 # ==============================================
+# Image that builds the remaining contracts and bootstrapper
+# starkgate-contracts-latest, braavos-account-cairo and argent-contracts-starknet
 FROM ubuntu:22.04 AS builder
 
 # Install basic dependencies
@@ -70,12 +118,8 @@ RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.13.1 && \
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get update && \
     apt-get install -y nodejs && \
-    # Verify Node.js installation
-    node --version && \
     # Install a specific compatible version of npm
     npm install -g npm@9.8.1 && \
-    # Verify npm installation
-    npm --version && \
     # Clean up
     rm -rf /var/lib/apt/lists/*
 
@@ -97,6 +141,10 @@ RUN . "$HOME/.asdf/asdf.sh" && \
     SOLC=/usr/local/bin/solc make braavos-account-cairo && \
     asdf install scarb 2.6.3 && \
     SOLC=/usr/local/bin/solc make argent-contracts-starknet
+
+COPY --from=starkgate_contracts_legacy /app/starkgate-artifacts/starkware/starknet/apps/starkgate/artifacts/cairo/token_bridge_1.json ./artifacts/legacy_token_bridge.json
+COPY --from=starkgate_contracts_legacy /app/starkgate-artifacts/starkware/starknet/std_contracts/upgradability_proxy/proxy.json ./artifacts/proxy_starkgate.json
+COPY --from=starkgate_contracts_legacy /app/starkgate-artifacts/starkware/starknet/std_contracts/ERC20/ERC20.json ./artifacts/ERC20.json
 
 RUN export PATH="/usr/local/bin:$PATH" && cargo build --release --workspace --bin madara-bootstrapper
 
