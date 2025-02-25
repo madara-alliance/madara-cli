@@ -154,9 +154,14 @@ fn populate_orchestrator_compose(prover_config: &ProverRunnerConfig) -> anyhow::
 
     // Set up MiniJinja
     let mut env = Environment::new();
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    let prover_image = "gustavomoonsong/mock-prover-amd64";
+    #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
+    let prover_image = "gustavomoonsong/mock-prover-arm64";
     env.add_template("compose_template", &template)
         .expect("Failed to add template");
-    let data = context! {ENABLE_DUMMY_PROVER => prover_config.prover_type == ProverType::Dummy};
+    let data = context! {ENABLE_DUMMY_PROVER => prover_config.prover_type == ProverType::Dummy,
+    MADARA_PROVER_IMAGE => prover_image};
 
     // Render the template
     let tmpl = env.get_template("compose_template").unwrap();
