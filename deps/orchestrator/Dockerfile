@@ -61,9 +61,9 @@ FROM debian:bookworm
 
 # Install runtime dependencies
 RUN apt-get -y update && \
-    apt-get install -y openssl ca-certificates nodejs npm &&\
-    apt-get autoremove -y; \
-    apt-get clean; \
+    apt-get install -y openssl ca-certificates nodejs npm curl jq && \
+    apt-get autoremove -y && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
@@ -80,18 +80,12 @@ COPY --from=builder /usr/src/madara-orchestrator/migrations ./migrations
 
 # To be fixed by this https://github.com/keep-starknet-strange/snos/issues/404
 RUN mkdir -p /usr/local/cargo/git/checkouts/snos-59fe8329bb16fe65/662d170/crates/starknet-os/kzg
+RUN mkdir -p /usr/local/cargo/git/checkouts/snos-59fe8329bb16fe65/ea7d63f/crates/starknet-os/kzg
 RUN mkdir -p /usr/local/cargo/git/checkouts/snos-59fe8329bb16fe65/2c47281/crates/starknet-os/kzg
+
 COPY --from=builder /usr/src/madara-orchestrator/crates/da-clients/ethereum/trusted_setup.txt /usr/local/cargo/git/checkouts/snos-59fe8329bb16fe65/662d170/crates/starknet-os/kzg/trusted_setup.txt
+COPY --from=builder /usr/src/madara-orchestrator/crates/da-clients/ethereum/trusted_setup.txt /usr/local/cargo/git/checkouts/snos-59fe8329bb16fe65/ea7d63f/crates/starknet-os/kzg/trusted_setup.txt
 COPY --from=builder /usr/src/madara-orchestrator/crates/da-clients/ethereum/trusted_setup.txt /usr/local/cargo/git/checkouts/snos-59fe8329bb16fe65/2c47281/crates/starknet-os/kzg/trusted_setup.txt
 COPY --from=builder /usr/src/madara-orchestrator/crates/da-clients/ethereum/trusted_setup.txt /usr/src/madara-orchestrator/crates/settlement-clients/ethereum/src/trusted_setup.txt
 
-# COPY ./crates/da-clients/ethereum/trusted_setup.txt /usr/local/cargo/git/checkouts/snos-59fe8329bb16fe65/662d170/crates/starknet-os/kzg/trusted_setup.txt
-# COPY ./crates/da-clients/ethereum/trusted_setup.txt /usr/src/madara-orchestrator/crates/settlement-clients/ethereum/src/trusted_setup.txt
-
-# # Create a startup script
-# RUN echo '#!/bin/bash\n\
-#     npm run migrate up\n\
-#     ./orchestrator' > start.sh && chmod +x start.sh
-
-# # Set the entrypoint to the startup script
-# ENTRYPOINT ["./start.sh"]
+ENTRYPOINT ["/bin/bash"]
