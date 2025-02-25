@@ -25,7 +25,7 @@ RUN curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v28.3
 # Clone and build Pathfinder
 RUN git clone https://github.com/Moonsong-Labs/pathfinder.git && \
     cd pathfinder && \
-    git checkout notlesh/snos-requirements-2024-12-30 && \
+    git checkout 2097a13bae729ccdeb01c2202416c3df02633312 && \
     cargo build --release --bin pathfinder
 
 # Stage 2: Create the runtime image
