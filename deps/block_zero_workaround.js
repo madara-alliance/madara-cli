@@ -5,6 +5,11 @@
 
 db = connect("mongodb://mongodb:27017/orchestrator");
 
+// Let's clear all existing entries from the jobs collection
+// This will make orchestrator start from scratch (SnosRun, ProofCreation, DataSubmission, etc)
+// and we don't need to manually delete the entries from MongoDB
+db.jobs.deleteMany({});
+
 db.jobs.insertOne({
     _id: ObjectId("6752ccc937d965f72eff206d"),
     internal_id: "0",
