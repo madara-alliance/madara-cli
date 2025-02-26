@@ -9,12 +9,24 @@ services:
     command: /bin/bash -c "anvil --host 0.0.0.0 --block-time 1 --code-size-limit 300000"
     attach: false
 
+  mock_verifier_contract:
+    image: anvil:latest
+    container_name: state_update
+    working_dir: /app
+    entrypoint: /bin/bash
+    volumes:
+      - ./anvil/mock_verifier_contract.sh:/app/mock_verifier_contract.sh
+    depends_on:
+      anvil:
+        condition: service_started
+    command: -c "sleep 5 && ./mock_verifier_contract.sh"
+
   bootstrapper_l1:
     image: bootstrapper:latest
     container_name: bootstrapper_l1
     depends_on:
-      anvil:
-        condition: service_started
+      mock_verifier_contract:
+        condition: service_completed_successfully
     volumes:
       - ./bootstrapper/devnet.json:/app/src/configs/devnet.json
     command: -c "sleep 5 && cargo run --release -- --mode setup-l1 --config src/configs/devnet.json"
@@ -90,15 +102,16 @@ services:
       - "27017:27017"
     restart: unless-stopped
     depends_on:
-      madara:
-        condition: service_started
+      bootstrapper_l2:
+        condition: service_completed_successfully
     attach: false
 
   snos_block_zero_workaround:
     image: mongo
     depends_on:
-      - mongodb
-    entrypoint: [ "bash", "-c", "sleep 5 && mongosh --host mongodb --eval 'load(\"/init.js\")'" ]
+      mongodb:
+        condition: service_started
+    entrypoint: [ "bash", "-c", "mongosh --host mongodb --eval 'load(\"/init.js\")'" ]
     volumes:
       - ./block_zero_workaround.js:/init.js
 
