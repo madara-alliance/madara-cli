@@ -7,6 +7,7 @@ use madara_cli_common::{Prompt, PromptSelect};
 pub struct ProverRunnerConfig {
     pub prover_type: ProverType,
     pub url: String,
+    pub build_images: bool,
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum, PartialEq, Eq, Default, EnumIter, strum::Display)]
@@ -32,6 +33,15 @@ impl ProverRunnerConfig {
             ProverType::Stwo => panic!("Stwo prover is not supported yet"),
         };
 
-        Ok(ProverRunnerConfig { prover_type, url })
+        let build_images = cliclack::select("Build and use local images?")
+            .item(true, "Yes", "")
+            .item(false, "No", "")
+            .interact()?;
+
+        Ok(ProverRunnerConfig {
+            prover_type,
+            url,
+            build_images,
+        })
     }
 }
