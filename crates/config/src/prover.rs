@@ -1,7 +1,7 @@
 use clap::ValueEnum;
 use strum::{EnumIter, IntoEnumIterator};
 
-use madara_cli_common::{Prompt, PromptSelect};
+use madara_cli_common::{Prompt, PromptConfirm, PromptSelect};
 
 #[derive(Default)]
 pub struct ProverRunnerConfig {
@@ -33,10 +33,7 @@ impl ProverRunnerConfig {
             ProverType::Stwo => panic!("Stwo prover is not supported yet"),
         };
 
-        let build_images = cliclack::select("Build and use local images?")
-            .item(true, "Yes", "")
-            .item(false, "No", "")
-            .interact()?;
+        let build_images = PromptConfirm::new("Build and use local images?").ask();
 
         Ok(ProverRunnerConfig {
             prover_type,
