@@ -64,17 +64,17 @@ services:
       - ./bootstrapper/devnet.json:/app/src/configs/devnet.json
     command: -c "sleep 5 && cargo run --release -- --mode setup-l2 --config src/configs/devnet.json"
     attach: false
-{%- else %}
-    madara_state_update:
+{%- endif %}
+
+  madara_state_update:
     image: anvil:latest
     container_name: state_update
     working_dir: /app
     entrypoint: /bin/bash
     depends_on:
-      madara:
-        condition: service_started
-    command: -c "sleep 10 && ./madara_state_update.sh"
-{%- endif %}
+      bootstrapper_l2:
+        condition: service_completed_successfully
+    command: -c "./madara_state_update.sh"
 
   pathfinder:
     image: pathfinder:latest
@@ -102,15 +102,15 @@ services:
       - "27017:27017"
     restart: unless-stopped
     depends_on:
-      bootstrapper_l2:
-        condition: service_completed_successfully
+      madara:
+        condition: service_started
     attach: false
 
   snos_block_zero_workaround:
     image: mongo
     depends_on:
-      mongodb:
-        condition: service_started
+      bootstrapper_l2:
+        condition: service_completed_successfully
     entrypoint: [ "bash", "-c", "mongosh --host mongodb --eval 'load(\"/init.js\")'" ]
     volumes:
       - ./block_zero_workaround.js:/init.js
@@ -151,10 +151,6 @@ services:
 {%- if ENABLE_BOOTSTRAPER_L2_SETUP %}
     depends_on:
       bootstrapper_l2:
-        condition: service_completed_successfully
-{%- else %}
-    depends_on:
-      madara_state_update:
         condition: service_completed_successfully
 {%- endif %}
     attach: false
