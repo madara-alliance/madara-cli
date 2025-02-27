@@ -11,7 +11,7 @@ services:
 
   mock_verifier_contract:
     image: anvil:latest
-    container_name: state_update
+    container_name: mock_verifier
     working_dir: /app
     entrypoint: /bin/bash
     volumes:
