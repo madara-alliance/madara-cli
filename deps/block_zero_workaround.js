@@ -23,24 +23,22 @@ async function insertStateTransition() {
 
     console.log("Madara last block: {}", LAST_BLOCK_NUMBER)
 
-    for (let i = 0; i <= LAST_BLOCK_NUMBER; i++) {
-        db.jobs.insertOne({
-            _id: ObjectId(),
-            internal_id: i.toString(),
-            job_type: "StateTransition",
-            created_at: ISODate(`2024-12-06T10:07:05.000Z`),
-            external_id: i.toString(),
-            id: BinData(4, `H1c+V6J/TCaCID2LwJ5e/g==0`),
-            metadata: {
-                attempt_tx_hashes_0: `0x0adca7145e618564bc5ec901b80d331e11e3207ac21e68c4cedb698ff5ce6cb0`,
-                process_attempt_no: "1",
-                blocks_number_to_settle: i.toString()
-            },
-            status: "Completed",
-            updated_at: ISODate(`2024-12-06T10:18:20.000Z`),
-            version: 3
-        });
-    }
+    db.jobs.insertOne({
+        _id: ObjectId(),
+        internal_id: LAST_BLOCK_NUMBER.toString(),
+        job_type: "StateTransition",
+        created_at: ISODate(`2024-12-06T10:07:05.000Z`),
+        external_id: LAST_BLOCK_NUMBER.toString(),
+        id: BinData(4, `H1c+V6J/TCaCID2LwJ5e/g==0`),
+        metadata: {
+            attempt_tx_hashes_0: `0x0adca7145e618564bc5ec901b80d331e11e3207ac21e68c4cedb698ff5ce6cb0`,
+            process_attempt_no: "1",
+            blocks_number_to_settle: LAST_BLOCK_NUMBER.toString()
+        },
+        status: "Completed",
+        updated_at: ISODate(`2024-12-06T10:18:20.000Z`),
+        version: 3
+    });
 }
 
 db = connect("mongodb://mongodb:27017/orchestrator");
