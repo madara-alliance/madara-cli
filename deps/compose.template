@@ -25,7 +25,7 @@ services:
     command: -c "sleep 5 && ./core_contract_deployment.sh"
 
   madara:
-    image: {{ IMAGE_REPOSITORY }}madara:latest
+    image: madara:latest
     container_name: madara
     cpus: "4.0"
     mem_limit: "16gb"
@@ -54,7 +54,7 @@ services:
     command: -c "sleep 10 && ./madara_state_update.sh"
 
   pathfinder:
-    image: {{ IMAGE_REPOSITORY }}pathfinder:latest
+    image: pathfinder:latest
     container_name: pathfinder
     cpus: "4.0"
     mem_limit: "16gb"
@@ -114,7 +114,7 @@ services:
 {%- endif %}
 
   orchestrator:
-    image: {{ IMAGE_REPOSITORY }}orchestrator:latest
+    image: orchestrator:latest
     container_name: orchestrator
     cpus: "4.0"
     mem_limit: "16gb"
