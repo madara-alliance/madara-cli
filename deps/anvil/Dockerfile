@@ -10,7 +10,9 @@ RUN apt-get update && \
     curl \
     git \
     jq \
-    build-essential && \
+    build-essential \
+    nodejs \
+    npm && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -20,6 +22,9 @@ RUN curl -L https://foundry.paradigm.xyz | bash && \
 
 # Add foundry binaries to PATH
 ENV PATH="/root/.foundry/bin:${PATH}"
+
+# Install Starknet and Ethers.js
+RUN npm install -g starknet ethers
 
 # Create and set working directory
 WORKDIR /app
