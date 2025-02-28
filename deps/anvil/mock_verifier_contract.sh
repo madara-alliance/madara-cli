@@ -14,7 +14,7 @@ fi
 
 # Default Anvil private key
 PRIVATE_KEY="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
-ANVIL_URL="http://anvil:8545"
+ANVIL_URL="http://localhost:8545"
 
 
 # Deploy the verifier contract using forge create
@@ -23,7 +23,7 @@ VERIFIER_RESULT=$(forge create \
     --rpc-url "$ANVIL_URL" \
     --private-key "$PRIVATE_KEY" \
     --broadcast \
-    "MockGPSVerifier.sol:MockGPSVerifier" \
+    "deps/anvil/MockGPSVerifier.sol:MockGPSVerifier" \
     2>&1)
 
 if [ $? -ne 0 ]; then
