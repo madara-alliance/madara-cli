@@ -6,14 +6,14 @@ const ethers = require("ethers");
 // Using default anvil key which has funds
 const MADARA_ORCHESTRATOR_ETHEREUM_PRIVATE_KEY =
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
-const eth_provider = new ethers.JsonRpcProvider("http://localhost:8545");
+const eth_provider = new ethers.JsonRpcProvider("http://anvil:8545");
 const wallet = new ethers.Wallet(
   MADARA_ORCHESTRATOR_ETHEREUM_PRIVATE_KEY,
   eth_provider
 );
 
 const starknet_provider = new starknet.RpcProvider({
-  nodeUrl: "http://localhost:9945",
+  nodeUrl: "http://madara:9945",
 });
 
 // Due to restrictions in SNOS at the moment (as it's designed for Sepolia right now),
@@ -66,7 +66,7 @@ async function overrideStateOnCoreContract(
 }
 
 async function main() {
-  block_number = await starknet_provider.getBlockNumber();
+  let block_number = await starknet_provider.getBlockNumber();
   let core_contract_address = "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0"
   await overrideStateOnCoreContract(block_number, core_contract_address)
 }

@@ -51,8 +51,6 @@ services:
       - /usr/local/bin/runner.sh
     restart: unless-stopped
 
-
-
 {%- if ENABLE_BOOTSTRAPER_L2_SETUP %}
   bootstrapper_l2:
     image: bootstrapper:latest
@@ -66,15 +64,17 @@ services:
     attach: false
 {%- endif %}
 
-  madara_state_update:
+  override_state:
     image: anvil:latest
-    container_name: state_update
+    container_name: override_state
     working_dir: /app
     entrypoint: /bin/bash
     depends_on:
       bootstrapper_l2:
         condition: service_completed_successfully
-    command: -c "./madara_state_update.sh"
+    volumes:
+      - ./anvil/override_state.js:/app/override_state.js
+    command: -c "node override_state.js"
 
   pathfinder:
     image: pathfinder:latest
