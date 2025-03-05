@@ -1,6 +1,6 @@
 services:
   anvil:
-    image: anvil:latest
+    image: {{ IMAGE_REPOSITORY }}anvil:latest
     container_name: anvil
     cpus: "4.0"
     mem_limit: "16gb"
@@ -15,7 +15,7 @@ services:
     attach: false
 
   core_contract_deployment:
-    image: anvil:latest
+    image: {{ IMAGE_REPOSITORY }}anvil:latest
     container_name: core_contract_deployment
     working_dir: /app
     entrypoint: /bin/bash
@@ -25,7 +25,7 @@ services:
     command: -c "sleep 5 && ./core_contract_deployment.sh"
 
   madara:
-    image: madara:latest
+    image: {{ IMAGE_REPOSITORY }}madara:latest
     container_name: madara
     cpus: "4.0"
     mem_limit: "16gb"
@@ -44,7 +44,7 @@ services:
     restart: unless-stopped
 
   madara_state_update:
-    image: anvil:latest
+    image: {{ IMAGE_REPOSITORY }}anvil:latest
     container_name: state_update
     working_dir: /app
     entrypoint: /bin/bash
@@ -54,8 +54,7 @@ services:
     command: -c "sleep 10 && ./madara_state_update.sh"
 
   pathfinder:
-    image: pathfinder:latest
-    pull_policy: never
+    image: {{ IMAGE_REPOSITORY }}pathfinder:latest
     container_name: pathfinder
     cpus: "4.0"
     mem_limit: "16gb"
@@ -104,7 +103,7 @@ services:
 
 {%- if ENABLE_DUMMY_PROVER %}
   prover:
-    image: {{ MADARA_PROVER_IMAGE }}
+    image: gustavomoonsong/mock-prover:latest
     container_name: prover
     ports:
       - "6000:6000"
@@ -115,7 +114,7 @@ services:
 {%- endif %}
 
   orchestrator:
-    image: orchestrator:latest
+    image: {{ IMAGE_REPOSITORY }}orchestrator:latest
     container_name: orchestrator
     cpus: "4.0"
     mem_limit: "16gb"
