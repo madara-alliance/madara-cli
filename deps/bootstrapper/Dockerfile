@@ -1,7 +1,7 @@
 # ==============================================
 # Image that builds stargate_contracts_old
-FROM python:3.7-slim-bullseye AS starkgate_contracts_legacy
-
+# TODO: Handle this better
+FROM python:3.9.21-slim@sha256:adaf6684722e23e4c7d2fdafdd44df66461a30161d817489b92a801822b65c2c AS starkgate_contracts_legacy
 # Set shell options for better error handling
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -23,29 +23,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install Python and other dependencies in a single layer
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir cmake==3.22 && \
-    npm install -g --unsafe-perm ganache-cli@6.12.2
+    pip install --no-cache-dir cmake==3.22
+
+RUN npm install -g --unsafe-perm ganache@7.4.3
 
 # Install specific solc version
-ENV SOLC_VERSION="0.6.12"
-ENV SOLC_PATH="/usr/local/bin/solc-$SOLC_VERSION"
-
-RUN if [ ! -f "$SOLC_PATH" ]; then \
-    echo "Installing solc $SOLC_VERSION..." && \
-    apt-get update && apt-get install -y wget && \
-    wget https://github.com/ethereum/solidity/releases/download/v${SOLC_VERSION}/solc-static-linux -O "$SOLC_PATH" && \
-    chmod +x "$SOLC_PATH"; \
-    fi
+RUN curl https://binaries.soliditylang.org/linux-amd64/solc-linux-amd64-v0.6.12+commit.27d51765 -o /usr/local/bin/solc-0.6.12
+RUN echo 'f6cb519b01dabc61cab4c184a3db11aa591d18151e362fcae850e42cffdfb09a /usr/local/bin/solc-0.6.12' | sha256sum --check
+RUN chmod +x /usr/local/bin/solc-0.6.12
 
 # Set working directory
 WORKDIR /app
 
 # Clone repository
-RUN git clone --branch update-cairo-0.9.0 --recurse-submodules https://github.com/starknet-io/starkgate-contracts.git .
+RUN git clone --branch update-0.13.3 --recurse-submodules https://github.com/madara-alliance/starkgate-contracts-legacy.git .
 
 # Build application
-RUN rm -rf build && \
-    ./build.sh
+RUN rm -rf build
+RUN ./build.sh
 
 # ==============================================
 # Image that builds the remaining contracts and bootstrapper
