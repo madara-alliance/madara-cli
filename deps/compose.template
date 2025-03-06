@@ -36,7 +36,7 @@ services:
       core_contract_deployment:
         condition: service_completed_successfully
     volumes:
-      - ./madara/data:/usr/share/madara/data
+      - ./data/madara:/usr/share/madara/data
       - ./madara/madara-runner.sh:/usr/local/bin/runner.sh:ro
       - ./madara/configs/presets:/usr/local/bin/configs/presets
     entrypoint:
@@ -64,7 +64,7 @@ services:
       madara:
         condition: service_started
     volumes:
-      - ./pathfinder/data:/usr/share/pathfinder/data
+      - ./data/pathfinder:/usr/share/pathfinder/data
       - ./pathfinder/pathfinder-runner.sh:/usr/local/bin/runner.sh:ro
     entrypoint:
       - /usr/local/bin/runner.sh
