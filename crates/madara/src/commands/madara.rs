@@ -56,7 +56,7 @@ fn madara_run(shell: &Shell, args: MadaraRunnerConfigMode) -> anyhow::Result<()>
     check_secrets(args.mode.expect("Mode must be already set"))?;
 
     let default_file = format!("{}/{}", MADARA_REPO_PATH, MADARA_COMPOSE_FILE);
-    let mut compose: Compose = serde_yml::from_slice(&fs::read(default_file)?)?;
+    let mut compose: Compose = serde_yaml::from_slice(&fs::read(default_file)?)?;
     let container_name = match args.mode {
         Some(mode) => format!("madara-{}", mode.to_string().to_lowercase()),
         None => unreachable!("A valid mode must be provided"),
@@ -64,7 +64,7 @@ fn madara_run(shell: &Shell, args: MadaraRunnerConfigMode) -> anyhow::Result<()>
     let compose_file = format!("{}/{}.yaml", MADARA_REPO_PATH, container_name);
     compose.services.get_mut("madara").unwrap().container_name = Some(container_name);
 
-    fs::write(&compose_file, serde_yml::to_string(&compose)?)?;
+    fs::write(&compose_file, serde_yaml::to_string(&compose)?)?;
 
     docker::up(shell, &compose_file, false)
 }
