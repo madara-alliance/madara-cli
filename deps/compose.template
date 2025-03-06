@@ -64,7 +64,7 @@ services:
       madara:
         condition: service_started
     volumes:
-      - ./pathfinder/data:/usr/share/pathfinder/data
+      - ./data/pathfinder:/usr/share/pathfinder/data
       - ./pathfinder/pathfinder-runner.sh:/usr/local/bin/runner.sh:ro
     entrypoint:
       - /usr/local/bin/runner.sh
