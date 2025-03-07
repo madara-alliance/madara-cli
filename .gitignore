@@ -3,3 +3,4 @@ target
 deps/orchestrator/.env
 deps/orchestrator/run_orchestrator.sh
 deps/compose.yaml
+deps/data/*
