@@ -36,7 +36,9 @@ RUN chmod +x /usr/local/bin/solc-0.6.12
 WORKDIR /app
 
 # Clone repository
-RUN git clone --branch update-0.13.3 --recurse-submodules https://github.com/madara-alliance/starkgate-contracts-legacy.git .
+RUN git clone --recurse-submodules https://github.com/madara-alliance/starkgate-contracts-legacy.git .
+# TODO: Remove this when PR is merged
+RUN git checkout update-0.13.3 
 
 # Build application
 RUN rm -rf build
