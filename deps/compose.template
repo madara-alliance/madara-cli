@@ -51,7 +51,6 @@ services:
       - /usr/local/bin/runner.sh
     restart: unless-stopped
 
-{%- if ENABLE_BOOTSTRAPER_L2_SETUP %}
   bootstrapper_l2:
     image: {{ IMAGE_REPOSITORY }}bootstrapper:latest
     container_name: bootstrapper_l2
@@ -60,9 +59,12 @@ services:
         condition: service_started
     volumes:
       - ./bootstrapper/devnet.json:/app/src/configs/devnet.json
+{%- if ENABLE_BOOTSTRAPER_L2_SETUP %}
     command: -c "sleep 5 && cargo run --release -- --mode setup-l2 --config src/configs/devnet.json"
-    attach: false
+{%- else %}
+    command: -c "sleep 5 && echo 'Bootstrapper L2 contracts are disabled'"
 {%- endif %}
+    attach: false
 
   override_state:
     image: anvil:latest
