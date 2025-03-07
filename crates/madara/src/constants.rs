@@ -15,3 +15,5 @@ pub const DEPS_REPO_PATH: &str = "deps";
 
 // Error messages
 pub(super) const MSG_ARGS_VALIDATOR_ERR: &str = "Invalid arguments";
+
+pub const DOCKERHUB_ORGANIZATION: &str = "gustavomoonsong";

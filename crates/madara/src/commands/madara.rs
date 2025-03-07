@@ -294,6 +294,9 @@ fn parse_appchain_params(
         "--gas-price 10".to_string(),
         "--blob-gas-price 20".to_string(),
         "--gateway-port 8080".to_string(),
+        "--rpc-admin".to_string(),
+        "--rpc-admin-port 9943".to_string(),
+        "--rpc-admin-external".to_string(),
         "--l1-endpoint http://anvil:8545".to_string(),
     ];
 

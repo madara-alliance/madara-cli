@@ -1,10 +1,18 @@
 #!/bin/sh
 
-# Sleep until all the services are up and running
-for i in $(seq 60 -1 1); do
-    echo "Starting Orchestrator in $i seconds..."
-    sleep 1
-done
+# Configure Orchestrator to start on the following block after Bootstrapper finishes the L2 configuration
+# RPC call to get Madara last block and then replace the MIN_BLOCK from .env file with X+1 value
+LAST_BLOCK_NUMBER=$(( $(curl --silent --location 'madara:9945'/v0_7_1/ \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "jsonrpc": "2.0",
+    "method": "starknet_blockNumber",
+    "params": [],
+    "id": 1
+  }' | jq -r '.result') + 1 ))
+
+echo "Block number: $LAST_BLOCK_NUMBER"
+awk -v val="$LAST_BLOCK_NUMBER" '/MADARA_ORCHESTRATOR_MIN_BLOCK_NO_TO_PROCESS=/{$0="MADARA_ORCHESTRATOR_MIN_BLOCK_NO_TO_PROCESS="val}1' .env_tmp > .new_env && mv .new_env .env
 
 # Orchestrator setup
 ./orchestrator setup --aws --aws-s3 --aws-sqs --aws-sns --aws-event-bridge --event-bridge-type {{ EVENT_BRIDGE_TYPE | default("rule") }}
