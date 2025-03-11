@@ -1,4 +1,5 @@
 mod commands;
+mod config;
 
 mod constants;
 
@@ -26,6 +27,9 @@ struct MadaraGlobalArgs {
     /// Verbose mode
     #[clap(short, long, global = true)]
     verbose: bool,
+    /// Path to the configuration file
+    #[clap(short, long, global = true)]
+    config_file: Option<String>,
 }
 
 #[derive(Subcommand, Debug)]
@@ -63,6 +67,7 @@ fn run_subcommand(madara_args: Madara) -> anyhow::Result<()> {
 fn init_global_config_inner(_shell: &Shell, madara_args: &MadaraGlobalArgs) -> anyhow::Result<()> {
     init_global_config(GlobalConfig {
         verbose: madara_args.verbose,
+        config_file: madara_args.config_file.clone(),
     });
     Ok(())
 }
