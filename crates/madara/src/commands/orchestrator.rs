@@ -1,4 +1,4 @@
-use madara_cli_common::{docker, logger, spinner::Spinner};
+use madara_cli_common::{config::global_config, docker, logger, spinner::Spinner};
 use madara_cli_config::{
     bootstrapper::BootstrapperConfig,
     madara::MadaraRunnerConfigMode,
@@ -9,7 +9,8 @@ use xshell::Shell;
 
 use crate::{
     commands,
-    constants::{DEPS_REPO_PATH, DOCKERHUB_ORGANIZATION},
+    config::global_config::{load_config, Config},
+    constants::{DEFAULT_LOCAL_CONFIG_FILE, DEPS_REPO_PATH, DOCKERHUB_ORGANIZATION},
 };
 
 use dotenvy::from_filename;
@@ -33,14 +34,25 @@ pub(crate) fn run(args_madara: MadaraRunnerConfigMode, shell: &Shell) -> anyhow:
     logger::new_empty_line();
     logger::intro();
 
+    // TODO: improve error handling and check if file doesn't exist (even default file)
+    let config_file = global_config()
+        .config_file
+        .as_ref()
+        .map(|s| s.clone())
+        .unwrap_or_else(|| DEFAULT_LOCAL_CONFIG_FILE.to_string());
+    let config = load_config(&config_file);
+
+    println!("CONFIG: {:?}", config);
+
     // Collect Madara configuration
-    commands::madara::process_params(&args_madara)?;
+    commands::madara::process_params(&args_madara, &config)?;
 
     let args_bootstrapper = BootstrapperConfig::fill_values_with_prompt()?;
+    commands::bootstrapper::process_params(&config)?;
 
     // Collect Pathfinder configuration
     let args_pathfinder = PathfinderRunnerConfigMode::default().fill_values_with_prompt()?;
-    commands::pathfinder::parse_params(&args_pathfinder)?;
+    commands::pathfinder::parse_params(&args_pathfinder, &config)?;
 
     // Read and load the env variables from deps/orchestrator/.env if the file was created.
     // On the first run, fallback to `ATLANTIC_API` to give the user a hint about what is needed in that field
@@ -50,9 +62,9 @@ pub(crate) fn run(args_madara: MadaraRunnerConfigMode, shell: &Shell) -> anyhow:
 
     // Collect Prover configuration
     let args_prover = ProverRunnerConfig::default().fill_values_with_prompt(&prev_atlantic_api)?;
-    populate_orchestrator_env(&args_prover)?;
+    populate_orchestrator_env(&args_prover, &config)?;
     populate_orchestrator_runner(&args_prover)?;
-    populate_orchestrator_compose(&args_prover, &args_bootstrapper)?;
+    populate_orchestrator_compose(&args_prover, &args_bootstrapper, &config)?;
 
     // Build all images
     if args_prover.build_images {
@@ -100,7 +112,10 @@ fn build_image(shell: &Shell) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn populate_orchestrator_env(prover_config: &ProverRunnerConfig) -> anyhow::Result<()> {
+fn populate_orchestrator_env(
+    prover_config: &ProverRunnerConfig,
+    config: &Config,
+) -> anyhow::Result<()> {
     let env_template = format!(
         "{}/{}",
         ORCHESTRATOR_REPO_PATH, ORCHESTRATOR_ENV_TEMPLATE_FILE
@@ -115,7 +130,12 @@ fn populate_orchestrator_env(prover_config: &ProverRunnerConfig) -> anyhow::Resu
     env.add_template("env_template", &template)
         .expect("Failed to add template");
 
-    let data = context! {MADARA_ORCHESTRATOR_ATLANTIC_API_KEY => prover_config.url};
+    let data = context! {
+        MADARA_ORCHESTRATOR_ATLANTIC_API_KEY => prover_config.url,
+        MADARA_ORCHESTRATOR_ETHEREUM_PRIVATE_KEY => config.eth_wallet.eth_priv_key,
+        MADARA_ORCHESTRATOR_ETHEREUM_SETTLEMENT_RPC_URL => config.l1_config.eth_rpc,
+        VERIFIER_CONTRACT_ADDRESS => config.l1_config.verifier_address
+    };
 
     // Render the template
     let tmpl = env.get_template("env_template").unwrap();
@@ -146,7 +166,10 @@ fn populate_orchestrator_runner(prover_config: &ProverRunnerConfig) -> anyhow::R
         ProverType::Atlantic => "atlantic",
         ProverType::Stwo => panic!("Not supported yet"),
     };
-    let data = context! {PROVER_TYPE => prover};
+
+    let data = context! {
+        PROVER_TYPE => prover,
+    };
 
     // Render the template
     let tmpl = env.get_template("runner_template").unwrap();
@@ -162,6 +185,7 @@ fn populate_orchestrator_runner(prover_config: &ProverRunnerConfig) -> anyhow::R
 fn populate_orchestrator_compose(
     prover_config: &ProverRunnerConfig,
     bootstrapper_config: &BootstrapperConfig,
+    config: &Config,
 ) -> anyhow::Result<()> {
     let compose_template = format!("{}/{}", DEPS_REPO_PATH, ORCHESTRATOR_COMPOSE_TEMPLATE_FILE);
     let compose_output = format!("{}/{}", DEPS_REPO_PATH, ORCHESTRATOR_COMPOSE_FILE);
@@ -180,7 +204,12 @@ fn populate_orchestrator_compose(
         DOCKERHUB_ORGANIZATION
     };
 
-    let data = context! {ENABLE_DUMMY_PROVER => prover_config.prover_type == ProverType::Dummy, ENABLE_BOOTSTRAPER_L2_SETUP => bootstrapper_config.deploy_l2_contracts, IMAGE_REPOSITORY => repo};
+    let data = context! {
+        ENABLE_DUMMY_PROVER => prover_config.prover_type == ProverType::Dummy,
+        ENABLE_BOOTSTRAPER_L2_SETUP => bootstrapper_config.deploy_l2_contracts,
+        IMAGE_REPOSITORY => repo,
+        ETH_PRIV_KEY => config.eth_wallet.eth_priv_key,
+    };
 
     // Render the template
     let tmpl = env.get_template("compose_template").unwrap();

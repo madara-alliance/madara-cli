@@ -19,7 +19,7 @@ services:
     depends_on:
       anvil:
         condition: service_started
-    command: -c "sleep 5 && ./mock_verifier_contract.sh"
+    command: -c "sleep 5 && ./mock_verifier_contract.sh {{ ETH_PRIV_KEY }}"
 
   bootstrapper_l1:
     image: {{ IMAGE_REPOSITORY }}bootstrapper:latest
@@ -76,6 +76,8 @@ services:
         condition: service_completed_successfully
     volumes:
       - ./anvil/override_state.js:/app/override_state.js
+    environment:
+      MADARA_ORCHESTRATOR_ETHEREUM_PRIVATE_KEY: {{ ETH_PRIV_KEY }}
     command: -c "node override_state.js"
 
   pathfinder:
