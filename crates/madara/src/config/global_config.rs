@@ -1,4 +1,5 @@
 #![allow(unused)]
+use anyhow::{Context, Error};
 use hex;
 use secp256k1::{PublicKey, Secp256k1, SecretKey};
 use sha3::{Digest, Keccak256};
@@ -17,7 +18,7 @@ use super::constants::{
     MADARA_PENDING_BLOCK_UPDATE_TIME,
 };
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct EthWallet {
     pub eth_priv_key: String,
     pub l1_deployer_address: String,
@@ -80,7 +81,7 @@ impl EthWallet {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct L1Configuration {
     pub eth_rpc: String,
     pub eth_chain_id: u64,
@@ -97,7 +98,7 @@ impl Default for L1Configuration {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct MadaraConfiguration {
     pub chain_name: String,
     pub app_chain_id: String,
@@ -122,7 +123,7 @@ impl Default for MadaraConfiguration {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct OrchestratorConfiguration {
     pub atlantic_service_url: String,
     pub minimum_block_to_process: u64,
@@ -139,7 +140,7 @@ impl Default for OrchestratorConfiguration {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Default, Debug, Deserialize, Clone)]
 pub struct Config {
     pub l1_config: L1Configuration,
     pub eth_wallet: EthWallet,
@@ -147,9 +148,9 @@ pub struct Config {
     pub orchestrator: OrchestratorConfiguration,
 }
 
-pub fn load_config() -> Config {
+pub fn load_config(config_file: &String) -> Config {
     Figment::new()
-        .merge(Toml::file("crates/madara/src/config/global_config.toml"))
+        .merge(Toml::file(config_file))
         .extract::<Config>()
         .expect("Failed to load configuration")
 }

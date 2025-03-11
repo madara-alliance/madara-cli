@@ -1,4 +1,4 @@
-# global_config.toml
+# local.toml
 ###################################################
 [l1_config]
 # RPC endpoint for L1

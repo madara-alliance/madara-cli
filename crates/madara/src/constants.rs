@@ -17,3 +17,5 @@ pub const DEPS_REPO_PATH: &str = "deps";
 pub(super) const MSG_ARGS_VALIDATOR_ERR: &str = "Invalid arguments";
 
 pub const DOCKERHUB_ORGANIZATION: &str = "gustavomoonsong/";
+
+pub const DEFAULT_LOCAL_CONFIG_FILE: &str = "crates/madara/src/config/local.toml";

@@ -334,6 +334,8 @@ checksum = "8cb01cd46b0cf372153850f4c6c272d9cbea2da513e07538405148f95bd789f3"
 dependencies = [
  "atomic",
  "serde",
+ "serde_json",
+ "serde_yaml",
  "toml",
  "uncased",
  "version_check",
@@ -661,6 +663,7 @@ dependencies = [
  "minijinja",
  "secp256k1",
  "serde",
+ "serde_json",
  "serde_yaml",
  "sha3",
  "strum",
