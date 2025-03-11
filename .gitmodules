@@ -1,4 +1,0 @@
-[submodule "deps/madara"]
-	path = deps/madara
-	url = https://github.com/madara-alliance/madara.git
-	commit = bb89d4971fb92215ac49e6e3d6b5a0b92b748f9b
