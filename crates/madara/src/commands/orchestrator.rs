@@ -10,7 +10,7 @@ use xshell::Shell;
 use crate::{
     commands,
     config::global_config::{load_config, Config},
-    constants::{DEFAULT_LOCAL_CONFIG_FILE, DEPS_REPO_PATH},
+    constants::{DEFAULT_LOCAL_CONFIG_FILE, DEPS_REPO_PATH, DOCKERHUB_ORGANIZATION},
 };
 
 use dotenvy::from_filename;
@@ -67,7 +67,9 @@ pub(crate) fn run(args_madara: MadaraRunnerConfigMode, shell: &Shell) -> anyhow:
     populate_orchestrator_compose(&args_prover, &args_bootstrapper, &config)?;
 
     // Build all images
-    build_images(shell)?;
+    if args_prover.build_images {
+        build_images(shell)?;
+    }
 
     // Spin up all the necessary services
     run_orchestrator(&shell)?;
@@ -195,9 +197,17 @@ fn populate_orchestrator_compose(
     let mut env = Environment::new();
     env.add_template("compose_template", &template)
         .expect("Failed to add template");
+
+    let repo = if prover_config.build_images {
+        ""
+    } else {
+        DOCKERHUB_ORGANIZATION
+    };
+
     let data = context! {
         ENABLE_DUMMY_PROVER => prover_config.prover_type == ProverType::Dummy,
         ENABLE_BOOTSTRAPER_L2_SETUP => bootstrapper_config.deploy_l2_contracts,
+        IMAGE_REPOSITORY => repo,
         ETH_PRIV_KEY => config.eth_wallet.eth_priv_key,
     };
 
