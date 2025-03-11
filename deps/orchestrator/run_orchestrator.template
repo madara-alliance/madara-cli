@@ -11,6 +11,11 @@ LAST_BLOCK_NUMBER=$(( $(curl --silent --location 'madara:9945'/v0_7_1/ \
     "id": 1
   }' | jq -r '.result') + 1 ))
 
+if [ $? -ne 0 ]; then
+  echo "Error: Failed to fetch the block number."
+  exit 1
+fi
+
 echo "Block number: $LAST_BLOCK_NUMBER"
 awk -v val="$LAST_BLOCK_NUMBER" '/MADARA_ORCHESTRATOR_MIN_BLOCK_NO_TO_PROCESS=/{$0="MADARA_ORCHESTRATOR_MIN_BLOCK_NO_TO_PROCESS="val}1' .env_tmp > .new_env && mv .new_env .env
 

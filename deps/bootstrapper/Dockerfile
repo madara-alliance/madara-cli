@@ -41,7 +41,7 @@ RUN if [ ! -f "$SOLC_PATH" ]; then \
 WORKDIR /app
 
 # Clone repository
-RUN git clone --branch update-cairo-0.9.0 --recurse-submodules https://github.com/starknet-io/starkgate-contracts.git .
+RUN git clone --single-branch --branch update-cairo-0.9.0 --recurse-submodules https://github.com/starknet-io/starkgate-contracts.git .
 
 # Build application
 RUN rm -rf build && \
