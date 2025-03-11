@@ -10,7 +10,7 @@ services:
     attach: false
 
   mock_verifier_contract:
-    image: anvil:latest
+    image: {{ IMAGE_REPOSITORY }}anvil:latest
     container_name: mock_verifier
     working_dir: /app
     entrypoint: /bin/bash
@@ -22,7 +22,7 @@ services:
     command: -c "sleep 5 && ./mock_verifier_contract.sh"
 
   bootstrapper_l1:
-    image: bootstrapper:latest
+    image: {{ IMAGE_REPOSITORY }}bootstrapper:latest
     container_name: bootstrapper_l1
     depends_on:
       mock_verifier_contract:
@@ -67,7 +67,7 @@ services:
     attach: false
 
   override_state:
-    image: anvil:latest
+    image: {{ IMAGE_REPOSITORY }}anvil:latest
     container_name: override_state
     working_dir: /app
     entrypoint: /bin/bash
