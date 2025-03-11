@@ -46,7 +46,7 @@ services:
     volumes:
       - ./data/madara:/usr/share/madara/data
       - ./madara/madara-runner.sh:/usr/local/bin/runner.sh:ro
-      - ./madara/configs/presets:/usr/local/bin/configs/presets
+      - ./madara_config/presets:/usr/local/bin/configs/presets
     entrypoint:
       - /usr/local/bin/runner.sh
     restart: unless-stopped
