@@ -14,6 +14,11 @@ BLOCK_NUMBER=$(( $(curl --silent --location "$RPC_URL"/v0_7_1/ \
     "id": 1
   }' | jq -r '.result') + 1 ))
 
+if [ $? -ne 0 ]; then
+  echo "Error: Failed to fetch the block number."
+  exit 1
+fi
+
 echo -e "\n🔍 Fetching state update for block $BLOCK_NUMBER..."
 
 # Fetch state update from RPC with correct params structure

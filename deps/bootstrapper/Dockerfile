@@ -16,9 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     cmake \
     git \
-    # sudo \
     vim \
-    # libboost-all-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python and other dependencies in a single layer
@@ -41,7 +39,7 @@ RUN if [ ! -f "$SOLC_PATH" ]; then \
 WORKDIR /app
 
 # Clone repository
-RUN git clone --branch update-cairo-0.9.0 --recurse-submodules https://github.com/starknet-io/starkgate-contracts.git .
+RUN git clone --single-branch --branch update-cairo-0.9.0 --recurse-submodules https://github.com/starknet-io/starkgate-contracts.git .
 
 # Build application
 RUN rm -rf build && \

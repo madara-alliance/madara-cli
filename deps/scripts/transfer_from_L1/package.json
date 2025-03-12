@@ -1,0 +1,14 @@
+{
+  "name": "transfer-from-l1",
+  "version": "1.0.0",
+  "description": "Deploy accounts in Madara and transfer funds from L1",
+  "type": "module",
+  "dependencies": {
+    "ethers": "^6.13.5",
+    "starknet": "^6.23.1",
+    "yaml": "^2.7.0"
+  },
+  "scripts": {
+    "transfer-l1": "node init_accounts.js"
+  }
+}

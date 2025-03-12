@@ -1,0 +1,16 @@
+# L1 endpoint URL
+"eth_rpc_url": "http://localhost:8545"
+# Madara endpoint URL
+"starknet_rpc_url": "http://localhost:9945"
+# ETH private key
+"eth_private_key": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+# Number of accounts to be created
+"num_accounts": 2
+# Amount to transfer to every account
+"amount": "10"
+# Must match Madara configuration --> parent_fee_token_address
+"eth_token_address": "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
+# Taken from bootstrapper_l2 output ---> l1_bridge_address
+"l1_bridge_address": "0x8a791620dd6260079bf849dc5567adc3f2fdc318"
+# Taken from data/addresses.json ---> bootstrapper
+"oz_account_cairo_1_class_hash": "0x1484c93b9d6cf61614d698ed069b3c6992c32549194fc3465258c2194734189"
