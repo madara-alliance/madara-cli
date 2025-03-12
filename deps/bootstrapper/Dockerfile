@@ -16,9 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     cmake \
     git \
-    # sudo \
     vim \
-    # libboost-all-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python and other dependencies in a single layer
