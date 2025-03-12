@@ -32,16 +32,16 @@ pub struct MadaraPresetConfiguration {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BouncerConfig {
     pub block_max_capacity: BlockMaxCapacity,
-    pub gas: u64,
-    pub n_steps: u64,
-    pub message_segment_length: u64,
-    pub n_events: u64,
-    pub state_diff_size: u64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BlockMaxCapacity {
     pub builtin_count: BuiltinCount,
+    pub gas: u64,
+    pub n_steps: u64,
+    pub message_segment_length: u64,
+    pub n_events: u64,
+    pub state_diff_size: u64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
