@@ -1,8 +1,9 @@
 import * as ethers from "ethers";
 import * as starknet from "starknet";
 import fs from 'fs';
+import { parse } from 'yaml';
 
-// npm install ethers starknet
+// npm install ethers starknet yaml
 // node deps/scripts/init_account.js
 class AccountManager {
   constructor(CONFIG) {
@@ -130,7 +131,8 @@ class AccountManager {
 }
 
 async function main() {
-  const CONFIG = JSON.parse(fs.readFileSync('config.json', 'utf8'));
+  const configFile = fs.readFileSync('config.yaml', 'utf8');
+  const CONFIG = parse(configFile);
 
   // Validate configuration
   if (!CONFIG.eth_rpc_url || !CONFIG.starknet_rpc_url || !CONFIG.l1_bridge_address ||
