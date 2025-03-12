@@ -60,14 +60,15 @@ class AccountManager {
       { value: ethers.parseEther(amount_with_fees) }
     );
     await tx.wait();
-    console.log("✅ Successfully sent ${} ETH on L1 bridge", amount);
+    console.log(`✅ Successfully sent ${amount} ETH on L1 bridge`);
+
 
     // Wait for funds to arrive on Starknet
     let counter = 10;
     while (counter--) {
       const final_balance = await this.getAppChainBalance(
         starknet_account_address,
-        eth_token_address
+        CONFIG.eth_token_address
       );
       if (final_balance > initial_balance) {
         console.log(
@@ -146,7 +147,8 @@ async function main() {
     process.exit(1);
   }
 
-  if (isNaN(CONFIG.amount) || CONFIG.amount <= 0) {
+  const amount = Number(CONFIG.amount);
+  if (!Number.isInteger(amount) || amount <= 0) {
     console.log("Error: Amount must be a positive integer");
     process.exit(1);
   }

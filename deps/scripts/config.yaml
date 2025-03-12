@@ -7,7 +7,7 @@
 # Number of accounts to be created
 "num_accounts": 2
 # Amount to transfer to every account
-"amount": 10
+"amount": "10"
 # Must match Madara configuration --> parent_fee_token_address
 "eth_token_address": "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
 # Taken from bootstrapper_l2 output ---> l1_bridge_address
