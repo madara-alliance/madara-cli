@@ -42,8 +42,6 @@ pub(crate) fn run(args_madara: MadaraRunnerConfigMode, shell: &Shell) -> anyhow:
         .unwrap_or_else(|| DEFAULT_LOCAL_CONFIG_FILE.to_string());
     let config = load_config(&config_file);
 
-    println!("CONFIG: {:?}", config);
-
     // Collect Madara configuration
     commands::madara::process_params(&args_madara, &config)?;
 
