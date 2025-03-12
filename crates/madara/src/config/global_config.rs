@@ -23,24 +23,37 @@ pub struct EthWallet {
     pub eth_priv_key: String,
     pub l1_deployer_address: String,
     pub operator_address: String,
+    pub l1_multisig_address: String,
 }
 
 impl Default for EthWallet {
     fn default() -> Self {
-        let priv_key = EthWallet::get_priv_key(0);
-        let l1_deployer_address = EthWallet::get_pub_key(&priv_key);
-        let operator_address = l1_deployer_address.clone();
-
-        // By default operator_address == l1_deployer_address (same account)
-        Self {
-            eth_priv_key: priv_key,
-            l1_deployer_address,
-            operator_address,
-        }
+        Self::new(
+            Self::get_priv_key(0),
+            "0x70997970c51812dc3a010c7d01b50e0d17dc79c8".to_string(),
+        )
     }
 }
 
 impl EthWallet {
+    pub fn new(eth_priv_key: String, l1_multisig_address: String) -> Self {
+        let l1_deployer_address = Self::get_address(&eth_priv_key);
+        let operator_address = l1_deployer_address.clone();
+
+        assert_ne!(
+            l1_multisig_address, l1_deployer_address,
+            "Expected l1_multisig_address ({}) to be different from l1_deployer_address ({})",
+            l1_multisig_address, l1_deployer_address
+        );
+        // By default operator_address == l1_deployer_address (same account)
+        Self {
+            eth_priv_key,
+            l1_deployer_address,
+            operator_address,
+            l1_multisig_address,
+        }
+    }
+
     pub fn get_priv_key(index: usize) -> String {
         // Default Anvil private keys
         match index {
@@ -58,7 +71,7 @@ impl EthWallet {
         }
     }
 
-    pub fn get_pub_key(priv_key: &String) -> String {
+    pub fn get_address(priv_key: &String) -> String {
         let secp = Secp256k1::signing_only();
         let priv_key = priv_key.trim_start_matches("0x");
 
@@ -177,7 +190,7 @@ mod tests {
 
         for (index, expected_pub_key) in expected_pub_keys.iter().enumerate() {
             let priv_key = EthWallet::get_priv_key(index);
-            let pub_key = EthWallet::get_pub_key(&priv_key);
+            let pub_key = EthWallet::get_address(&priv_key);
             assert_eq!(pub_key, *expected_pub_key);
         }
     }

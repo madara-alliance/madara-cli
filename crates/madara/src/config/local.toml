@@ -16,6 +16,8 @@ eth_priv_key = "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b7869
 l1_deployer_address = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
 # ETH address that will be the owner from the proxy
 operator_address = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+# L1 multisig address: a secondary address (must be different from L1 deployer address)
+l1_multisig_address = "0xa0ee7a142d267c1f36714e4a8f75612f20a79720"
 ###################################################
 # Madara params
 [madara]
