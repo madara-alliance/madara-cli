@@ -1,4 +1,4 @@
-use madara_cli_common::{docker, logger};
+use madara_cli_common::docker;
 use xshell::Shell;
 
 use crate::config::{
@@ -31,7 +31,8 @@ pub fn process_params(global_config: &Config) -> anyhow::Result<()> {
     );
 
     assert_eq!(
-        eth_wallet.l1_deployer_address, global_config.eth_wallet.l1_deployer_address,
+        eth_wallet.l1_deployer_address.to_lowercase(),
+        global_config.eth_wallet.l1_deployer_address.to_lowercase(),
         "L1 deployer address is not derived from provided private key"
     );
 
