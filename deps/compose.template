@@ -6,24 +6,32 @@ services:
     mem_limit: "16gb"
     ports:
       - "8545:8545"
-    command: /bin/bash -c "anvil --host 0.0.0.0 --block-time 1"
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8545/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+    command: /bin/bash -c "anvil --host 0.0.0.0 --block-time 1 --code-size-limit 300000"
     attach: false
 
-  core_contract_deployment:
+  mock_verifier_contract:
     image: {{ IMAGE_REPOSITORY }}anvil:latest
-    container_name: core_contract_deployment
+    container_name: mock_verifier
     working_dir: /app
     entrypoint: /bin/bash
+    volumes:
+      - ./anvil/mock_verifier_contract.sh:/app/mock_verifier_contract.sh
     depends_on:
       anvil:
         condition: service_started
-    command: -c "sleep 5 && ./core_contract_deployment.sh"
+    command: -c "sleep 5 && ./mock_verifier_contract.sh"
 
+  bootstrapper_l1:
+    image: {{ IMAGE_REPOSITORY }}bootstrapper:latest
+    container_name: bootstrapper_l1
+    depends_on:
+      mock_verifier_contract:
+        condition: service_completed_successfully
+    volumes:
+      - ./bootstrapper/devnet.json:/app/src/configs/devnet.json
+    command: -c "sleep 5 && cargo run --release -- --mode setup-l1 --config src/configs/devnet.json"
+    attach: false
+  
   madara:
     image: {{ IMAGE_REPOSITORY }}madara:latest
     container_name: madara
@@ -33,25 +41,42 @@ services:
       - "9945:9945"
       - "8080:8080"
     depends_on:
-      core_contract_deployment:
+      bootstrapper_l1:
         condition: service_completed_successfully
     volumes:
       - ./data/madara:/usr/share/madara/data
       - ./madara/madara-runner.sh:/usr/local/bin/runner.sh:ro
-      - ./madara/configs/presets:/usr/local/bin/configs/presets
+      - ./madara_config/presets:/usr/local/bin/configs/presets
     entrypoint:
       - /usr/local/bin/runner.sh
     restart: unless-stopped
 
-  madara_state_update:
-    image: {{ IMAGE_REPOSITORY }}anvil:latest
-    container_name: state_update
-    working_dir: /app
-    entrypoint: /bin/bash
+  bootstrapper_l2:
+    image: {{ IMAGE_REPOSITORY }}bootstrapper:latest
+    container_name: bootstrapper_l2
     depends_on:
       madara:
         condition: service_started
-    command: -c "sleep 10 && ./madara_state_update.sh"
+    volumes:
+      - ./bootstrapper/devnet.json:/app/src/configs/devnet.json
+{%- if ENABLE_BOOTSTRAPER_L2_SETUP %}
+    command: -c "sleep 5 && cargo run --release -- --mode setup-l2 --config src/configs/devnet.json"
+{%- else %}
+    command: -c "sleep 5 && echo 'Bootstrapper L2 contracts are disabled'"
+{%- endif %}
+    attach: false
+
+  override_state:
+    image: {{ IMAGE_REPOSITORY }}anvil:latest
+    container_name: override_state
+    working_dir: /app
+    entrypoint: /bin/bash
+    depends_on:
+      bootstrapper_l2:
+        condition: service_completed_successfully
+    volumes:
+      - ./anvil/override_state.js:/app/override_state.js
+    command: -c "node override_state.js"
 
   pathfinder:
     image: {{ IMAGE_REPOSITORY }}pathfinder:latest
@@ -85,8 +110,9 @@ services:
   snos_block_zero_workaround:
     image: mongo
     depends_on:
-      - mongodb
-    entrypoint: [ "bash", "-c", "sleep 5 && mongosh --host mongodb --eval 'load(\"/init.js\")'" ]
+      bootstrapper_l2:
+        condition: service_completed_successfully
+    entrypoint: [ "bash", "-c", "mongosh --host mongodb --eval 'load(\"/init.js\")'" ]
     volumes:
       - ./block_zero_workaround.js:/init.js
 
@@ -119,11 +145,13 @@ services:
     cpus: "4.0"
     mem_limit: "16gb"
     volumes:
-      - ./orchestrator/.env:/usr/local/bin/.env
+      - ./orchestrator/.env:/usr/local/bin/.env_tmp
       - ./orchestrator/run_orchestrator.sh:/usr/local/bin/run_orchestrator.sh
     entrypoint:
       - /usr/local/bin/run_orchestrator.sh
+{%- if ENABLE_BOOTSTRAPER_L2_SETUP %}
     depends_on:
-      madara:
-        condition: service_started
+      bootstrapper_l2:
+        condition: service_completed_successfully
+{%- endif %}
     attach: false

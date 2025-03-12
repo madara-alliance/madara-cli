@@ -1,11 +1,23 @@
 #!/bin/bash
 
-RPC_URL="http://madara:9945"
-BLOCK_NUMBER="0"
-
 # Default Anvil private key
 PRIVATE_KEY="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 ANVIL_URL="http://anvil:8545"
+RPC_URL="http://madara:9945"
+
+BLOCK_NUMBER=$(( $(curl --silent --location "$RPC_URL"/v0_7_1/ \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "jsonrpc": "2.0",
+    "method": "starknet_blockNumber",
+    "params": [],
+    "id": 1
+  }' | jq -r '.result') + 1 ))
+
+if [ $? -ne 0 ]; then
+  echo "Error: Failed to fetch the block number."
+  exit 1
+fi
 
 echo -e "\n🔍 Fetching state update for block $BLOCK_NUMBER..."
 
