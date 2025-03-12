@@ -1,32 +1,19 @@
 import * as ethers from "ethers";
 import * as starknet from "starknet";
+import fs from 'fs';
 
 // npm install ethers starknet
 // node deps/scripts/init_account.js
-
-// Configuration object replacing CLI arguments
-const CONFIG = {
-  eth_rpc_url: "http://localhost:8545",
-  starknet_rpc_url: "http://localhost:9945",
-  //taken from bootstrapper_l2 output ---> l1_bridge_address
-  l1_bridge_address: "0x8a791620dd6260079bf849dc5567adc3f2fdc318",
-  eth_token_address: "0x49d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-  num_accounts: 2,
-  eth_private_key: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
-  //taken from data/addresses.json ---> bootstrapper
-  oz_account_cairo_1_class_hash: "0x1484c93b9d6cf61614d698ed069b3c6992c32549194fc3465258c2194734189", // Replace with your OZ account class hash
-};
-
 class AccountManager {
-  constructor(eth_rpc_url, starknet_rpc_url) {
+  constructor(CONFIG) {
     // Initialize providers
-    this.eth_provider = new ethers.JsonRpcProvider(eth_rpc_url);
+    this.eth_provider = new ethers.JsonRpcProvider(CONFIG.eth_rpc_url);
     this.wallet = new ethers.Wallet(
       CONFIG.eth_private_key,
       this.eth_provider
     );
     this.starknet_provider = new starknet.RpcProvider({
-      nodeUrl: starknet_rpc_url,
+      nodeUrl: CONFIG.starknet_rpc_url,
     });
   }
 
@@ -50,21 +37,21 @@ class AccountManager {
     return balance.balance;
   }
 
-  async bridgeToChain(l1_bridge_address, starknet_account_address, eth_token_address) {
+  async bridgeToChain(CONFIG, starknet_account_address) {
     console.log(`🌉 Bridging funds to ${starknet_account_address}...`);
     const contract = new ethers.Contract(
-      l1_bridge_address,
+      CONFIG.l1_bridge_address,
       ["function deposit(uint256, uint256)"],
       this.wallet
     );
 
     const initial_balance = await this.getAppChainBalance(
       starknet_account_address,
-      eth_token_address
+      CONFIG.eth_token_address
     );
 
     console.log("Initial balance: ", initial_balance)
-    const amount = "10";
+    const amount = CONFIG.amount;
     const amount_with_fees = (parseFloat(amount) + 0.01).toString();
     const tx = await contract.deposit(
       ethers.parseEther(amount),
@@ -95,7 +82,7 @@ class AccountManager {
     throw new Error("Failed to bridge funds to Starknet");
   }
 
-  generateAccountKeys() {
+  generateAccountKeys(CONFIG) {
     const privateKey = starknet.stark.randomAddress();
     const publicKey = starknet.ec.starkCurve.getStarkKey(privateKey);
 
@@ -117,7 +104,7 @@ class AccountManager {
     };
   }
 
-  async deployAccount(accountKeys) {
+  async deployAccount(accountKeys, CONFIG) {
     console.log(`⚙️ Deploying account at ${accountKeys.address}...`);
     const account = new starknet.Account(
       this.starknet_provider,
@@ -143,6 +130,8 @@ class AccountManager {
 }
 
 async function main() {
+  const CONFIG = JSON.parse(fs.readFileSync('config.json', 'utf8'));
+
   // Validate configuration
   if (!CONFIG.eth_rpc_url || !CONFIG.starknet_rpc_url || !CONFIG.l1_bridge_address ||
     !CONFIG.eth_token_address || !CONFIG.num_accounts) {
@@ -155,7 +144,12 @@ async function main() {
     process.exit(1);
   }
 
-  const manager = new AccountManager(CONFIG.eth_rpc_url, CONFIG.starknet_rpc_url);
+  if (isNaN(CONFIG.amount) || CONFIG.amount <= 0) {
+    console.log("Error: Amount must be a positive integer");
+    process.exit(1);
+  }
+
+  const manager = new AccountManager(CONFIG);
   const accounts = [];
 
   console.log(`🚀 Creating and funding ${CONFIG.num_accounts} accounts...\n`);
@@ -165,13 +159,13 @@ async function main() {
 
     try {
       // Generate account keys
-      const accountKeys = manager.generateAccountKeys();
+      const accountKeys = manager.generateAccountKeys(CONFIG);
 
       // Bridge funds to the account
-      await manager.bridgeToChain(CONFIG.l1_bridge_address, accountKeys.address, CONFIG.eth_token_address);
+      await manager.bridgeToChain(CONFIG, accountKeys.address);
 
       // Deploy the account
-      await manager.deployAccount(accountKeys);
+      await manager.deployAccount(accountKeys, CONFIG);
 
       // Get final balance
       const balance = await manager.getAppChainBalance(accountKeys.address, CONFIG.eth_token_address);
