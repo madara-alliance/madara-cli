@@ -13,9 +13,9 @@ verifier_address = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
 # ETH private key that will be used to sign transactions for contracts deployment
 eth_priv_key = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 # ETH address derived from eth_priv_key
-l1_deployer_address = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+l1_deployer_address = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
 # ETH address that will be the owner from the proxy
-operator_address = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+operator_address = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
 # L1 multisig address: a secondary address (must be different from L1 deployer address)
 l1_multisig_address = "0xa0ee7a142d267c1f36714e4a8f75612f20a79720"
 ###################################################
@@ -28,6 +28,8 @@ parent_fee_token_address = "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b15
 latest_protocol_version = "0.13.2"
 block_time = "10s"
 pending_block_update_time = "2s"
+gas_price = 0
+blob_gas_price = 0
 ###################################################
 # Orchestrator params
 [orchestrator]

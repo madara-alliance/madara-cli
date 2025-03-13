@@ -120,6 +120,8 @@ pub struct MadaraConfiguration {
     pub latest_protocol_version: String,
     pub block_time: String,
     pub pending_block_update_time: String,
+    pub gas_price: u64,
+    pub blob_gas_price: u64,
 }
 
 impl Default for MadaraConfiguration {
@@ -132,6 +134,8 @@ impl Default for MadaraConfiguration {
             latest_protocol_version: MADARA_LATEST_PROTOCOL_VERSION.to_string(),
             block_time: MADARA_BLOCK_TIME.to_string(),
             pending_block_update_time: MADARA_PENDING_BLOCK_UPDATE_TIME.to_string(),
+            gas_price: 0,
+            blob_gas_price: 0,
         }
     }
 }

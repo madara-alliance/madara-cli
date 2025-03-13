@@ -24,13 +24,10 @@ use xshell::Shell;
 
 use super::{orchestrator, workspace_dir};
 
-<<<<<<< HEAD
 // For devnet, sequencer and full node, default DBs folder is madara-cli/deps/data
 const DBS_PATH: &str = "../data/";
 const ENV_FILE_PATH: &str = "deps/madara/.env";
-=======
 const MADARA_CONFIG_FILE: &str = "deps/madara/configs/presets/devnet.yaml";
->>>>>>> 489557d (propage config to madara)
 
 pub(crate) fn run(args: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result<()> {
     logger::info("Input Madara parameters...");
@@ -316,8 +313,8 @@ fn parse_appchain_params(
         "--rpc-external".to_string(),
         "--rpc-port 9945".to_string(),
         "--rpc-cors \"*\"".to_string(),
-        "--gas-price 10".to_string(),
-        "--blob-gas-price 20".to_string(),
+        format!("--gas-price {}", global_config.madara.gas_price),
+        format!("--blob-gas-price {}", global_config.madara.blob_gas_price),
         "--gateway-port 8080".to_string(),
         "--rpc-admin".to_string(),
         "--rpc-admin-port 9943".to_string(),
