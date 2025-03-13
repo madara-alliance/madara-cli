@@ -197,9 +197,7 @@ fn write_env_file(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
         MadaraRunnerParams::Sequencer(params) => {
             params.base_path.clone().expect("DB name must be set")
         }
-        _ => {
-            panic!("Impossible path reached. This should not be called.");
-        }
+        MadaraRunnerParams::AppChain(_) => return Ok(()),
     };
 
     fs::write(
