@@ -38,4 +38,4 @@ atlantic_service_url = "https://atlantic.api.herodotus.cloud"
 # Block number that Orchestrator will start processing
 minimum_block_to_process = 0
 # Block number that Orchestrator will stop processing
-maximum_block_to_process = 100
+# maximum_block_to_process = 100

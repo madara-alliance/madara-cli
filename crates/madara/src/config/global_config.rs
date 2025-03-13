@@ -144,7 +144,7 @@ impl Default for MadaraConfiguration {
 pub struct OrchestratorConfiguration {
     pub atlantic_service_url: String,
     pub minimum_block_to_process: u64,
-    pub maximum_block_to_process: u64,
+    pub maximum_block_to_process: Option<u64>,
 }
 
 impl Default for OrchestratorConfiguration {
@@ -152,7 +152,7 @@ impl Default for OrchestratorConfiguration {
         Self {
             atlantic_service_url: DEFAULT_ATLANTIC_URL.to_string(),
             minimum_block_to_process: 1,
-            maximum_block_to_process: 100,
+            maximum_block_to_process: Some(100),
         }
     }
 }

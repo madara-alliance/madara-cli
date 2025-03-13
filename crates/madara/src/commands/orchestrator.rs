@@ -132,7 +132,8 @@ fn populate_orchestrator_env(
         MADARA_ORCHESTRATOR_ATLANTIC_API_KEY => prover_config.url,
         MADARA_ORCHESTRATOR_ETHEREUM_PRIVATE_KEY => config.eth_wallet.eth_priv_key,
         MADARA_ORCHESTRATOR_ETHEREUM_SETTLEMENT_RPC_URL => config.l1_config.eth_rpc,
-        VERIFIER_CONTRACT_ADDRESS => config.l1_config.verifier_address
+        VERIFIER_CONTRACT_ADDRESS => config.l1_config.verifier_address,
+        MADARA_ORCHESTRATOR_MAX_BLOCK_NO_TO_PROCESS => config.orchestrator. maximum_block_to_process
     };
 
     // Render the template
