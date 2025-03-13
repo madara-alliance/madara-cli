@@ -31,8 +31,8 @@ pub struct MadaraRunnerConfigFullNode {
 impl MadaraRunnerConfigFullNode {
     pub fn fill_values_with_prompt(mut self) -> anyhow::Result<MadaraRunnerConfigFullNode> {
         let base_path = self.base_path.unwrap_or_else(|| {
-            Prompt::new("Input DB path:")
-                .default("./madara-fullnode-db")
+            Prompt::new("Input DB folder name:")
+                .default("fullnode-db")
                 .ask()
         });
 
@@ -131,8 +131,8 @@ impl MadaraRunnerConfigMode {
 impl MadaraRunnerConfigDevnet {
     pub fn fill_values_with_prompt(mut self) -> anyhow::Result<MadaraRunnerConfigDevnet> {
         let base_path = self.base_path.unwrap_or_else(|| {
-            Prompt::new("Input DB path:")
-                .default("./madara-devnet-db")
+            Prompt::new("Input DB folder name:")
+                .default("devnet-db")
                 .ask()
         });
 
@@ -145,8 +145,8 @@ impl MadaraRunnerConfigDevnet {
 impl MadaraRunnerConfigSequencer {
     pub fn fill_values_with_prompt(mut self) -> anyhow::Result<MadaraRunnerConfigSequencer> {
         let base_path = self.base_path.unwrap_or_else(|| {
-            Prompt::new("Input DB path:")
-                .default("./madara-sequencer-db")
+            Prompt::new("Input DB folder name:")
+                .default("sequencer-db")
                 .ask()
         });
 

@@ -1,6 +1,11 @@
+.idea
 target
 
 deps/orchestrator/.env
 deps/orchestrator/run_orchestrator.sh
 deps/compose.yaml
 deps/data/*
+
+deps/madara/.secrets
+deps/madara/.env
+deps/madara/madara-runner.sh
