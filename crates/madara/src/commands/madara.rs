@@ -13,15 +13,18 @@ use anyhow::{anyhow, Context};
 use cliclack::log;
 use madara_cli_common::Prompt;
 use madara_cli_common::{docker, logger, spinner::Spinner};
-use madara_cli_config::compose::Compose;
 use madara_cli_config::madara::{
-    MadaraRunnerConfigDevnet, MadaraRunnerConfigFullNode, MadaraRunnerConfigMode,
-    MadaraRunnerConfigSequencer, MadaraRunnerParams,
+    MadaraRunnerConfigFullNode, MadaraRunnerConfigMode, MadaraRunnerConfigSequencer,
+    MadaraRunnerParams,
 };
 use madara_cli_types::madara::{MadaraMode, MadaraNetwork};
 use xshell::Shell;
 
 use super::{orchestrator, workspace_dir};
+
+// For devnet, sequencer and full node, default DBs folder is madara-cli/deps/data
+const DBS_PATH: &str = "../data/";
+const ENV_FILE_PATH: &str = "deps/madara/.env";
 
 pub(crate) fn run(args: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result<()> {
     logger::info("Input Madara parameters...");
@@ -55,17 +58,8 @@ fn madara_run(shell: &Shell, args: MadaraRunnerConfigMode) -> anyhow::Result<()>
     process_params(&args)?;
     check_secrets(args.mode.expect("Mode must be already set"))?;
 
-    let default_file = format!("{}/{}", MADARA_REPO_PATH, MADARA_COMPOSE_FILE);
-    let mut compose: Compose = serde_yml::from_slice(&fs::read(default_file)?)?;
-    let container_name = match args.mode {
-        Some(mode) => format!("madara-{}", mode.to_string().to_lowercase()),
-        None => unreachable!("A valid mode must be provided"),
-    };
-    let compose_file = format!("{}/{}.yaml", MADARA_REPO_PATH, container_name);
-    compose.services.get_mut("madara").unwrap().container_name = Some(container_name);
-
-    fs::write(&compose_file, serde_yml::to_string(&compose)?)?;
-
+    // TODO: check if we need to run docker::down to remove any remaining previous instance
+    let compose_file = format!("{}/{}", MADARA_REPO_PATH, MADARA_COMPOSE_FILE);
     docker::up(shell, &compose_file, false)
 }
 
@@ -73,12 +67,13 @@ pub fn process_params(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
     let mode = args.mode.expect("Mode must be already set");
 
     let runner_params = match &args.params {
-        MadaraRunnerParams::Devnet(params) => parse_devnet_params(&args.name, &mode, params),
+        MadaraRunnerParams::Devnet(_) => parse_devnet_params(&args.name, &mode),
         MadaraRunnerParams::Sequencer(params) => parse_sequencer_params(&args.name, &mode, params),
         MadaraRunnerParams::FullNode(params) => parse_full_node_params(&args.name, &mode, params),
         MadaraRunnerParams::AppChain(params) => parse_appchain_params(&args.name, params),
     }?;
 
+    write_env_file(args)?;
     let runner_script_path = workspace_dir()
         .join(MADARA_REPO_PATH)
         .join(MADARA_RUNNER_SCRIPT);
@@ -191,21 +186,35 @@ fn check_secrets(mode: MadaraMode) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn parse_devnet_params(
-    name: &String,
-    mode: &MadaraMode,
-    params: &MadaraRunnerConfigDevnet,
-) -> anyhow::Result<Vec<String>> {
-    // TODO: handle optional params.
-    let db_path = params
-        .base_path
-        .clone()
-        .expect("Base path must be already set");
+fn write_env_file(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
+    let db_folder = match &args.params {
+        MadaraRunnerParams::Devnet(params) => {
+            params.base_path.clone().expect("DB name must be set")
+        }
+        MadaraRunnerParams::FullNode(params) => {
+            params.base_path.clone().expect("DB name must be set")
+        }
+        MadaraRunnerParams::Sequencer(params) => {
+            params.base_path.clone().expect("DB name must be set")
+        }
+        _ => {
+            panic!("Impossible path reached. This should not be called.");
+        }
+    };
 
+    fs::write(
+        ENV_FILE_PATH,
+        format!("MADARA_DATA_DIR={}{}", DBS_PATH, db_folder),
+    )?;
+
+    Ok(())
+}
+
+fn parse_devnet_params(name: &String, mode: &MadaraMode) -> anyhow::Result<Vec<String>> {
     let devnet_params = vec![
         format!("--name {}", name),
         format!("--{}", mode).to_lowercase(),
-        format!("--base-path {}", db_path),
+        "--base-path /tmp/madara".to_string(),
         "--rpc-external".to_string(),
     ];
 
@@ -226,7 +235,7 @@ fn parse_sequencer_params(
     let sequencer_params = vec![
         format!("--name {}", name),
         format!("--{}", mode).to_lowercase(),
-        "--base-path /usr/share/madara/data".to_string(),
+        "--base-path /tmp/madara".to_string(),
         format!("--chain-config-path {}", chain_config_path),
         "--feeder-gateway-enable".to_string(),
         "--gateway-enable".to_string(),
@@ -248,10 +257,6 @@ fn parse_full_node_params(
     _mode: &MadaraMode,
     params: &MadaraRunnerConfigFullNode,
 ) -> anyhow::Result<Vec<String>> {
-    let db_path = params
-        .base_path
-        .clone()
-        .expect("Base path must be already set");
     let network = match params.network {
         Some(MadaraNetwork::Mainnet) => "main",
         Some(MadaraNetwork::Testnet) => "test",
@@ -263,7 +268,7 @@ fn parse_full_node_params(
         format!("--name {}", name),
         format!("--network {}", network),
         format!("--full"),
-        format!("--base-path {}", db_path),
+        "--base-path /tmp/madara".to_string(),
         "--rpc-external".to_string(),
         "--l1-endpoint $RPC_API_KEY".to_string(),
     ];

@@ -15,7 +15,7 @@ services:
     secrets:
       - rpc_api_key
     volumes:
-      - /var/lib/madara:/tmp/madara
+      - ${MADARA_DATA_DIR}:/tmp/madara
       - ./madara-runner.sh:/usr/local/bin/runner.sh:ro
     entrypoint:
       - /usr/local/bin/runner.sh

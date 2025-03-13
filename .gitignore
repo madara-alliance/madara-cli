@@ -7,3 +7,5 @@ deps/compose.yaml
 deps/data/*
 
 deps/madara/.secrets
+deps/madara/.env
+deps/madara/madara-runner.sh
