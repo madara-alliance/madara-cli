@@ -4,6 +4,8 @@ use std::io::Write;
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 
+use crate::config::global_config::Config;
+use crate::config::madara::MadaraPresetConfiguration;
 use crate::constants::{
     MADARA_COMPOSE_FILE, MADARA_DOCKER_IMAGE, MADARA_REPO_PATH, MSG_BUILDING_IMAGE_SPINNER,
 };
@@ -25,6 +27,7 @@ use super::{orchestrator, workspace_dir};
 // For devnet, sequencer and full node, default DBs folder is madara-cli/deps/data
 const DBS_PATH: &str = "../data/";
 const ENV_FILE_PATH: &str = "deps/madara/.env";
+const MADARA_CONFIG_FILE: &str = "deps/madara/configs/presets/devnet.yaml";
 
 pub(crate) fn run(args: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result<()> {
     logger::info("Input Madara parameters...");
@@ -55,7 +58,8 @@ pub fn build_image(shell: &Shell) -> anyhow::Result<()> {
 }
 
 fn madara_run(shell: &Shell, args: MadaraRunnerConfigMode) -> anyhow::Result<()> {
-    process_params(&args)?;
+    let config = Config::default();
+    process_params(&args, &config)?;
     check_secrets(args.mode.expect("Mode must be already set"))?;
 
     // TODO: check if we need to run docker::down to remove any remaining previous instance
@@ -63,14 +67,14 @@ fn madara_run(shell: &Shell, args: MadaraRunnerConfigMode) -> anyhow::Result<()>
     docker::up(shell, &compose_file, false)
 }
 
-pub fn process_params(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
+pub fn process_params(args: &MadaraRunnerConfigMode, config: &Config) -> anyhow::Result<()> {
     let mode = args.mode.expect("Mode must be already set");
 
     let runner_params = match &args.params {
         MadaraRunnerParams::Devnet(_) => parse_devnet_params(&args.name, &mode),
         MadaraRunnerParams::Sequencer(params) => parse_sequencer_params(&args.name, &mode, params),
         MadaraRunnerParams::FullNode(params) => parse_full_node_params(&args.name, &mode, params),
-        MadaraRunnerParams::AppChain(params) => parse_appchain_params(&args.name, params),
+        MadaraRunnerParams::AppChain(params) => parse_appchain_params(params, config),
     }?;
 
     write_env_file(args)?;
@@ -275,16 +279,31 @@ fn parse_full_node_params(
 }
 
 fn parse_appchain_params(
-    name: &String,
     params: &MadaraRunnerConfigSequencer,
+    config: &Config,
 ) -> anyhow::Result<Vec<String>> {
+    // TODO: this file and MADARA_CONFIG_FILE must be the same.
+    // Hardcoded to devnet.yaml at the moment
     let chain_config_path = params
         .chain_config_path
         .clone()
         .expect("Chain config file must be set");
 
+    // Update devnet preset with global config:
+    let global_config = config.clone();
+    let mut preset = MadaraPresetConfiguration::load(MADARA_CONFIG_FILE);
+    preset.chain_name = global_config.madara.chain_name;
+    preset.chain_id = global_config.madara.app_chain_id;
+    preset.eth_gps_statement_verifier = global_config.l1_config.verifier_address;
+    preset.latest_protocol_version = global_config.madara.latest_protocol_version;
+    preset.block_time = global_config.madara.block_time;
+    preset.pending_block_update_time = global_config.madara.pending_block_update_time;
+    preset.native_fee_token_address = global_config.madara.native_fee_token_address;
+    preset.parent_fee_token_address = global_config.madara.parent_fee_token_address;
+    preset.save(MADARA_CONFIG_FILE);
+
     let appchain_params = vec![
-        format!("--name {}", name),
+        format!("--name {}", config.madara.chain_name),
         "--sequencer".to_string(),
         "--base-path /usr/share/madara/data".to_string(),
         format!("--chain-config-path {}", chain_config_path),
@@ -294,13 +313,13 @@ fn parse_appchain_params(
         "--rpc-external".to_string(),
         "--rpc-port 9945".to_string(),
         "--rpc-cors \"*\"".to_string(),
-        "--gas-price 10".to_string(),
-        "--blob-gas-price 20".to_string(),
+        format!("--gas-price {}", global_config.madara.gas_price),
+        format!("--blob-gas-price {}", global_config.madara.blob_gas_price),
         "--gateway-port 8080".to_string(),
         "--rpc-admin".to_string(),
         "--rpc-admin-port 9943".to_string(),
         "--rpc-admin-external".to_string(),
-        "--l1-endpoint http://anvil:8545".to_string(),
+        format!("--l1-endpoint {}", config.l1_config.eth_rpc),
     ];
 
     Ok(appchain_params)

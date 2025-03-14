@@ -7,6 +7,8 @@ use madara_cli_common::docker;
 use madara_cli_config::pathfinder::PathfinderRunnerConfigMode;
 use xshell::Shell;
 
+use crate::config::global_config::Config;
+
 const PATHFINDER_DOCKER_IMAGE: &str = "pathfinder";
 const PATHFINDER_REPO_PATH: &str = "deps/pathfinder";
 const PATHFINDER_RUNNER_SCRIPT: &str = "pathfinder-runner.sh";
@@ -47,14 +49,14 @@ fn create_runner_script(params: Vec<String>, output_path: &str) -> anyhow::Resul
     Ok(())
 }
 
-pub fn parse_params(params: &PathfinderRunnerConfigMode) -> anyhow::Result<()> {
+pub fn parse_params(params: &PathfinderRunnerConfigMode, config: &Config) -> anyhow::Result<()> {
     // TODO: handle optional params.
-    let (network, chain_id, gateway_url, feeder_gateway_url, http_rpc, data_directory) =
+    let (network, _chain_id, gateway_url, feeder_gateway_url, http_rpc, data_directory) =
         params.unwrap_all();
 
     let pathfinder_params = vec![
         format!("--network {}", network).to_lowercase(),
-        format!("--chain-id {}", chain_id),
+        format!("--chain-id {}", config.madara.app_chain_id),
         "--ethereum.url http://anvil:8545".to_string(),
         format!("--gateway-url {}", gateway_url),
         format!("--feeder-gateway-url {}", feeder_gateway_url),

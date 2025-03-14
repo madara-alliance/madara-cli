@@ -1,4 +1,5 @@
 mod commands;
+mod config;
 
 mod constants;
 
@@ -26,10 +27,15 @@ struct MadaraGlobalArgs {
     /// Verbose mode
     #[clap(short, long, global = true)]
     verbose: bool,
+    /// Path to the configuration file
+    #[clap(short, long, global = true)]
+    config_file: Option<String>,
 }
 
 #[derive(Subcommand, Debug)]
 pub enum MadaraSubcommands {
+    /// Create configuration file for app-chain
+    Init,
     /// Create a Madara node
     Create,
 }
@@ -54,6 +60,7 @@ fn run_subcommand(madara_args: Madara) -> anyhow::Result<()> {
     let args = MadaraRunnerConfigMode::default();
 
     match madara_args.command {
+        MadaraSubcommands::Init => commands::orchestrator::init(),
         MadaraSubcommands::Create => commands::madara::run(args, &shell),
     }?;
 
@@ -63,6 +70,7 @@ fn run_subcommand(madara_args: Madara) -> anyhow::Result<()> {
 fn init_global_config_inner(_shell: &Shell, madara_args: &MadaraGlobalArgs) -> anyhow::Result<()> {
     init_global_config(GlobalConfig {
         verbose: madara_args.verbose,
+        config_file: madara_args.config_file.clone(),
     });
     Ok(())
 }

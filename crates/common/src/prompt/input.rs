@@ -32,6 +32,15 @@ impl Prompt {
         self
     }
 
+    pub fn validate_interactively<F>(mut self, f: F) -> Self
+    where
+        F: Validate<String> + 'static,
+        F::Err: ToString,
+    {
+        self.inner = self.inner.validate_interactively(f);
+        self
+    }
+
     pub fn ask<T>(mut self) -> T
     where
         T: FromStr,

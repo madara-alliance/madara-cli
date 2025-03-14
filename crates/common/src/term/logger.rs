@@ -13,8 +13,8 @@ fn term_write(msg: impl Display) {
     Term::stderr().write_str(msg).unwrap();
 }
 
-pub fn intro() {
-    cliclak_intro(style(" Madara CLI ").on_cyan().black()).unwrap();
+pub fn intro(msg: impl Display) {
+    cliclak_intro(style(msg).on_cyan().black()).unwrap();
 }
 
 pub fn outro(msg: impl Display) {

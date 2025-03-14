@@ -3,9 +3,8 @@
 const starknet = require("starknet");
 const ethers = require("ethers");
 
-// Using default anvil key which has funds
-const MADARA_ORCHESTRATOR_ETHEREUM_PRIVATE_KEY =
-  "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+// Using anvil key with funds
+const MADARA_ORCHESTRATOR_ETHEREUM_PRIVATE_KEY = process.env.MADARA_ORCHESTRATOR_ETHEREUM_PRIVATE_KEY;
 const eth_provider = new ethers.JsonRpcProvider("http://anvil:8545");
 const wallet = new ethers.Wallet(
   MADARA_ORCHESTRATOR_ETHEREUM_PRIVATE_KEY,
