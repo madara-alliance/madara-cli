@@ -40,7 +40,7 @@ pub fn process_params(global_config: &Config) -> anyhow::Result<()> {
     config.eth_priv_key = eth_wallet.eth_priv_key;
     config.l1_deployer_address = eth_wallet.l1_deployer_address;
     config.l1_multisig_address = eth_wallet.l1_multisig_address;
-    config.operator_address = eth_wallet.operator_address;
+    config.operator_address = eth_wallet.l1_operator_address;
     config.app_chain_id = global_config.madara.app_chain_id;
 
     config.save(BOOTSTRAPPER_CONFIG_FILE);

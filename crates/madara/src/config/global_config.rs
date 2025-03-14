@@ -22,7 +22,7 @@ use super::constants::{
 pub struct EthWallet {
     pub eth_priv_key: String,
     pub l1_deployer_address: String,
-    pub operator_address: String,
+    pub l1_operator_address: String,
     pub l1_multisig_address: String,
 }
 
@@ -38,7 +38,7 @@ impl Default for EthWallet {
 impl EthWallet {
     pub fn new(eth_priv_key: String, l1_multisig_address: String) -> Self {
         let l1_deployer_address = Self::get_address(&eth_priv_key);
-        let operator_address = l1_deployer_address.clone();
+        let l1_operator_address = l1_deployer_address.clone();
 
         assert_ne!(
             l1_multisig_address, l1_deployer_address,
@@ -49,7 +49,7 @@ impl EthWallet {
         Self {
             eth_priv_key,
             l1_deployer_address,
-            operator_address,
+            l1_operator_address,
             l1_multisig_address,
         }
     }
