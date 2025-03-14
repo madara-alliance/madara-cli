@@ -185,21 +185,27 @@ impl Config {
 
     pub fn init() -> anyhow::Result<()> {
         logger::new_empty_line();
-        logger::intro("CLI config file initialization");
+        logger::intro("CLI Configuration File Initialization");
 
-        let config_file_name: String = Prompt::new("Input configuration file name")
-            .default("my_custom_config")
-            .ask();
+        let config_file_name: String =
+            Prompt::new("Please enter the name for your configuration file")
+                .default("my_custom_config")
+                .ask();
         let mut local_template = Config::load(DEFAULT_LOCAL_CONFIG_FILE);
 
         // L1 configuration
-        let eth_rpc = Prompt::new("L1 RPC URL")
+        logger::new_empty_line();
+        logger::note(
+            "L1/Settlement layer configuration",
+            "You'll need to setup all the parameters related to your L1 or settlement layer",
+        );
+        let eth_rpc = Prompt::new("Enter the L1 RPC URL (e.g., http://localhost:8545)")
             .default(&local_template.l1_config.eth_rpc)
             .ask();
-        let eth_chain_id = Prompt::new("L1 chain ID")
+        let eth_chain_id = Prompt::new("Enter the L1 chain ID (e.g., 1 for Ethereum Mainnet)")
             .default(&local_template.l1_config.eth_chain_id.to_string())
             .ask::<u64>();
-        let verifier_address = Prompt::new("Verifier contract address")
+        let verifier_address = Prompt::new("Enter the Verifier contract address (e.g., 0x...)")
             .default(&local_template.l1_config.verifier_address)
             .ask();
 
@@ -208,16 +214,21 @@ impl Config {
         local_template.l1_config.verifier_address = verifier_address;
 
         // ETH Wallet configuration
-        let eth_priv_key = Prompt::new("L1 private key")
+        logger::new_empty_line();
+        logger::note(
+            "L1 wallet configuration",
+            "You'll need to setup all the parameters related to your L1 or settlement layer wallet",
+        );
+        let eth_priv_key = Prompt::new("Enter the L1 private key (e.g., 0x...)")
             .default(&local_template.eth_wallet.eth_priv_key)
             .ask();
-        let l1_deployer_address = Prompt::new("L1 deployer address")
+        let l1_deployer_address = Prompt::new("Enter the L1 deployer address (e.g., 0x...)")
             .default(&&local_template.eth_wallet.l1_deployer_address)
             .ask();
-        let l1_operator_address = Prompt::new("L1 operator address")
+        let l1_operator_address = Prompt::new("Enter the L1 operator address (e.g., 0x...)")
             .default(&local_template.eth_wallet.l1_operator_address)
             .ask();
-        let l1_multisig_address = Prompt::new("L1 multisig address")
+        let l1_multisig_address = Prompt::new("Enter the L1 multisig address (e.g., 0x...)")
             .default(&local_template.eth_wallet.l1_multisig_address)
             .ask();
 
@@ -227,20 +238,25 @@ impl Config {
         local_template.eth_wallet.l1_multisig_address = l1_multisig_address;
 
         // Madara configuration
-        let chain_name = Prompt::new("Madara chain name")
+        logger::new_empty_line();
+        logger::note(
+            "Madara configuration",
+            "You'll need to setup all the parameters related to Madara",
+        );
+        let chain_name = Prompt::new("Enter the name of the Madara chain (e.g., MyChain)")
             .default(&local_template.madara.chain_name)
             .ask();
-        let app_chain_id = Prompt::new("Madara chain ID")
+        let app_chain_id = Prompt::new("Enter the Madara chain ID (e.g., MADARA_DEVNET)")
             .default(&&local_template.madara.app_chain_id)
             .ask();
-        let block_time = Prompt::new("Madara block time")
+        let block_time = Prompt::new("Enter the block time for Madara (in seconds, e.g., 15s)")
             .default(&local_template.madara.block_time)
             .ask();
-        let gas_price = Prompt::new("Madara gas price")
+        let gas_price = Prompt::new("Enter the gas price for Madara (in Gwei, e.g., 20)")
             .default(&local_template.madara.gas_price.to_string())
             .ask::<u64>();
 
-        let blob_gas_price = Prompt::new("Madara blob gas price")
+        let blob_gas_price = Prompt::new("Enter the blob gas price for Madara (in Gwei, e.g., 5)")
             .default(&local_template.madara.blob_gas_price.to_string())
             .ask::<u64>();
 
@@ -251,12 +267,18 @@ impl Config {
         local_template.madara.blob_gas_price = blob_gas_price;
 
         // Orchestrator configuration
-        let atlantic_url = Prompt::new("Atlantic prover URL")
-            .default(&local_template.orchestrator.atlantic_service_url)
-            .ask();
+        logger::new_empty_line();
+        logger::note(
+            "Orchestrator configuration",
+            "You'll need to setup all the parameters related to Orchestrator",
+        );
+        let atlantic_url =
+            Prompt::new("Enter the Atlantic prover URL (e.g., http://localhost:8080)")
+                .default(&local_template.orchestrator.atlantic_service_url)
+                .ask();
 
         let maximum_block_to_process: Option<u64> =
-            Prompt::new("Maximum block to process (Empty for no limit)")
+            Prompt::new("Enter the maximum block to process (leave empty for no limit)")
                 .allow_empty()
                 .ask::<String>()
                 .parse()
