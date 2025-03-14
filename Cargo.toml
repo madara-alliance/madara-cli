@@ -45,5 +45,6 @@ serde_yaml = "0.9"
 sha3 = "0.10"
 strum = { version = "0.26", features = ["derive"] }
 thiserror = "1.0.57"
+toml = "0.8.20"
 url = { version = "2.5.0", features = ["serde"] }
 xshell = "0.2.6"
