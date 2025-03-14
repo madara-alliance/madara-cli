@@ -1,10 +1,7 @@
 use madara_cli_common::docker;
 use xshell::Shell;
 
-use crate::config::{
-    bootstrapper::BootstrapperConfiguration,
-    global_config::{Config, EthWallet},
-};
+use crate::config::{bootstrapper::BootstrapperConfiguration, global_config::Config, EthWallet};
 
 const BOOTSTRAPPER_REPO_PATH: &str = "deps/bootstrapper";
 const BOOTSTRAPPER_DOCKER_IMAGE: &str = "bootstrapper";
