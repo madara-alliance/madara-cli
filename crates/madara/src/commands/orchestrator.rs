@@ -32,7 +32,7 @@ const ORCHESTRATOR_RUNNER_FILE: &str = "run_orchestrator.sh";
 
 pub(crate) fn run(args_madara: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result<()> {
     logger::new_empty_line();
-    logger::intro();
+    logger::intro("Madara CLI");
 
     // TODO: improve error handling and check if file doesn't exist (even default file)
     let config_file = global_config()
