@@ -7,10 +7,17 @@ use figment::{
     Figment,
 };
 use hex;
-use madara_cli_common::{logger, Prompt};
+use madara_cli_common::{
+    logger,
+    validation::{
+        validate_eth_address, validate_filename, validate_private_key, validate_time_with_unit,
+        validate_u64, validate_url,
+    },
+    Prompt,
+};
 use secp256k1::{PublicKey, Secp256k1, SecretKey};
 use sha3::{Digest, Keccak256};
-use std::fs;
+use std::{fs, path::PathBuf, str::FromStr};
 
 use serde::{Deserialize, Serialize};
 
@@ -208,7 +215,8 @@ impl Config {
 
         let config_file_name: String =
             Prompt::new("Please enter the name for your configuration file")
-                .default("my_custom_config")
+                .default("my_custom_config.toml")
+                .validate_interactively(validate_filename)
                 .ask();
         let mut local_template = Config::load(DEFAULT_LOCAL_CONFIG_FILE);
 
@@ -220,12 +228,15 @@ impl Config {
         );
         let eth_rpc = Prompt::new("Enter the L1 RPC URL (e.g., http://localhost:8545)")
             .default(&local_template.l1_config.eth_rpc)
+            .validate_interactively(validate_url)
             .ask();
         let eth_chain_id = Prompt::new("Enter the L1 chain ID (e.g., 1 for Ethereum Mainnet)")
             .default(&local_template.l1_config.eth_chain_id.to_string())
+            .validate_interactively(validate_u64)
             .ask::<u64>();
         let verifier_address = Prompt::new("Enter the Verifier contract address (e.g., 0x...)")
             .default(&local_template.l1_config.verifier_address)
+            .validate_interactively(validate_eth_address)
             .ask();
 
         local_template.l1_config.eth_rpc = eth_rpc;
@@ -240,15 +251,19 @@ impl Config {
         );
         let eth_priv_key = Prompt::new("Enter the L1 private key (e.g., 0x...)")
             .default(&local_template.eth_wallet.eth_priv_key)
+            .validate_interactively(validate_private_key)
             .ask();
         let l1_deployer_address = Prompt::new("Enter the L1 deployer address (e.g., 0x...)")
             .default(&&local_template.eth_wallet.l1_deployer_address)
+            .validate_interactively(validate_eth_address)
             .ask();
         let l1_operator_address = Prompt::new("Enter the L1 operator address (e.g., 0x...)")
             .default(&local_template.eth_wallet.l1_operator_address)
+            .validate_interactively(validate_eth_address)
             .ask();
         let l1_multisig_address = Prompt::new("Enter the L1 multisig address (e.g., 0x...)")
             .default(&local_template.eth_wallet.l1_multisig_address)
+            .validate_interactively(validate_eth_address)
             .ask();
 
         local_template.eth_wallet.eth_priv_key = eth_priv_key;
@@ -270,13 +285,16 @@ impl Config {
             .ask();
         let block_time = Prompt::new("Enter the block time for Madara (in seconds, e.g., 15s)")
             .default(&local_template.madara.block_time)
+            .validate_interactively(validate_time_with_unit)
             .ask();
         let gas_price = Prompt::new("Enter the gas price for Madara (in Gwei, e.g., 20)")
             .default(&local_template.madara.gas_price.to_string())
+            .validate_interactively(validate_u64)
             .ask::<u64>();
 
         let blob_gas_price = Prompt::new("Enter the blob gas price for Madara (in Gwei, e.g., 5)")
             .default(&local_template.madara.blob_gas_price.to_string())
+            .validate_interactively(validate_u64)
             .ask::<u64>();
 
         local_template.madara.chain_name = chain_name;
@@ -294,11 +312,13 @@ impl Config {
         let atlantic_url =
             Prompt::new("Enter the Atlantic prover URL (e.g., http://localhost:8080)")
                 .default(&local_template.orchestrator.atlantic_service_url)
+                .validate_interactively(validate_url)
                 .ask();
 
         let maximum_block_to_process: Option<u64> =
             Prompt::new("Enter the maximum block to process (leave empty for no limit)")
                 .allow_empty()
+                .validate_interactively(validate_u64)
                 .ask::<String>()
                 .parse()
                 .ok();
@@ -306,7 +326,7 @@ impl Config {
         local_template.orchestrator.atlantic_service_url = atlantic_url;
         local_template.orchestrator.maximum_block_to_process = maximum_block_to_process;
 
-        local_template.save(&format!("deps/data/{}.toml", config_file_name));
+        local_template.save(&format!("deps/data/{}", config_file_name));
         Ok(())
     }
 }
