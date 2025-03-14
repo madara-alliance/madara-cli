@@ -1,14 +1,25 @@
-# Madara Node CLI
+ # Madara Node CLI
 
-This is a Command Line Interface (CLI) designed to simplify the process of setting up a Madara node. With this tool, you can easily spin up a Madara node under four different types:
+This Command Line Interface (CLI) is designed to simplify the process of setting up a Madara node. With this tool, you can easily spin up a Madara node under four different types:
 
 * Devnet
 * FullNode
 * Sequencer
 * AppChain
 
-By using this CLI, you can streamline the node setup process and get started with your Madara project quickly and efficiently.
+By using this CLI, you can streamline the node setup process and quickly get started with your Madara project.
 
 ## Usage
-- git submodule update --init --recursive
-- cargo run create
+To create a custom configuration for AppChain, use:
+  ```bash
+  cargo run init
+  ```
+This command will allow the user to start from the template configuration to spin up a local AppChain and change all the parameters.
+
+To run the CLI and spin up Madara, use:
+  ```bash
+  cargo run create [--config-file <path_to_config_file>]
+  ```
+
+Use `config-file` param to set your custom configuration for AppChain
+
