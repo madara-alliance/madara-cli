@@ -1,6 +1,7 @@
 mod confirm;
 mod input;
 mod select;
+pub mod validation;
 
 use cliclack::{Theme, ThemeState};
 pub use confirm::PromptConfirm;
