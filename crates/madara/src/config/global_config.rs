@@ -23,6 +23,15 @@ use super::constants::{
     MADARA_PENDING_BLOCK_UPDATE_TIME,
 };
 
+#[derive(Debug)]
+pub struct EthKeys {
+    //Private key (32 bytes)
+    pub private_key: String,
+    //Secp256k1 public key (64 bytes)
+    pub public_key: PublicKey,
+    //Eth address (20 bytes)
+    pub address: String,
+}
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EthWallet {
     pub eth_priv_key: String,
@@ -34,7 +43,7 @@ pub struct EthWallet {
 impl Default for EthWallet {
     fn default() -> Self {
         Self::new(
-            Self::get_priv_key(0),
+            "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80".to_string(),
             "0x70997970c51812dc3a010c7d01b50e0d17dc79c8".to_string(),
         )
     }
@@ -42,7 +51,7 @@ impl Default for EthWallet {
 
 impl EthWallet {
     pub fn new(eth_priv_key: String, l1_multisig_address: String) -> Self {
-        let l1_deployer_address = Self::get_address(&eth_priv_key);
+        let (_, l1_deployer_address) = Self::get_address(&eth_priv_key);
         let l1_operator_address = l1_deployer_address.clone();
 
         assert_ne!(
@@ -59,9 +68,9 @@ impl EthWallet {
         }
     }
 
-    pub fn get_priv_key(index: usize) -> String {
+    pub fn get_keys(index: usize) -> EthKeys {
         // Default Anvil private keys
-        match index {
+        let private_key = match index {
             0 => String::from("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"),
             1 => String::from("0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"),
             2 => String::from("0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a"),
@@ -73,10 +82,18 @@ impl EthWallet {
             8 => String::from("0xdbda1821b80551c9d65939329250298aa3472ba22feea921c0cf5d620ea67b97"),
             9 => String::from("0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6"),
             _ => String::from("0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"), // Default case
+        };
+
+        let (public_key, address) = Self::get_address(&private_key);
+
+        EthKeys {
+            private_key,
+            public_key,
+            address,
         }
     }
 
-    pub fn get_address(priv_key: &String) -> String {
+    pub fn get_address(priv_key: &String) -> (PublicKey, String) {
         let secp = Secp256k1::signing_only();
         let priv_key = priv_key.trim_start_matches("0x");
 
@@ -95,7 +112,9 @@ impl EthWallet {
         let hash = hasher.finalize();
 
         // Take the last 20 bytes of the hash to form the Ethereum address
-        format!("0x{}", hex::encode(&hash[12..]))
+        let address = format!("0x{}", hex::encode(&hash[12..]));
+
+        (public_key, address)
     }
 }
 
@@ -297,9 +316,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_pub_keys() {
+    fn test_addresses() {
         // Default Anvil accounts
-        let expected_pub_keys = vec![
+        let expected_addresses = vec![
             "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
             "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
             "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc",
@@ -312,10 +331,10 @@ mod tests {
             "0xa0ee7a142d267c1f36714e4a8f75612f20a79720",
         ];
 
-        for (index, expected_pub_key) in expected_pub_keys.iter().enumerate() {
-            let priv_key = EthWallet::get_priv_key(index);
-            let pub_key = EthWallet::get_address(&priv_key);
-            assert_eq!(pub_key, *expected_pub_key);
+        for (index, expected_address) in expected_addresses.iter().enumerate() {
+            let key = EthWallet::get_keys(index);
+            let (_, address) = EthWallet::get_address(&key.private_key);
+            assert_eq!(address, *expected_address);
         }
     }
 }
