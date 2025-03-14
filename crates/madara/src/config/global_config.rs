@@ -23,11 +23,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::constants::DEFAULT_LOCAL_CONFIG_FILE;
 
-use super::constants::{
-    ANVIL_CHAIN_ID, ANVIL_RPC_URL, DEFAULT_ATLANTIC_URL, DEFAULT_MOCK_VERIFIER_ADDRESS,
-    MADARA_APP_CHAIN_ID, MADARA_BLOCK_TIME, MADARA_CHAIN_NAME, MADARA_LATEST_PROTOCOL_VERSION,
-    MADARA_NATIVE_FEE_TOKEN_ADDRESS, MADARA_PARENT_FEE_TOKEN_ADDRESS,
-    MADARA_PENDING_BLOCK_UPDATE_TIME,
+use super::{
+    constants::{
+        DEFAULT_ATLANTIC_URL, MADARA_APP_CHAIN_ID, MADARA_BLOCK_TIME, MADARA_CHAIN_NAME,
+        MADARA_LATEST_PROTOCOL_VERSION, MADARA_NATIVE_FEE_TOKEN_ADDRESS,
+        MADARA_PARENT_FEE_TOKEN_ADDRESS, MADARA_PENDING_BLOCK_UPDATE_TIME,
+    },
+    l1_config::{self, L1Configuration},
 };
 
 #[derive(Debug)]
@@ -126,23 +128,6 @@ impl EthWallet {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct L1Configuration {
-    pub eth_rpc: String,
-    pub eth_chain_id: u64,
-    pub verifier_address: String,
-}
-
-impl Default for L1Configuration {
-    fn default() -> Self {
-        Self {
-            eth_rpc: ANVIL_RPC_URL.to_string(),
-            eth_chain_id: ANVIL_CHAIN_ID,
-            verifier_address: DEFAULT_MOCK_VERIFIER_ADDRESS.to_string(),
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MadaraConfiguration {
     pub chain_name: String,
     pub app_chain_id: String,
@@ -220,28 +205,7 @@ impl Config {
                 .ask();
         let mut local_template = Config::load(DEFAULT_LOCAL_CONFIG_FILE);
 
-        // L1 configuration
-        logger::new_empty_line();
-        logger::note(
-            "L1/Settlement layer configuration",
-            "You'll need to setup all the parameters related to your L1 or settlement layer",
-        );
-        let eth_rpc = Prompt::new("Enter the L1 RPC URL (e.g., http://localhost:8545)")
-            .default(&local_template.l1_config.eth_rpc)
-            .validate_interactively(validate_url)
-            .ask();
-        let eth_chain_id = Prompt::new("Enter the L1 chain ID (e.g., 1 for Ethereum Mainnet)")
-            .default(&local_template.l1_config.eth_chain_id.to_string())
-            .validate_interactively(validate_u64)
-            .ask::<u64>();
-        let verifier_address = Prompt::new("Enter the Verifier contract address (e.g., 0x...)")
-            .default(&local_template.l1_config.verifier_address)
-            .validate_interactively(validate_eth_address)
-            .ask();
-
-        local_template.l1_config.eth_rpc = eth_rpc;
-        local_template.l1_config.eth_chain_id = eth_chain_id;
-        local_template.l1_config.verifier_address = verifier_address;
+        L1Configuration::init(&mut local_template)?;
 
         // ETH Wallet configuration
         logger::new_empty_line();

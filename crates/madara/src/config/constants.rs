@@ -1,13 +1,7 @@
-pub const ANVIL_RPC_URL: &str = "http://anvil:8545";
-pub const ANVIL_CHAIN_ID: u64 = 31337;
-
 #[allow(unused)]
 pub const SEPOLIA_RPC_URL: &str = "https://ethereum-sepolia-rpc.publicnode.com";
 #[allow(unused)]
 pub const SEPOLIA_CHAIN_ID: u64 = 11155111;
-
-// This address will be valid as long as Mock Verifier contract is the first contract that is deploy in Anvil
-pub const DEFAULT_MOCK_VERIFIER_ADDRESS: &str = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 
 pub const MADARA_CHAIN_NAME: &str = "Madara";
 pub const MADARA_APP_CHAIN_ID: &str = "MADARA_DEVNET";
