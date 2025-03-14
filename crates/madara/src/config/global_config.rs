@@ -1,15 +1,20 @@
 #![allow(unused)]
 use anyhow::{Context, Error};
-use hex;
-use secp256k1::{PublicKey, Secp256k1, SecretKey};
-use sha3::{Digest, Keccak256};
-
+use clap::builder::Str;
+use cliclack::Input;
 use figment::{
     providers::{Format, Toml},
     Figment,
 };
+use hex;
+use madara_cli_common::{logger, Prompt};
+use secp256k1::{PublicKey, Secp256k1, SecretKey};
+use sha3::{Digest, Keccak256};
+use std::fs;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+
+use crate::constants::DEFAULT_LOCAL_CONFIG_FILE;
 
 use super::constants::{
     ANVIL_CHAIN_ID, ANVIL_RPC_URL, DEFAULT_ATLANTIC_URL, DEFAULT_MOCK_VERIFIER_ADDRESS,
@@ -18,7 +23,7 @@ use super::constants::{
     MADARA_PENDING_BLOCK_UPDATE_TIME,
 };
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct EthWallet {
     pub eth_priv_key: String,
     pub l1_deployer_address: String,
@@ -94,7 +99,7 @@ impl EthWallet {
     }
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct L1Configuration {
     pub eth_rpc: String,
     pub eth_chain_id: u64,
@@ -111,7 +116,7 @@ impl Default for L1Configuration {
     }
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MadaraConfiguration {
     pub chain_name: String,
     pub app_chain_id: String,
@@ -140,7 +145,7 @@ impl Default for MadaraConfiguration {
     }
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct OrchestratorConfiguration {
     pub atlantic_service_url: String,
     pub minimum_block_to_process: u64,
@@ -157,7 +162,7 @@ impl Default for OrchestratorConfiguration {
     }
 }
 
-#[derive(Default, Debug, Deserialize, Clone)]
+#[derive(Default, Debug, Serialize, Deserialize, Clone)]
 pub struct Config {
     pub l1_config: L1Configuration,
     pub eth_wallet: EthWallet,
@@ -165,11 +170,104 @@ pub struct Config {
     pub orchestrator: OrchestratorConfiguration,
 }
 
-pub fn load_config(config_file: &String) -> Config {
-    Figment::new()
-        .merge(Toml::file(config_file))
-        .extract::<Config>()
-        .expect("Failed to load configuration")
+impl Config {
+    pub fn load(config_file: &str) -> Config {
+        Figment::new()
+            .merge(Toml::file(config_file))
+            .extract::<Config>()
+            .expect("Failed to load configuration")
+    }
+
+    pub fn save(&self, file_path: &str) {
+        let toml = toml::to_string(self).expect("Failed to serialize global config to TOML");
+        fs::write(file_path, toml).expect("Failed to write configuration");
+    }
+
+    pub fn init() -> anyhow::Result<()> {
+        logger::new_empty_line();
+        logger::intro("CLI config file initialization");
+
+        let config_file_name: String = Prompt::new("Input configuration file name")
+            .default("my_custom_config")
+            .ask();
+        let mut local_template = Config::load(DEFAULT_LOCAL_CONFIG_FILE);
+
+        // L1 configuration
+        let eth_rpc = Prompt::new("L1 RPC URL")
+            .default(&local_template.l1_config.eth_rpc)
+            .ask();
+        let eth_chain_id = Prompt::new("L1 chain ID")
+            .default(&local_template.l1_config.eth_chain_id.to_string())
+            .ask::<u64>();
+        let verifier_address = Prompt::new("Verifier contract address")
+            .default(&local_template.l1_config.verifier_address)
+            .ask();
+
+        local_template.l1_config.eth_rpc = eth_rpc;
+        local_template.l1_config.eth_chain_id = eth_chain_id;
+        local_template.l1_config.verifier_address = verifier_address;
+
+        // ETH Wallet configuration
+        let eth_priv_key = Prompt::new("L1 private key")
+            .default(&local_template.eth_wallet.eth_priv_key)
+            .ask();
+        let l1_deployer_address = Prompt::new("L1 deployer address")
+            .default(&&local_template.eth_wallet.l1_deployer_address)
+            .ask();
+        let l1_operator_address = Prompt::new("L1 operator address")
+            .default(&local_template.eth_wallet.l1_operator_address)
+            .ask();
+        let l1_multisig_address = Prompt::new("L1 multisig address")
+            .default(&local_template.eth_wallet.l1_multisig_address)
+            .ask();
+
+        local_template.eth_wallet.eth_priv_key = eth_priv_key;
+        local_template.eth_wallet.l1_deployer_address = l1_deployer_address;
+        local_template.eth_wallet.l1_operator_address = l1_operator_address;
+        local_template.eth_wallet.l1_multisig_address = l1_multisig_address;
+
+        // Madara configuration
+        let chain_name = Prompt::new("Madara chain name")
+            .default(&local_template.madara.chain_name)
+            .ask();
+        let app_chain_id = Prompt::new("Madara chain ID")
+            .default(&&local_template.madara.app_chain_id)
+            .ask();
+        let block_time = Prompt::new("Madara block time")
+            .default(&local_template.madara.block_time)
+            .ask();
+        let gas_price = Prompt::new("Madara gas price")
+            .default(&local_template.madara.gas_price.to_string())
+            .ask::<u64>();
+
+        let blob_gas_price = Prompt::new("Madara blob gas price")
+            .default(&local_template.madara.blob_gas_price.to_string())
+            .ask::<u64>();
+
+        local_template.madara.chain_name = chain_name;
+        local_template.madara.app_chain_id = app_chain_id;
+        local_template.madara.block_time = block_time;
+        local_template.madara.gas_price = gas_price;
+        local_template.madara.blob_gas_price = blob_gas_price;
+
+        // Orchestrator configuration
+        let atlantic_url = Prompt::new("Atlantic prover URL")
+            .default(&local_template.orchestrator.atlantic_service_url)
+            .ask();
+
+        let maximum_block_to_process: Option<u64> =
+            Prompt::new("Maximum block to process (Empty for no limit)")
+                .allow_empty()
+                .ask::<String>()
+                .parse()
+                .ok();
+
+        local_template.orchestrator.atlantic_service_url = atlantic_url;
+        local_template.orchestrator.maximum_block_to_process = maximum_block_to_process;
+
+        local_template.save(&format!("deps/data/{}.toml", config_file_name));
+        Ok(())
+    }
 }
 
 #[cfg(test)]

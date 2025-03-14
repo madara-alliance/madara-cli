@@ -9,7 +9,7 @@ use xshell::Shell;
 
 use crate::{
     commands,
-    config::global_config::{load_config, Config},
+    config::global_config::Config,
     constants::{DEFAULT_LOCAL_CONFIG_FILE, DEPS_REPO_PATH, DOCKERHUB_ORGANIZATION},
 };
 
@@ -30,6 +30,11 @@ const ORCHESTRATOR_ENV_PATH: &str = "deps/orchestrator/.env";
 const ORCHESTRATOR_RUNNER_TEMPLATE_FILE: &str = "run_orchestrator.template";
 const ORCHESTRATOR_RUNNER_FILE: &str = "run_orchestrator.sh";
 
+pub(crate) fn init() -> anyhow::Result<()> {
+    Config::init()?;
+    Ok(())
+}
+
 pub(crate) fn run(args_madara: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result<()> {
     logger::new_empty_line();
     logger::intro("Madara CLI");
@@ -40,7 +45,7 @@ pub(crate) fn run(args_madara: MadaraRunnerConfigMode, shell: &Shell) -> anyhow:
         .as_ref()
         .map(|s| s.clone())
         .unwrap_or_else(|| DEFAULT_LOCAL_CONFIG_FILE.to_string());
-    let config = load_config(&config_file);
+    let config = Config::load(&config_file);
 
     // Collect Madara configuration
     commands::madara::process_params(&args_madara, &config)?;
