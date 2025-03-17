@@ -17,10 +17,11 @@ services:
     volumes:
       - ${MADARA_DATA_DIR}:/tmp/madara
       - ./madara-runner.sh:/usr/local/bin/runner.sh:ro
+      - ./configs/presets:/usr/local/bin/configs/presets
     entrypoint:
       - /usr/local/bin/runner.sh
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9944/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:9944/health" ]
       interval: 10s
       timeout: 5s
       retries: 3
