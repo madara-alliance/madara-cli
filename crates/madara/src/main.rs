@@ -6,9 +6,13 @@ mod constants;
 use clap::{Parser, Subcommand};
 use cliclack::log;
 use commands::workspace_dir;
+use constants::DEFAULT_TMP_DATA_DIRECTORY;
 use madara_cli_common::config::{init_global_config, GlobalConfig};
 use madara_cli_config::madara::MadaraRunnerConfigMode;
 use xshell::Shell;
+
+use std::fs;
+use std::path::Path;
 
 #[derive(Parser)]
 #[command(name = "Madara CLI")]
@@ -45,6 +49,7 @@ pub enum MadaraSubcommands {
 
 fn main() -> anyhow::Result<()> {
     let args = Madara::parse();
+    init_data_directory()?;
 
     match run_subcommand(args) {
         Ok(_) => Ok(()),
@@ -76,5 +81,13 @@ fn init_global_config_inner(_shell: &Shell, madara_args: &MadaraGlobalArgs) -> a
         config_file: madara_args.config_file.clone(),
         default: madara_args.default,
     });
+    Ok(())
+}
+
+fn init_data_directory() -> anyhow::Result<()> {
+    let deps_data_dir = Path::new(DEFAULT_TMP_DATA_DIRECTORY);
+    if !deps_data_dir.exists() {
+        fs::create_dir_all(deps_data_dir).expect("Unable to create data directory");
+    }
     Ok(())
 }
