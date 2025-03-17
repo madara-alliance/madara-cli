@@ -27,7 +27,7 @@ impl Default for OrchestratorConfiguration {
 }
 
 impl OrchestratorConfiguration {
-    pub fn init(template: &mut Config) -> anyhow::Result<()> {
+    pub fn init(template: &mut Config, default: bool) -> anyhow::Result<()> {
         logger::new_empty_line();
         logger::note(
             "Orchestrator configuration",
@@ -37,13 +37,13 @@ impl OrchestratorConfiguration {
             Prompt::new("Enter the Atlantic prover URL (e.g., http://localhost:8080)")
                 .default(&template.orchestrator.atlantic_service_url)
                 .validate_interactively(validate_url)
-                .ask();
+                .default_or_ask(default);
 
         let maximum_block_to_process: Option<u64> =
             Prompt::new("Enter the maximum block to process (leave empty for no limit)")
                 .allow_empty()
                 .validate_interactively(validate_u64)
-                .ask::<String>()
+                .default_or_ask::<String>(default)
                 .parse()
                 .ok();
 

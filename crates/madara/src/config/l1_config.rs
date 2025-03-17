@@ -31,7 +31,7 @@ impl Default for L1Configuration {
 }
 
 impl L1Configuration {
-    pub fn init(template: &mut Config) -> anyhow::Result<()> {
+    pub fn init(template: &mut Config, default: bool) -> anyhow::Result<()> {
         logger::new_empty_line();
         logger::note(
             "L1/Settlement layer configuration",
@@ -41,15 +41,15 @@ impl L1Configuration {
         let eth_rpc = Prompt::new("Enter the L1 RPC URL (e.g., http://localhost:8545)")
             .default(&template.l1_config.eth_rpc)
             .validate_interactively(validate_url)
-            .ask();
+            .default_or_ask(default);
         let eth_chain_id = Prompt::new("Enter the L1 chain ID (e.g., 1 for Ethereum Mainnet)")
             .default(&template.l1_config.eth_chain_id.to_string())
             .validate_interactively(validate_u64)
-            .ask::<u64>();
+            .default_or_ask::<u64>(default);
         let verifier_address = Prompt::new("Enter the Verifier contract address (e.g., 0x...)")
             .default(&template.l1_config.verifier_address)
             .validate_interactively(validate_eth_address)
-            .ask();
+            .default_or_ask(default);
 
         template.l1_config.eth_rpc = eth_rpc;
         template.l1_config.eth_chain_id = eth_chain_id;

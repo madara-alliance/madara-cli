@@ -31,7 +31,8 @@ const ORCHESTRATOR_RUNNER_TEMPLATE_FILE: &str = "run_orchestrator.template";
 const ORCHESTRATOR_RUNNER_FILE: &str = "run_orchestrator.sh";
 
 pub(crate) fn init() -> anyhow::Result<()> {
-    Config::init()?;
+    let use_default = global_config().default;
+    Config::init(use_default)?;
     Ok(())
 }
 

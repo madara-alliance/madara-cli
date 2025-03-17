@@ -105,7 +105,7 @@ impl EthWallet {
         (public_key, address)
     }
 
-    pub fn init(template: &mut Config) -> anyhow::Result<()> {
+    pub fn init(template: &mut Config, default: bool) -> anyhow::Result<()> {
         logger::new_empty_line();
         logger::note(
             "L1 wallet configuration",
@@ -114,19 +114,19 @@ impl EthWallet {
         let eth_priv_key = Prompt::new("Enter the L1 private key (e.g., 0x...)")
             .default(&template.eth_wallet.eth_priv_key)
             .validate_interactively(validate_private_key)
-            .ask();
+            .default_or_ask(default);
         let l1_deployer_address = Prompt::new("Enter the L1 deployer address (e.g., 0x...)")
             .default(&&template.eth_wallet.l1_deployer_address)
             .validate_interactively(validate_eth_address)
-            .ask();
+            .default_or_ask(default);
         let l1_operator_address = Prompt::new("Enter the L1 operator address (e.g., 0x...)")
             .default(&template.eth_wallet.l1_operator_address)
             .validate_interactively(validate_eth_address)
-            .ask();
+            .default_or_ask(default);
         let l1_multisig_address = Prompt::new("Enter the L1 multisig address (e.g., 0x...)")
             .default(&template.eth_wallet.l1_multisig_address)
             .validate_interactively(validate_eth_address)
-            .ask();
+            .default_or_ask(default);
 
         template.eth_wallet.eth_priv_key = eth_priv_key;
         template.eth_wallet.l1_deployer_address = l1_deployer_address;

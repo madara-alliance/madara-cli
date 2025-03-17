@@ -36,7 +36,7 @@ impl Config {
         fs::write(file_path, toml).expect("Failed to write configuration");
     }
 
-    pub fn init() -> anyhow::Result<()> {
+    pub fn init(default: bool) -> anyhow::Result<()> {
         logger::new_empty_line();
         logger::intro("CLI Configuration File Initialization");
 
@@ -44,20 +44,22 @@ impl Config {
             Prompt::new("Please enter the name for your configuration file")
                 .default("my_custom_config.toml")
                 .validate_interactively(validate_filename)
-                .ask();
+                .default_or_ask(default);
         let mut local_template = Config::load(DEFAULT_LOCAL_CONFIG_FILE);
 
+        println!("CONFIG FILE NAME: {}", config_file_name);
+
         // L1 configuration
-        L1Configuration::init(&mut local_template)?;
+        L1Configuration::init(&mut local_template, default)?;
 
         // ETH Wallet configuration
-        EthWallet::init(&mut local_template)?;
+        EthWallet::init(&mut local_template, default)?;
 
         // Madara configuration
-        MadaraConfiguration::init(&mut local_template)?;
+        MadaraConfiguration::init(&mut local_template, default)?;
 
         // Orchestrator configuration
-        OrchestratorConfiguration::init(&mut local_template)?;
+        OrchestratorConfiguration::init(&mut local_template, default)?;
 
         local_template.save(&format!("deps/data/{}", config_file_name));
         Ok(())

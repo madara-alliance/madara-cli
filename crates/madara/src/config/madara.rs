@@ -118,7 +118,7 @@ impl Default for MadaraConfiguration {
 }
 
 impl MadaraConfiguration {
-    pub fn init(template: &mut Config) -> anyhow::Result<()> {
+    pub fn init(template: &mut Config, default: bool) -> anyhow::Result<()> {
         logger::new_empty_line();
         logger::note(
             "Madara configuration",
@@ -126,23 +126,23 @@ impl MadaraConfiguration {
         );
         let chain_name = Prompt::new("Enter the name of the Madara chain (e.g., MyChain)")
             .default(&template.madara.chain_name)
-            .ask();
+            .default_or_ask(default);
         let app_chain_id = Prompt::new("Enter the Madara chain ID (e.g., MADARA_DEVNET)")
             .default(&&template.madara.app_chain_id)
-            .ask();
+            .default_or_ask(default);
         let block_time = Prompt::new("Enter the block time for Madara (in seconds, e.g., 15s)")
             .default(&template.madara.block_time)
             .validate_interactively(validate_time_with_unit)
-            .ask();
+            .default_or_ask(default);
         let gas_price = Prompt::new("Enter the gas price for Madara (in Gwei, e.g., 20)")
             .default(&template.madara.gas_price.to_string())
             .validate_interactively(validate_u64)
-            .ask::<u64>();
+            .default_or_ask::<u64>(default);
 
         let blob_gas_price = Prompt::new("Enter the blob gas price for Madara (in Gwei, e.g., 5)")
             .default(&template.madara.blob_gas_price.to_string())
             .validate_interactively(validate_u64)
-            .ask::<u64>();
+            .default_or_ask::<u64>(default);
 
         template.madara.chain_name = chain_name;
         template.madara.app_chain_id = app_chain_id;
