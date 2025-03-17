@@ -5,7 +5,7 @@ use std::{
 };
 
 use clap::{builder::Str, Parser, ValueEnum};
-use madara_cli_common::{Prompt, PromptSelect};
+use madara_cli_common::{validation::validate_url, Prompt, PromptSelect};
 use madara_cli_types::madara::{MadaraMode, MadaraNetwork};
 use strum::{EnumIter, IntoEnumIterator};
 
@@ -66,7 +66,7 @@ pub struct MadaraPreset {
 pub struct MadaraRunnerConfigSequencer {
     pub base_path: Option<String>,
     pub chain_config_path: Option<String>,
-    // l1_endpoint has to be set as environmental variable
+    pub l1_endpoint: Option<String>,
 }
 
 pub enum MadaraRunnerParams {
@@ -156,9 +156,22 @@ impl MadaraRunnerConfigSequencer {
                 .ask()
         });
 
+        let l1_endpoint = self.l1_endpoint.unwrap_or_else(|| {
+            Prompt::new("L1 endpoint (leave empty for no-sync)")
+                .allow_empty()
+                .validate_interactively(validate_url)
+                .ask()
+        });
+        let l1_endpoint = if l1_endpoint.is_empty() {
+            None
+        } else {
+            Some(l1_endpoint)
+        };
+
         Ok(MadaraRunnerConfigSequencer {
             base_path: Some(base_path),
             chain_config_path: Some(chain_config_path),
+            l1_endpoint,
         })
     }
 }
@@ -166,8 +179,9 @@ impl MadaraRunnerConfigSequencer {
 impl Default for MadaraRunnerConfigSequencer {
     fn default() -> Self {
         Self {
-            base_path: Some("data/madara".to_string()),
+            base_path: None,
             chain_config_path: Some("configs/presets/devnet.yaml".to_string()),
+            l1_endpoint: None,
         }
     }
 }

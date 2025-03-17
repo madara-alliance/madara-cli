@@ -134,7 +134,7 @@ fn create_runner_script(
 
 fn check_secrets(mode: MadaraMode) -> anyhow::Result<()> {
     match mode {
-        MadaraMode::Sequencer | MadaraMode::FullNode => {
+        MadaraMode::FullNode => {
             let rpc_api_secret = PathBuf::new()
                 .join(MADARA_REPO_PATH)
                 .join(MADARA_RPC_API_KEY_FILE);
@@ -163,7 +163,7 @@ fn check_secrets(mode: MadaraMode) -> anyhow::Result<()> {
                 fs::write(rpc_api_secret, rpc_api_url)?;
             }
         }
-        MadaraMode::Devnet => {
+        MadaraMode::Devnet | MadaraMode::Sequencer => {
             let rpc_api_secret = PathBuf::new()
                 .join(MADARA_REPO_PATH)
                 .join(MADARA_RPC_API_KEY_FILE);
@@ -233,7 +233,13 @@ fn parse_sequencer_params(
         .clone()
         .expect("Chain config file must be set");
 
-    // TODO: handle optional params.
+    let l1_config = params
+        .l1_endpoint
+        .clone()
+        .map_or("--no-l1-sync".to_string(), |endpoint| {
+            format!("--l1-endpoint {}", endpoint)
+        });
+
     let sequencer_params = vec![
         format!("--name {}", name),
         format!("--{}", mode).to_lowercase(),
@@ -248,7 +254,7 @@ fn parse_sequencer_params(
         "--gas-price 10".to_string(),
         "--blob-gas-price 20".to_string(),
         "--gateway-port 8080".to_string(),
-        "--l1-endpoint http://anvil:8545".to_string(),
+        l1_config,
     ];
 
     Ok(sequencer_params)
