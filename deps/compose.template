@@ -19,7 +19,7 @@ services:
     depends_on:
       anvil:
         condition: service_started
-    command: -c "sleep 5 && ./mock_verifier_contract.sh"
+    command: -c "sleep 5 && ./mock_verifier_contract.sh {{ ETH_PRIV_KEY }}"
 
   bootstrapper_l1:
     image: {{ IMAGE_REPOSITORY }}bootstrapper:latest
@@ -46,7 +46,7 @@ services:
     volumes:
       - ./data/madara:/usr/share/madara/data
       - ./madara/madara-runner.sh:/usr/local/bin/runner.sh:ro
-      - ./madara_config/presets:/usr/local/bin/configs/presets
+      - ./madara/configs/presets:/usr/local/bin/configs/presets
     entrypoint:
       - /usr/local/bin/runner.sh
     restart: unless-stopped
@@ -76,6 +76,8 @@ services:
         condition: service_completed_successfully
     volumes:
       - ./anvil/override_state.js:/app/override_state.js
+    environment:
+      MADARA_ORCHESTRATOR_ETHEREUM_PRIVATE_KEY: {{ ETH_PRIV_KEY }}
     command: -c "node override_state.js"
 
   pathfinder:

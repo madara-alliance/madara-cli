@@ -27,3 +27,19 @@ jobs:
           toolchain: 1.81
       - name: Build cli
         run: cargo build
+      - name: Run tests
+        run: cargo test
+      # Generates a config file with default info and compare with local.toml 
+      - name: Compare default config
+        run: |
+          cargo run init --default
+          cargo install toml2json
+
+          # Convert both TOML files to JSON (this will ignore comments)
+          toml2json deps/data/my_custom_config.toml > generated_params.json
+          toml2json crates/madara/src/config/local.toml > reference_params.json
+
+          diff generated_params.json reference_params.json || {
+            echo "::error::Init command generated a configuration different than expected"
+            exit 1
+          }
