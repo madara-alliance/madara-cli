@@ -12,9 +12,10 @@ By using this CLI, you can streamline the node setup process and quickly get sta
 ## Usage
 To create a custom configuration for AppChain, use:
   ```bash
-  cargo run init
+  cargo run init [--default]
   ```
 This command will allow the user to start from the template configuration to spin up a local AppChain and change all the parameters.
+Use `default` flag to skip user interaction in this command. This will basically create a configuration file that clones the template.
 
 To run the CLI and spin up Madara, use:
   ```bash
