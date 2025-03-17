@@ -27,3 +27,5 @@ jobs:
           toolchain: 1.81
       - name: Build cli
         run: cargo build
+      - name: Run tests
+        run: cargo test
