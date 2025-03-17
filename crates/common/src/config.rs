@@ -16,4 +16,5 @@ pub fn global_config() -> &'static GlobalConfig {
 pub struct GlobalConfig {
     pub verbose: bool,
     pub config_file: Option<String>,
+    pub default: bool,
 }

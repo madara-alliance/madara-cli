@@ -30,6 +30,9 @@ struct MadaraGlobalArgs {
     /// Path to the configuration file
     #[clap(short, long, global = true)]
     config_file: Option<String>,
+    /// Default: takes all default values without user interaction
+    #[clap(short, long, global = true)]
+    default: bool,
 }
 
 #[derive(Subcommand, Debug)]
@@ -71,6 +74,7 @@ fn init_global_config_inner(_shell: &Shell, madara_args: &MadaraGlobalArgs) -> a
     init_global_config(GlobalConfig {
         verbose: madara_args.verbose,
         config_file: madara_args.config_file.clone(),
+        default: madara_args.default,
     });
     Ok(())
 }
