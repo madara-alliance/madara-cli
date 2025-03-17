@@ -4,12 +4,15 @@ use cliclack::{Input, Validate};
 
 pub struct Prompt {
     inner: Input,
+    default: Option<String>,
 }
 
 impl Prompt {
     pub fn new(question: &str) -> Self {
+        let inner = Input::new(question);
         Self {
-            inner: Input::new(question),
+            inner,
+            default: None,
         }
     }
 
@@ -20,6 +23,7 @@ impl Prompt {
 
     pub fn default(mut self, default: &str) -> Self {
         self.inner = self.inner.default_input(default);
+        self.default = Some(default.into());
         self
     }
 
@@ -46,5 +50,17 @@ impl Prompt {
         T: FromStr,
     {
         self.inner.interact().unwrap()
+    }
+
+    pub fn default_or_ask<T>(self, use_default: bool) -> T
+    where
+        T: FromStr,
+        <T as FromStr>::Err: std::fmt::Debug,
+    {
+        if use_default {
+            return T::from_str(&self.default.unwrap_or_default())
+                .expect("Cannot convert default value fromStr");
+        }
+        self.ask()
     }
 }
