@@ -1,9 +1,9 @@
-use clap::ValueEnum;
+use clap::{Parser, ValueEnum};
 use strum::{EnumIter, IntoEnumIterator};
 
 use madara_cli_common::{Prompt, PromptConfirm, PromptSelect};
 
-#[derive(Default)]
+#[derive(Debug, Default, Parser, Clone)]
 pub struct ProverRunnerConfig {
     pub prover_type: ProverType,
     pub url: String,
@@ -19,10 +19,7 @@ pub enum ProverType {
 }
 
 impl ProverRunnerConfig {
-    pub fn fill_values_with_prompt(
-        self,
-        prev_atlantic_api: &str,
-    ) -> anyhow::Result<ProverRunnerConfig> {
+    pub fn fill_values_with_prompt(prev_atlantic_api: &str) -> anyhow::Result<ProverRunnerConfig> {
         let prover_type = PromptSelect::new("Select Prover:", ProverType::iter()).ask();
 
         let url = match prover_type {
