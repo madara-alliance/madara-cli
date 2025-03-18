@@ -9,15 +9,15 @@ use crate::config::madara::MadaraPresetConfiguration;
 use crate::constants::{
     MADARA_COMPOSE_FILE, MADARA_DOCKER_IMAGE, MADARA_REPO_PATH, MSG_BUILDING_IMAGE_SPINNER,
 };
-use crate::constants::{MADARA_RPC_API_KEY_FILE, MADARA_RUNNER_SCRIPT, MSG_ARGS_VALIDATOR_ERR};
+use crate::constants::{MADARA_RPC_API_KEY_FILE, MADARA_RUNNER_SCRIPT};
 
-use anyhow::{anyhow, Context};
+use anyhow::anyhow;
 use cliclack::log;
 use madara_cli_common::Prompt;
 use madara_cli_common::{docker, logger, spinner::Spinner};
 use madara_cli_config::madara::{
-    MadaraRunnerConfigFullNode, MadaraRunnerConfigMode, MadaraRunnerConfigSequencer,
-    MadaraRunnerParams,
+    MadaraRunnerConfigAppChain, MadaraRunnerConfigFullNode, MadaraRunnerConfigMode,
+    MadaraRunnerConfigSequencer, MadaraRunnerParams,
 };
 use madara_cli_types::madara::{MadaraMode, MadaraNetwork};
 use xshell::Shell;
@@ -31,11 +31,9 @@ const MADARA_CONFIG_FILE: &str = "deps/madara/configs/presets/devnet.yaml";
 
 pub(crate) fn run(args: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result<()> {
     logger::info("Input Madara parameters...");
-    let args = args
-        .fill_values_with_prompt()
-        .context(MSG_ARGS_VALIDATOR_ERR)?;
 
-    let mode = args.mode.expect("Mode must be already set");
+    let mode = args.mode();
+
     match mode {
         MadaraMode::AppChain => orchestrator::run(args, shell)?,
         _ => {
@@ -60,7 +58,8 @@ pub fn build_image(shell: &Shell) -> anyhow::Result<()> {
 fn madara_run(shell: &Shell, args: MadaraRunnerConfigMode) -> anyhow::Result<()> {
     let config = Config::default();
     process_params(&args, &config)?;
-    check_secrets(args.mode.expect("Mode must be already set"))?;
+    let mode = args.mode();
+    check_secrets(mode)?;
 
     // TODO: check if we need to run docker::down to remove any remaining previous instance
     let compose_file = format!("{}/{}", MADARA_REPO_PATH, MADARA_COMPOSE_FILE);
@@ -68,7 +67,7 @@ fn madara_run(shell: &Shell, args: MadaraRunnerConfigMode) -> anyhow::Result<()>
 }
 
 pub fn process_params(args: &MadaraRunnerConfigMode, config: &Config) -> anyhow::Result<()> {
-    let mode = args.mode.expect("Mode must be already set");
+    let mode = args.mode();
 
     let runner_params = match &args.params {
         MadaraRunnerParams::Devnet(_) => parse_devnet_params(&args.name, &mode),
@@ -266,11 +265,10 @@ fn parse_full_node_params(
     params: &MadaraRunnerConfigFullNode,
 ) -> anyhow::Result<Vec<String>> {
     let network = match params.network {
-        Some(MadaraNetwork::Mainnet) => "main",
-        Some(MadaraNetwork::Testnet) => "test",
-        Some(MadaraNetwork::Integration) => "integration",
-        Some(MadaraNetwork::Devnet) => "devnet",
-        _ => panic!("A network is required"),
+        MadaraNetwork::Mainnet => "main",
+        MadaraNetwork::Testnet => "test",
+        MadaraNetwork::Integration => "integration",
+        MadaraNetwork::Devnet => "devnet",
     };
     let full_node_params = vec![
         format!("--name {}", name),
@@ -285,15 +283,12 @@ fn parse_full_node_params(
 }
 
 fn parse_appchain_params(
-    params: &MadaraRunnerConfigSequencer,
+    params: &MadaraRunnerConfigAppChain,
     config: &Config,
 ) -> anyhow::Result<Vec<String>> {
     // TODO: this file and MADARA_CONFIG_FILE must be the same.
     // Hardcoded to devnet.yaml at the moment
-    let chain_config_path = params
-        .chain_config_path
-        .clone()
-        .expect("Chain config file must be set");
+    let chain_config_path = &params.chain_config_path;
 
     // Update devnet preset with global config:
     let global_config = config.clone();

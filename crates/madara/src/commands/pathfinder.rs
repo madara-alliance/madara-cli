@@ -50,10 +50,9 @@ fn create_runner_script(params: Vec<String>, output_path: &str) -> anyhow::Resul
 }
 
 pub fn parse_params(params: &PathfinderRunnerConfigMode, config: &Config) -> anyhow::Result<()> {
-    // TODO: handle optional params.
+    // TODO: handle ethereum_wss.
     let PathfinderRunnerConfigMode {
         network,
-        chain_id,
         gateway_url,
         feeder_gateway_url,
         http_rpc,

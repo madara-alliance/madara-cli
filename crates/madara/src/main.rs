@@ -8,6 +8,7 @@ use cliclack::log;
 use commands::workspace_dir;
 use constants::DEFAULT_TMP_DATA_DIRECTORY;
 use madara_cli_common::config::{init_global_config, GlobalConfig};
+use madara_cli_common::logger;
 use madara_cli_config::madara::MadaraRunnerConfigMode;
 use xshell::Shell;
 
@@ -20,7 +21,7 @@ use std::path::Path;
 #[command(about = "Madara CLI to easily spin up nodes")]
 struct Madara {
     #[command(subcommand)]
-    command: MadaraSubcommands,
+    command: Option<MadaraSubcommands>,
     #[clap(flatten)]
     global: MadaraGlobalArgs,
 }
@@ -44,7 +45,10 @@ pub enum MadaraSubcommands {
     /// Create configuration file for app-chain
     Init,
     /// Create a Madara node
-    Create,
+    Create {
+        #[clap(flatten)]
+        args: MadaraRunnerConfigMode,
+    },
 }
 
 fn main() -> anyhow::Result<()> {
@@ -65,11 +69,16 @@ fn run_subcommand(madara_args: Madara) -> anyhow::Result<()> {
     shell.change_dir(workspace_dir());
     init_global_config_inner(&shell, &madara_args.global)?;
 
-    let args = MadaraRunnerConfigMode::default();
-
     match madara_args.command {
-        MadaraSubcommands::Init => commands::orchestrator::init(),
-        MadaraSubcommands::Create => commands::madara::run(args, &shell),
+        Some(MadaraSubcommands::Init) => commands::orchestrator::init(),
+        Some(MadaraSubcommands::Create { args }) => commands::madara::run(args, &shell),
+        None => {
+            logger::intro("Starting CLI");
+            log::info("No commands entered, starting in interactive mode...")?;
+            logger::info("Input Madara parameters...");
+            let args = MadaraRunnerConfigMode::fill_values_with_prompt()?;
+            commands::madara::run(args, &shell)
+        }
     }?;
 
     Ok(())

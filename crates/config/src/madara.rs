@@ -47,7 +47,7 @@ pub struct MadaraRunnerConfigFullNode {
     #[arg(short, long, default_value = "./fullnode-db")]
     pub base_path: Option<String>,
     #[arg(short, long)]
-    pub network: Option<MadaraNetwork>,
+    pub network: MadaraNetwork,
 }
 
 impl MadaraRunnerConfigFullNode {
@@ -60,7 +60,7 @@ impl MadaraRunnerConfigFullNode {
 
         Ok(MadaraRunnerConfigFullNode {
             base_path: Some(base_path),
-            network: Some(network),
+            network,
         })
     }
 }
@@ -174,7 +174,7 @@ impl MadaraRunnerConfigSequencer {
             .default("configs/presets/devnet.yaml")
             .ask();
 
-        let l1_endpoint = Prompt::new("L1 endpoint (leave empty for no-sync)")
+        let l1_endpoint: String = Prompt::new("L1 endpoint (leave empty for no-sync)")
             .allow_empty()
             .validate_interactively(validate_url)
             .ask();
