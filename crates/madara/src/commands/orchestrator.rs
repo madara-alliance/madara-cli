@@ -55,7 +55,6 @@ pub(crate) fn run(args_madara: MadaraRunnerConfigMode, shell: &Shell) -> anyhow:
         _ => unreachable!("AppChain config expected"),
     };
 
-    let args_bootstrapper = BootstrapperConfig::fill_values_with_prompt()?;
     commands::bootstrapper::process_params(&config)?;
 
     // Collect Pathfinder configuration
@@ -69,7 +68,7 @@ pub(crate) fn run(args_madara: MadaraRunnerConfigMode, shell: &Shell) -> anyhow:
     let args_prover = &args.prover_config;
     populate_orchestrator_env(args_prover, &config)?;
     populate_orchestrator_runner(args_prover)?;
-    populate_orchestrator_compose(args_prover, &args_bootstrapper, &config)?;
+    populate_orchestrator_compose(args_prover, &args.bootstrapper_config, &config)?;
 
     // Build all images
     if args_prover.build_images {

@@ -14,8 +14,8 @@ use madara_cli_types::madara::{MadaraMode, MadaraNetwork};
 use strum::{EnumIter, IntoEnumIterator};
 
 use crate::{
-    constants::MADARA_PRESETS_PATH, pathfinder::PathfinderRunnerConfigMode,
-    prover::ProverRunnerConfig,
+    bootstrapper::BootstrapperConfig, constants::MADARA_PRESETS_PATH,
+    pathfinder::PathfinderRunnerConfigMode, prover::ProverRunnerConfig,
 };
 
 #[derive(Debug, Parser, Clone)]
@@ -45,9 +45,11 @@ impl Default for MadaraRunnerConfigDevnet {
 #[derive(Debug, Default, Parser, Clone)]
 pub struct MadaraRunnerConfigFullNode {
     #[arg(short, long, default_value = "./fullnode-db")]
-    pub base_path: Option<String>,
+    pub base_path: String,
     #[arg(short, long)]
     pub network: MadaraNetwork,
+    #[arg(short, long)]
+    pub rpc_api_url: Option<String>,
 }
 
 impl MadaraRunnerConfigFullNode {
@@ -59,8 +61,9 @@ impl MadaraRunnerConfigFullNode {
         let network = PromptSelect::new("Select Network:", MadaraNetwork::iter()).ask();
 
         Ok(MadaraRunnerConfigFullNode {
-            base_path: Some(base_path),
+            base_path: base_path,
             network,
+            rpc_api_url: None,
         })
     }
 }
@@ -206,7 +209,7 @@ impl Default for MadaraRunnerConfigSequencer {
 /// Configuration for Madara Appchain Runner
 #[derive(Debug, Clone, Parser)]
 pub struct MadaraRunnerConfigAppChain {
-    #[arg(short, long, default_value = "configs/presets/devnet.yaml")]
+    #[arg(long, default_value = "configs/presets/devnet.yaml")]
     pub chain_config_path: String,
 
     #[clap(flatten)]
@@ -214,6 +217,9 @@ pub struct MadaraRunnerConfigAppChain {
 
     #[clap(flatten)]
     pub pathfinder_config: PathfinderRunnerConfigMode,
+
+    #[clap(flatten)]
+    pub bootstrapper_config: BootstrapperConfig,
 }
 
 impl MadaraRunnerConfigAppChain {
@@ -225,10 +231,13 @@ impl MadaraRunnerConfigAppChain {
 
         let prover_config = ProverRunnerConfig::fill_values_with_prompt()?;
 
+        let bootstrapper_config = BootstrapperConfig::fill_values_with_prompt()?;
+
         Ok(MadaraRunnerConfigAppChain {
             chain_config_path,
             prover_config,
             pathfinder_config: PathfinderRunnerConfigMode::default(),
+            bootstrapper_config,
         })
     }
 }

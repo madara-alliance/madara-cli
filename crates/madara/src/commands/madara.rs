@@ -6,15 +6,13 @@ use std::path::PathBuf;
 
 use crate::config::global_config::Config;
 use crate::config::madara::MadaraPresetConfiguration;
-use crate::constants::{
-    MADARA_COMPOSE_FILE, MADARA_DOCKER_IMAGE, MADARA_REPO_PATH, MSG_BUILDING_IMAGE_SPINNER,
-};
+use crate::constants::{MADARA_COMPOSE_FILE, MADARA_DOCKER_IMAGE, MADARA_REPO_PATH};
 use crate::constants::{MADARA_RPC_API_KEY_FILE, MADARA_RUNNER_SCRIPT};
 
 use anyhow::anyhow;
 use cliclack::log;
+use madara_cli_common::docker;
 use madara_cli_common::Prompt;
-use madara_cli_common::{docker, logger, spinner::Spinner};
 use madara_cli_config::madara::{
     MadaraRunnerConfigAppChain, MadaraRunnerConfigFullNode, MadaraRunnerConfigMode,
     MadaraRunnerConfigSequencer, MadaraRunnerParams,
@@ -30,16 +28,11 @@ const ENV_FILE_PATH: &str = "deps/madara/.env";
 const MADARA_CONFIG_FILE: &str = "deps/madara/configs/presets/devnet.yaml";
 
 pub(crate) fn run(args: MadaraRunnerConfigMode, shell: &Shell) -> anyhow::Result<()> {
-    logger::info("Input Madara parameters...");
-
     let mode = args.mode();
 
     match mode {
         MadaraMode::AppChain => orchestrator::run(args, shell)?,
         _ => {
-            let spinner = Spinner::new(MSG_BUILDING_IMAGE_SPINNER);
-            build_image(shell)?;
-            spinner.finish();
             madara_run(shell, args)?;
         }
     };
@@ -59,7 +52,7 @@ fn madara_run(shell: &Shell, args: MadaraRunnerConfigMode) -> anyhow::Result<()>
     let config = Config::default();
     process_params(&args, &config)?;
     let mode = args.mode();
-    check_secrets(mode)?;
+    check_secrets(&args, mode)?;
 
     // TODO: check if we need to run docker::down to remove any remaining previous instance
     let compose_file = format!("{}/{}", MADARA_REPO_PATH, MADARA_COMPOSE_FILE);
@@ -131,12 +124,17 @@ fn create_runner_script(
     Ok(())
 }
 
-fn check_secrets(mode: MadaraMode) -> anyhow::Result<()> {
+fn check_secrets(args: &MadaraRunnerConfigMode, mode: MadaraMode) -> anyhow::Result<()> {
     match mode {
         MadaraMode::FullNode => {
             let rpc_api_secret = PathBuf::new()
                 .join(MADARA_REPO_PATH)
                 .join(MADARA_RPC_API_KEY_FILE);
+
+            let full_node_params = match &args.params {
+                MadaraRunnerParams::FullNode(params) => params,
+                _ => unreachable!("We already know it's full node!"),
+            };
 
             // Create .secrets and missing folders
             if let Some(parent) = rpc_api_secret.parent() {
@@ -150,7 +148,10 @@ fn check_secrets(mode: MadaraMode) -> anyhow::Result<()> {
                     })?;
                 }
             }
-            if !rpc_api_secret.exists() {
+
+            if let Some(rpc_api_url) = &full_node_params.rpc_api_url {
+                fs::write(rpc_api_secret, rpc_api_url)?;
+            } else if !rpc_api_secret.exists() {
                 let rpc_api_url: String = Prompt::new("Input RPC_API url:").ask();
                 log::info(format!("Creating file: {}", rpc_api_secret.display()))?;
                 fs::write(rpc_api_secret, rpc_api_url)?;
@@ -194,9 +195,7 @@ fn write_env_file(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
         MadaraRunnerParams::Devnet(params) => {
             params.base_path.clone().expect("DB name must be set")
         }
-        MadaraRunnerParams::FullNode(params) => {
-            params.base_path.clone().expect("DB name must be set")
-        }
+        MadaraRunnerParams::FullNode(params) => params.base_path.clone(),
         MadaraRunnerParams::Sequencer(params) => {
             params.base_path.clone().expect("DB name must be set")
         }

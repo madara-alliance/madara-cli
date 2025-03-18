@@ -3,7 +3,7 @@ use madara_cli_common::PromptConfirm;
 
 #[derive(Debug, Parser, Clone)]
 pub struct BootstrapperConfig {
-    #[arg(short, long, default_value = "true")]
+    #[arg(long, default_value = "true")]
     pub deploy_l2_contracts: bool,
 }
 

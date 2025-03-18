@@ -6,8 +6,11 @@ use madara_cli_common::{Prompt, PromptConfirm, PromptSelect};
 
 #[derive(Debug, Default, Parser, Clone)]
 pub struct ProverRunnerConfig {
+    #[arg(long, default_value = ProverType::Dummy.to_string().to_lowercase())]
     pub prover_type: ProverType,
+    #[arg(long, default_value = ProverType::Dummy.to_string())]
     pub url: String,
+    #[arg(long, default_value = "false")]
     pub build_images: bool,
 }
 

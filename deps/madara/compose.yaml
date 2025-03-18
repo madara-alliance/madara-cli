@@ -2,7 +2,7 @@ name: madara_runner
 
 services:
   madara:
-    image: madara:latest
+    image: gustavomoonsong/madara:latest
     container_name: "madara_runner"
     cpus: "4.0"
     mem_limit: "16gb"
