@@ -1,6 +1,6 @@
 # ==============================================
 # Image that builds stargate_contracts_old
-FROM python:3.7-slim-bullseye AS starkgate_contracts_legacy
+FROM python:3.9.21-slim AS starkgate_contracts_legacy
 
 # Set shell options for better error handling
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -39,7 +39,7 @@ RUN if [ ! -f "$SOLC_PATH" ]; then \
 WORKDIR /app
 
 # Clone repository
-RUN git clone --single-branch --branch update-cairo-0.9.0 --recurse-submodules https://github.com/starknet-io/starkgate-contracts.git .
+RUN git clone --single-branch --branch update-0.13.3 --recurse-submodules https://github.com/madara-alliance/starkgate-contracts-legacy.git .
 
 # Build application
 RUN rm -rf build && \
