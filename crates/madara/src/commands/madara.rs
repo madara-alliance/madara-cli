@@ -6,7 +6,9 @@ use std::path::PathBuf;
 
 use crate::config::global_config::Config;
 use crate::config::madara::MadaraPresetConfiguration;
-use crate::constants::{MADARA_COMPOSE_FILE, MADARA_DOCKER_IMAGE, MADARA_REPO_PATH};
+use crate::constants::{
+    MADARA_COMPOSE_FILE, MADARA_COMPOSE_FILE_CI, MADARA_DOCKER_IMAGE, MADARA_REPO_PATH,
+};
 use crate::constants::{MADARA_RPC_API_KEY_FILE, MADARA_RUNNER_SCRIPT};
 
 use anyhow::anyhow;
@@ -55,7 +57,11 @@ fn madara_run(shell: &Shell, args: MadaraRunnerConfigMode) -> anyhow::Result<()>
     check_secrets(&args, mode)?;
 
     // TODO: check if we need to run docker::down to remove any remaining previous instance
-    let compose_file = format!("{}/{}", MADARA_REPO_PATH, MADARA_COMPOSE_FILE);
+    let compose_file = if ci_info::is_ci() {
+        format!("{}/{}", MADARA_REPO_PATH, MADARA_COMPOSE_FILE_CI)
+    } else {
+        format!("{}/{}", MADARA_REPO_PATH, MADARA_COMPOSE_FILE)
+    };
     docker::up(shell, &compose_file, false)
 }
 
