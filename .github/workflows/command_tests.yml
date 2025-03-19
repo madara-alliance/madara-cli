@@ -3,7 +3,6 @@ name: Task - Run Command Integration tests
 on:
   workflow_dispatch:
   workflow_call:
-  pull_request:
 
 jobs:
   rust_test:

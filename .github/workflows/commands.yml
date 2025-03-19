@@ -3,10 +3,9 @@ name: Task - Validate commands
 on:
   workflow_dispatch:
   workflow_call:
-  pull_request:
 
 jobs:
-  test:
+  commands_test:
     strategy:
       fail-fast: false
       matrix:
