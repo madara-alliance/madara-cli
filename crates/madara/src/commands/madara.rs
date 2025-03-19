@@ -14,8 +14,8 @@ use cliclack::log;
 use madara_cli_common::docker;
 use madara_cli_common::Prompt;
 use madara_cli_config::madara::{
-    MadaraRunnerConfigAppChain, MadaraRunnerConfigFullNode, MadaraRunnerConfigMode,
-    MadaraRunnerConfigSequencer, MadaraRunnerParams,
+    MadaraRunnerConfigAppChain, MadaraRunnerConfigDevnet, MadaraRunnerConfigFullNode,
+    MadaraRunnerConfigMode, MadaraRunnerConfigSequencer, MadaraRunnerParams,
 };
 use madara_cli_types::madara::{MadaraMode, MadaraNetwork};
 use xshell::Shell;
@@ -63,7 +63,7 @@ pub fn process_params(args: &MadaraRunnerConfigMode, config: &Config) -> anyhow:
     let mode = args.mode();
 
     let runner_params = match &args.params {
-        MadaraRunnerParams::Devnet(_) => parse_devnet_params(&args.name, &mode),
+        MadaraRunnerParams::Devnet(params) => parse_devnet_params(&args.name, &mode, params),
         MadaraRunnerParams::Sequencer(params) => parse_sequencer_params(&args.name, &mode, params),
         MadaraRunnerParams::FullNode(params) => parse_full_node_params(&args.name, &mode, params),
         MadaraRunnerParams::AppChain(params) => parse_appchain_params(params, config),
@@ -192,9 +192,7 @@ fn check_secrets(args: &MadaraRunnerConfigMode, mode: MadaraMode) -> anyhow::Res
 
 fn write_env_file(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
     let db_folder = match &args.params {
-        MadaraRunnerParams::Devnet(params) => {
-            params.base_path.clone().expect("DB name must be set")
-        }
+        MadaraRunnerParams::Devnet(params) => params.base_path.clone(),
         MadaraRunnerParams::FullNode(params) => params.base_path.clone(),
         MadaraRunnerParams::Sequencer(params) => {
             params.base_path.clone().expect("DB name must be set")
@@ -210,11 +208,15 @@ fn write_env_file(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn parse_devnet_params(name: &String, mode: &MadaraMode) -> anyhow::Result<Vec<String>> {
+fn parse_devnet_params(
+    name: &String,
+    mode: &MadaraMode,
+    params: &MadaraRunnerConfigDevnet,
+) -> anyhow::Result<Vec<String>> {
     let devnet_params = vec![
         format!("--name {}", name),
         format!("--{}", mode).to_lowercase(),
-        "--base-path /tmp/madara".to_string(),
+        format!("--base-path {}", params.base_path),
         "--rpc-external".to_string(),
     ];
 

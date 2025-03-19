@@ -20,8 +20,8 @@ use crate::{
 
 #[derive(Debug, Parser, Clone)]
 pub struct MadaraRunnerConfigDevnet {
-    #[arg(short, long, default_value = "./devnet-db")]
-    pub base_path: Option<String>,
+    #[arg(short, long, default_value = "devnet-db")]
+    pub base_path: String,
 }
 
 impl MadaraRunnerConfigDevnet {
@@ -31,14 +31,16 @@ impl MadaraRunnerConfigDevnet {
             .ask();
 
         Ok(MadaraRunnerConfigDevnet {
-            base_path: Some(base_path),
+            base_path: base_path,
         })
     }
 }
 
 impl Default for MadaraRunnerConfigDevnet {
     fn default() -> Self {
-        Self { base_path: None }
+        Self {
+            base_path: "".to_owned(),
+        }
     }
 }
 
