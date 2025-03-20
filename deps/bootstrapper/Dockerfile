@@ -71,6 +71,7 @@ RUN apt-get update && apt-get install -y \
     sudo \
     libboost-all-dev \
     wget \
+    jq \
     software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 
