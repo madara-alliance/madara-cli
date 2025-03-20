@@ -53,8 +53,7 @@ services:
       - ./madara/madara-runner.sh:/usr/local/bin/runner.sh:ro
       - ./madara/configs/presets:/usr/local/bin/configs/presets
       - ./scripts/:/usr/local/bin/scripts
-    env_file:
-      - ./data/.env      
+      - ./data/:/usr/local/bin/data
     entrypoint:
       - /usr/local/bin/runner.sh
     restart: unless-stopped
