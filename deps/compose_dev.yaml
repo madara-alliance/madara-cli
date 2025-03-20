@@ -1,0 +1,183 @@
+services:
+  anvil:
+    image: gustavomoonsong/anvil:latest
+    container_name: anvil
+    cpus: "4.0"
+    mem_limit: "16gb"
+    ports:
+      - "8545:8545"
+    command: /bin/bash -c "anvil --host 0.0.0.0 --block-time 1 --code-size-limit 300000"
+    attach: false
+
+  mock_verifier_contract:
+    image: gustavomoonsong/anvil:latest
+    container_name: mock_verifier
+    working_dir: /app
+    entrypoint: /bin/bash
+    volumes:
+      - ./anvil/mock_verifier_contract.sh:/app/mock_verifier_contract.sh
+    depends_on:
+      anvil:
+        condition: service_started
+    command: -c "sleep 5 && ./mock_verifier_contract.sh 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+
+  bootstrapper_l1:
+    image: gustavomoonsong/bootstrapper:latest
+    container_name: bootstrapper_l1
+    depends_on:
+      mock_verifier_contract:
+        condition: service_completed_successfully
+    volumes:
+      - ./bootstrapper/devnet.json:/app/src/configs/devnet.json
+    command: -c "sleep 5 && cargo run --release -- --mode setup-l1 --config src/configs/devnet.json"
+    attach: false
+
+
+  madara_healthcheck:
+    image: curlimages/curl:latest
+    container_name: madara_healthcheck
+    depends_on:
+      bootstrapper_l1:
+        condition: service_completed_successfully
+    command: >
+      sh -c "
+        echo 'Waiting for Madara to be available...' &&
+        until curl -s http://madara:9945 > /dev/null 2>&1; do
+          echo 'Madara is unavailable - sleeping 5s' &&
+          sleep 5;
+        done &&
+        echo 'Madara is up and running!'
+      "
+    restart: on-failure
+    extra_hosts:
+      - "madara:host-gateway"
+
+  madara:
+    image: gustavomoonsong/madara:latest
+    container_name: madara
+    cpus: "4.0"
+    mem_limit: "16gb"
+    ports:
+      - "9945:9945"
+      - "8080:8080"
+    depends_on:
+      bootstrapper_l1:
+        condition: service_completed_successfully
+    volumes:
+      - ./data/madara:/usr/share/madara/data
+      - ./madara/madara-runner.sh:/usr/local/bin/runner.sh:ro
+      - ./madara/configs/presets:/usr/local/bin/configs/presets
+    entrypoint:
+      - /usr/local/bin/runner.sh
+    restart: unless-stopped
+
+  bootstrapper_l2:
+    image: gustavomoonsong/bootstrapper:latest
+    container_name: bootstrapper_l2
+    depends_on:
+      madara_healthcheck:
+        condition: service_completed_successfully
+    volumes:
+      - ./bootstrapper/devnet.json:/app/src/configs/devnet.json
+    command: -c "sleep 5 && echo 'Bootstrapper L2 contracts are disabled'"
+    attach: false
+    extra_hosts:
+      - "madara:host-gateway"
+
+  override_state:
+    image: gustavomoonsong/anvil:latest
+    container_name: override_state
+    working_dir: /app
+    entrypoint: /bin/bash
+    depends_on:
+      bootstrapper_l2:
+        condition: service_completed_successfully
+    volumes:
+      - ./anvil/override_state.js:/app/override_state.js
+    environment:
+      MADARA_ORCHESTRATOR_ETHEREUM_PRIVATE_KEY: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+    command: -c "node override_state.js"
+    extra_hosts:
+      - "madara:host-gateway"
+
+  pathfinder:
+    image: gustavomoonsong/pathfinder:latest
+    container_name: pathfinder
+    cpus: "4.0"
+    mem_limit: "16gb"
+    ports:
+      - "9545:9545"
+    depends_on:
+      madara_healthcheck:
+        condition: service_completed_successfully
+    volumes:
+      - ./data/pathfinder:/usr/share/pathfinder/data
+      - ./pathfinder/pathfinder-runner.sh:/usr/local/bin/runner.sh:ro
+    entrypoint:
+      - /usr/local/bin/runner.sh
+    restart: unless-stopped
+    attach: false
+    extra_hosts:
+      - "madara:host-gateway"
+
+  mongodb:
+    image: mongo
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    restart: unless-stopped
+    depends_on:
+      madara_healthcheck:
+        condition: service_completed_successfully
+    attach: false
+    extra_hosts:
+      - "madara:host-gateway"
+
+  snos_block_zero_workaround:
+    image: mongo
+    depends_on:
+      bootstrapper_l2:
+        condition: service_completed_successfully
+    entrypoint: [ "bash", "-c", "mongosh --host mongodb --eval 'load(\"/init.js\")'" ]
+    volumes:
+      - ./block_zero_workaround.js:/init.js
+    extra_hosts:
+      - "madara:host-gateway"
+
+  localstack:
+    image: localstack/localstack@sha256:763947722c6c8d33d5fbf7e8d52b4bddec5be35274a0998fdc6176d733375314
+    container_name: localstack
+    ports:
+      - "4566:4566"
+    restart: unless-stopped
+    depends_on:
+      madara_healthcheck:
+        condition: service_completed_successfully
+    attach: false
+
+  prover:
+    image: gustavomoonsong/mock-prover:latest
+    container_name: prover
+    ports:
+      - "6000:6000"
+    depends_on:
+      madara_healthcheck:
+        condition: service_completed_successfully
+    attach: false
+    extra_hosts:
+      - "madara:host-gateway"
+
+  orchestrator:
+    image: gustavomoonsong/orchestrator:latest
+    container_name: orchestrator
+    cpus: "4.0"
+    mem_limit: "16gb"
+    volumes:
+      - ./orchestrator/.env:/usr/local/bin/.env_tmp
+      - ./orchestrator/run_orchestrator.sh:/usr/local/bin/run_orchestrator.sh
+    entrypoint:
+      - /usr/local/bin/run_orchestrator.sh
+    depends_on:
+      localstack:
+        condition: service_started
+    attach: true
