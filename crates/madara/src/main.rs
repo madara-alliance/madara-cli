@@ -85,9 +85,17 @@ fn init_global_config_inner(_shell: &Shell, madara_args: &MadaraGlobalArgs) -> a
 }
 
 fn init_data_directory() -> anyhow::Result<()> {
+    // Create data folder
     let deps_data_dir = Path::new(DEFAULT_TMP_DATA_DIRECTORY);
     if !deps_data_dir.exists() {
         fs::create_dir_all(deps_data_dir).expect("Unable to create data directory");
     }
+
+    // Create env file
+    let env_file_path = deps_data_dir.join(".env");
+    if !env_file_path.exists() {
+        fs::write(&env_file_path, "")?;
+    }
+
     Ok(())
 }
