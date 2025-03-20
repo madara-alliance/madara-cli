@@ -16,20 +16,25 @@ services:
     entrypoint: /bin/bash
     volumes:
       - ./anvil/mock_verifier_contract.sh:/app/mock_verifier_contract.sh
+      - ./data/:/app/data
     depends_on:
       anvil:
         condition: service_started
     command: -c "sleep 5 && ./mock_verifier_contract.sh {{ ETH_PRIV_KEY }}"
 
   bootstrapper_l1:
-    image: {{ IMAGE_REPOSITORY }}bootstrapper:latest
+    image: bootstrapper:latest
     container_name: bootstrapper_l1
     depends_on:
       mock_verifier_contract:
         condition: service_completed_successfully
     volumes:
-      - ./bootstrapper/devnet.json:/app/src/configs/devnet.json
-    command: -c "sleep 5 && cargo run --release -- --mode setup-l1 --config src/configs/devnet.json"
+      - ./bootstrapper/:/app/bootstrapper
+      - ./data/:/app/data
+      - ./scripts/:/app/scripts
+    env_file:
+      - ./data/.env
+    command: -c "./scripts/update_config.sh bootstrapper/devnet.json bootstrapper_l1 && sleep 2 && cargo run --release -- --mode setup-l1 --config bootstrapper/devnet.json --output-file ./bootstrapper_l1.json && scripts/json_to_env.sh bootstrapper_l1.json"
     attach: false
   
   madara:
@@ -47,20 +52,25 @@ services:
       - ./data/madara:/usr/share/madara/data
       - ./madara/madara-runner.sh:/usr/local/bin/runner.sh:ro
       - ./madara/configs/presets:/usr/local/bin/configs/presets
+      - ./scripts/:/usr/local/bin/scripts
+    env_file:
+      - ./data/.env      
     entrypoint:
       - /usr/local/bin/runner.sh
     restart: unless-stopped
 
   bootstrapper_l2:
-    image: {{ IMAGE_REPOSITORY }}bootstrapper:latest
+    image: bootstrapper:latest
     container_name: bootstrapper_l2
     depends_on:
       madara:
         condition: service_started
     volumes:
-      - ./bootstrapper/devnet.json:/app/src/configs/devnet.json
+      - ./bootstrapper/:/app/bootstrapper
+      - ./data/:/app/data
+      - ./scripts/:/app/scripts
 {%- if ENABLE_BOOTSTRAPER_L2_SETUP %}
-    command: -c "sleep 5 && cargo run --release -- --mode setup-l2 --config src/configs/devnet.json"
+    command: -c "./scripts/update_config.sh bootstrapper/devnet.json bootstrapper_l2 && sleep 2 && cargo run --release -- --mode setup-l2 --config bootstrapper/devnet.json --output-file bootstrapper_l2.json && scripts/json_to_env.sh bootstrapper_l2.json"
 {%- else %}
     command: -c "sleep 5 && echo 'Bootstrapper L2 contracts are disabled'"
 {%- endif %}
