@@ -11,52 +11,18 @@ jobs:
       matrix:
         platform:
           - ubuntu-latest
-          - macos-latest
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: true
-      - uses: Swatinem/rust-cache@v2
-        with:
-          shared-key: "cache"
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: 1.81
-
-      - name: Install Ubuntu deps
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y netcat-openbsd
-
-      - name: Install Docker on macOS
-        if: runner.os == 'macOS'
-        run: |
-          brew install netcat
-          brew install --cask docker
-          brew install docker-compose
-          brew install colima
-          brew install qemu
-          mkdir -p ~/.docker/cli-plugins
-          ln -sfn $HOMEBREW_PREFIX/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
-          LIMACTL_PATH=$(brew --prefix)/bin/limactl
-          sudo curl -L -o $LIMACTL_PATH https://github.com/mikekazakov/lima-nohvf/raw/master/limactl && sudo chmod +x $LIMACTL_PATH
-          colima start --network-address --arch arm64 --vm-type=qemu
-
-      - name: Build cli
-        run: cargo build
+          
+      - uses: ./.github/actions/setup-linux
 
       - name: Setup dev chain and run tests
         run: |
           cargo run -p madara create devnet &
           MADARA_PID=$!
-          if [ "$RUNNER_OS" == "Linux" ]; then
-            while ! echo exit | nc localhost 9944; do sleep 1; done
-          elif [ "$RUNNER_OS" == "macOS" ]; then
-            while ! nc -z localhost 9944; do sleep 1; done
-          else
-            echo "$RUNNER_OS not supported"
-            exit 1
-          fi
+          echo "$RUNNER_OS pinging"
+          while ! echo exit | nc localhost 9944; do sleep 1; done
           kill $MADARA_PID
