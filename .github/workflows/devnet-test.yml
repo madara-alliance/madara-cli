@@ -34,7 +34,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           brew install netcat
-          brew install docker
+          brew install --cask docker
           brew install docker-compose
           brew install colima
           brew install qemu

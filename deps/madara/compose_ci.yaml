@@ -14,10 +14,6 @@ services:
       - RPC_API_KEY_FILE=/run/secrets/rpc_api_key
     secrets:
       - rpc_api_key
-    volumes:
-      - ${MADARA_DATA_DIR}:/tmp/madara
-      - ./madara-runner.sh:/usr/local/bin/runner.sh:ro
-      - ./configs/presets:/usr/local/bin/configs/presets
     entrypoint:
       - /usr/local/bin/runner.sh
     healthcheck:

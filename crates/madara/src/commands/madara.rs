@@ -13,11 +13,10 @@ use crate::constants::{MADARA_RPC_API_KEY_FILE, MADARA_RUNNER_SCRIPT};
 
 use anyhow::anyhow;
 use cliclack::log;
-use madara_cli_common::docker;
-use madara_cli_common::Prompt;
+use madara_cli_common::{docker, Prompt};
 use madara_cli_config::madara::{
-    MadaraRunnerConfigAppChain, MadaraRunnerConfigDevnet, MadaraRunnerConfigFullNode,
-    MadaraRunnerConfigMode, MadaraRunnerConfigSequencer, MadaraRunnerParams,
+    MadaraRunnerConfigAppChain, MadaraRunnerConfigFullNode, MadaraRunnerConfigMode,
+    MadaraRunnerConfigSequencer, MadaraRunnerParams,
 };
 use madara_cli_types::madara::{MadaraMode, MadaraNetwork};
 use xshell::Shell;
@@ -69,7 +68,7 @@ pub fn process_params(args: &MadaraRunnerConfigMode, config: &Config) -> anyhow:
     let mode = args.mode();
 
     let runner_params = match &args.params {
-        MadaraRunnerParams::Devnet(params) => parse_devnet_params(&args.name, &mode, params),
+        MadaraRunnerParams::Devnet(_) => parse_devnet_params(&args.name, &mode),
         MadaraRunnerParams::Sequencer(params) => parse_sequencer_params(&args.name, &mode, params),
         MadaraRunnerParams::FullNode(params) => parse_full_node_params(&args.name, &mode, params),
         MadaraRunnerParams::AppChain(params) => parse_appchain_params(params, config),
@@ -200,9 +199,7 @@ fn write_env_file(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
     let db_folder = match &args.params {
         MadaraRunnerParams::Devnet(params) => params.base_path.clone(),
         MadaraRunnerParams::FullNode(params) => params.base_path.clone(),
-        MadaraRunnerParams::Sequencer(params) => {
-            params.base_path.clone().expect("DB name must be set")
-        }
+        MadaraRunnerParams::Sequencer(params) => params.base_path.clone(),
         MadaraRunnerParams::AppChain(_) => return Ok(()),
     };
 
@@ -214,15 +211,11 @@ fn write_env_file(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn parse_devnet_params(
-    name: &String,
-    mode: &MadaraMode,
-    params: &MadaraRunnerConfigDevnet,
-) -> anyhow::Result<Vec<String>> {
+fn parse_devnet_params(name: &String, mode: &MadaraMode) -> anyhow::Result<Vec<String>> {
     let devnet_params = vec![
         format!("--name {}", name),
         format!("--{}", mode).to_lowercase(),
-        format!("--base-path {}", params.base_path),
+        "--base-path /tmp/madara".to_string(),
         "--rpc-external".to_string(),
     ];
 
@@ -234,10 +227,7 @@ fn parse_sequencer_params(
     mode: &MadaraMode,
     params: &MadaraRunnerConfigSequencer,
 ) -> anyhow::Result<Vec<String>> {
-    let chain_config_path = params
-        .chain_config_path
-        .clone()
-        .expect("Chain config file must be set");
+    let chain_config_path = params.chain_config_path.clone();
 
     let l1_config = params
         .l1_endpoint

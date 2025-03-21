@@ -161,11 +161,11 @@ impl MadaraRunnerConfigMode {
 
 #[derive(Debug, Parser, Clone)]
 pub struct MadaraRunnerConfigSequencer {
-    #[arg(short, long, default_value = "./sequencer-db")]
-    pub base_path: Option<String>,
-    #[arg(short, long, default_value = "configs/presets/devnet.yaml")]
-    pub chain_config_path: Option<String>,
-    #[arg(short, long)]
+    #[arg(long, default_value = "sequencer-db")]
+    pub base_path: String,
+    #[arg(long, default_value = "configs/presets/devnet.yaml")]
+    pub chain_config_path: String,
+    #[arg(long)]
     pub l1_endpoint: Option<String>,
 }
 
@@ -191,8 +191,8 @@ impl MadaraRunnerConfigSequencer {
         };
 
         Ok(MadaraRunnerConfigSequencer {
-            base_path: Some(base_path),
-            chain_config_path: Some(chain_config_path),
+            base_path,
+            chain_config_path,
             l1_endpoint,
         })
     }
@@ -201,8 +201,8 @@ impl MadaraRunnerConfigSequencer {
 impl Default for MadaraRunnerConfigSequencer {
     fn default() -> Self {
         Self {
-            base_path: None,
-            chain_config_path: Some("configs/presets/devnet.yaml".to_string()),
+            base_path: "".to_string(),
+            chain_config_path: "configs/presets/devnet.yaml".to_string(),
             l1_endpoint: None,
         }
     }
