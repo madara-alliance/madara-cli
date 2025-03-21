@@ -20,10 +20,9 @@ jobs:
         run: |
           cargo run -p madara create devnet &
           MADARA_PID=$!
-          while ! (echo > /dev/tcp/localhost/9944) 2>/dev/null; do
-            lsof -i -P | grep LISTEN
+          until [ "$(docker inspect -f '{{.State.Running}}' madara 2>/dev/null)" = "true" ]; do
+            echo "Waiting for Madara container to start..."
             sleep 1
           done
-          echo "Port 9944 is now open!"
-          echo "Port 9944 is now open!"
+          echo "Madara is now running!"
           kill $MADARA_PID
