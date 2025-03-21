@@ -21,7 +21,7 @@ jobs:
           cargo run -p madara create devnet &
           MADARA_PID=$!
           while ! (echo > /dev/tcp/localhost/9944) 2>/dev/null; do
-            echo "Waiting for port 9944..."
+            lsof -i -P | grep LISTEN
             sleep 1
           done
           echo "Port 9944 is now open!"
