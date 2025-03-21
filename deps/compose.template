@@ -156,12 +156,11 @@ services:
       - ./orchestrator/run_orchestrator.sh:/usr/local/bin/run_orchestrator.sh
     entrypoint:
       - /usr/local/bin/run_orchestrator.sh
-{%- if ENABLE_BOOTSTRAPER_L2_SETUP %}
     depends_on:
+{%- if ENABLE_BOOTSTRAPER_L2_SETUP %}
       bootstrapper_l2:
         condition: service_completed_successfully
 {%- endif %}
-    depends_on:
       localstack:
         condition: service_healthy 
     attach: false
