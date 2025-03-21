@@ -1,28 +1,28 @@
-name: Task - Devnet Test
+name: Task - Devnet Mac
 
 on:
   workflow_dispatch:
   workflow_call:
 
 jobs:
-  devnet_test:
+  devnet_linux:
     strategy:
       fail-fast: false
-      matrix:
-        platform:
-          - ubuntu-latest
-    runs-on: ${{ matrix.platform }}
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: true
-          
-      - uses: ./.github/actions/setup-linux
+
+      - uses: ./.github/actions/setup-mac
 
       - name: Setup dev chain and run tests
         run: |
           cargo run -p madara create devnet &
           MADARA_PID=$!
-          echo "$RUNNER_OS pinging"
-          while ! echo exit | nc localhost 9944; do sleep 1; done
+          while ! nc -z localhost 9944 && ! netstat -an | grep LISTEN | grep 9944; do
+            echo "Waiting for port 9944..."
+            sleep 1
+          done
+          echo "Port 9944 is now open!"
           kill $MADARA_PID

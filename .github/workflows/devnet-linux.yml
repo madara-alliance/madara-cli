@@ -1,0 +1,24 @@
+name: Task - Devnet Linux
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  devnet_linux:
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: ./.github/actions/setup-linux
+
+      - name: Setup dev chain and run tests
+        run: |
+          cargo run -p madara create devnet &
+          MADARA_PID=$!
+          while ! echo exit | nc localhost 9944; do sleep 1; done
+          kill $MADARA_PID

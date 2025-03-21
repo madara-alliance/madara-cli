@@ -20,17 +20,12 @@ jobs:
     if: github.event.pull_request.draft == false
     uses: ./.github/workflows/rust-check.yml
 
-  devnet:
+  devnet_linux:
     name: Run test
     needs: rust_check
-    uses: ./.github/workflows/devnet-test.yml
+    uses: ./.github/workflows/devnet-linux.yml
 
-  # build:
-  #   name: Build Madara
-  #   needs: update_db_version
-  #   uses: ./.github/workflows/build.yml
-
-  # js_test:
-  #   name: Run JS Tests
-  #   needs: build
-  #   uses: ./.github/workflows/starknet-js-test.yml
+  devnet_mac:
+    name: Run test
+    needs: rust_check
+    uses: ./.github/workflows/devnet-mac.yml

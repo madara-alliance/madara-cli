@@ -16,6 +16,7 @@ runs:
         toolchain: 1.81
 
     - name: Install Docker on macOS
+      shell: bash
       run: |
         brew install netcat
         brew install --cask docker
@@ -29,4 +30,5 @@ runs:
         colima start --network-address --arch arm64 --vm-type=qemu
 
     - name: Build cli
+      shell: bash
       run: cargo build
