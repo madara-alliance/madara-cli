@@ -1,0 +1,41 @@
+name: Workflow - Pull Request
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: pr-checks-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  rust_check:
+    name: Run check
+    if: github.event.pull_request.draft == false
+    uses: ./.github/workflows/rust-check.yml
+
+  devnet_linux:
+    name: Run devnet
+    needs: rust_check
+    uses: ./.github/workflows/devnet-linux.yml
+
+  devnet_mac:
+    name: Run devnet
+    needs: rust_check
+    uses: ./.github/workflows/devnet-mac.yml
+
+  sequencer_linux:
+    name: Run sequencer
+    needs: rust_check
+    uses: ./.github/workflows/sequencer-linux.yml
+
+  sequencer_mac:
+    name: Run sequencer
+    needs: rust_check
+    uses: ./.github/workflows/sequencer-mac.yml
