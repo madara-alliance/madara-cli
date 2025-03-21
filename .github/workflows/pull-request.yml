@@ -21,11 +21,11 @@ jobs:
     uses: ./.github/workflows/rust-check.yml
 
   devnet_linux:
-    name: Run test
+    name: Run devnet on linux
     needs: rust_check
     uses: ./.github/workflows/devnet-linux.yml
 
   devnet_mac:
-    name: Run test
+    name: Run devnet on mac
     needs: rust_check
     uses: ./.github/workflows/devnet-mac.yml

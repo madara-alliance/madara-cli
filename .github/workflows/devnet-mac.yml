@@ -20,9 +20,10 @@ jobs:
         run: |
           cargo run -p madara create devnet &
           MADARA_PID=$!
-          while ! curl -s http://localhost:9944/ > /dev/null; do
+          while ! (echo > /dev/tcp/localhost/9944) 2>/dev/null; do
             echo "Waiting for port 9944..."
             sleep 1
           done
+          echo "Port 9944 is now open!"
           echo "Port 9944 is now open!"
           kill $MADARA_PID
