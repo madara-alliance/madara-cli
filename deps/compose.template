@@ -156,4 +156,4 @@ services:
       bootstrapper_l2:
         condition: service_completed_successfully
 {%- endif %}
-    attach: false
+    attach: true
