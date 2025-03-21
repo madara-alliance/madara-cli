@@ -22,6 +22,7 @@ jobs:
           MADARA_PID=$!
           until [ "$(docker inspect -f '{{.State.Running}}' madara 2>/dev/null)" = "true" ]; do
             echo "Waiting for Madara container to start..."
+            docker inspect -f
             sleep 1
           done
           echo "Madara is now running!"
