@@ -1,11 +1,11 @@
-name: Task - Devnet Linux
+name: Task - Sequencer Linux
 
 on:
   workflow_dispatch:
   workflow_call:
 
 jobs:
-  devnet_linux:
+  sequencer_linux:
     strategy:
       fail-fast: false
     runs-on: ubuntu-latest
@@ -18,7 +18,7 @@ jobs:
 
       - name: Setup dev chain and run tests
         run: |
-          cargo run -p madara create devnet &
+          cargo run -p madara create sequencer &
           MADARA_PID=$!
           until [ "$(docker inspect -f '{{.State.Running}}' madara_runner 2>/dev/null)" = "true" ]; do
             echo "Waiting for Madara container to start..."

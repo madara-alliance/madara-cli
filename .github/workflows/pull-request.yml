@@ -29,3 +29,13 @@ jobs:
     name: Run devnet
     needs: rust_check
     uses: ./.github/workflows/devnet-mac.yml
+
+  sequencer_linux:
+    name: Run sequencer
+    needs: rust_check
+    uses: ./.github/workflows/sequencer-linux.yml
+
+  sequencer_mac:
+    name: Run sequencer
+    needs: rust_check
+    uses: ./.github/workflows/sequencer-mac.yml

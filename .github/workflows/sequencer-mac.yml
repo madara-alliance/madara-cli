@@ -1,24 +1,24 @@
-name: Task - Devnet Linux
+name: Task - Sequencer Mac
 
 on:
   workflow_dispatch:
   workflow_call:
 
 jobs:
-  devnet_linux:
+  sequencer_mac:
     strategy:
       fail-fast: false
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: true
 
-      - uses: ./.github/actions/setup-linux
+      - uses: ./.github/actions/setup-mac
 
       - name: Setup dev chain and run tests
         run: |
-          cargo run -p madara create devnet &
+          cargo run -p madara create sequencer &
           MADARA_PID=$!
           until [ "$(docker inspect -f '{{.State.Running}}' madara_runner 2>/dev/null)" = "true" ]; do
             echo "Waiting for Madara container to start..."
