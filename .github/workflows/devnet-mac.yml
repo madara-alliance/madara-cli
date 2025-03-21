@@ -5,7 +5,7 @@ on:
   workflow_call:
 
 jobs:
-  devnet_linux:
+  devnet_mac:
     strategy:
       fail-fast: false
     runs-on: macos-latest
@@ -20,7 +20,7 @@ jobs:
         run: |
           cargo run -p madara create devnet &
           MADARA_PID=$!
-          while ! nc -z localhost 9944 && ! netstat -an | grep LISTEN | grep 9944; do
+          while ! curl -s http://localhost:9944/ > /dev/null; do
             echo "Waiting for port 9944..."
             sleep 1
           done
