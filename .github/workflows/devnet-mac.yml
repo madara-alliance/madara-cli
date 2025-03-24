@@ -14,6 +14,8 @@ jobs:
         with:
           submodules: true
 
+      - uses: ./.github/actions/setup-mac
+
       - name: Setup dev chain
         run: |
           cargo run -p madara create devnet &

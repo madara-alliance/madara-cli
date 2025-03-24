@@ -20,11 +20,6 @@ jobs:
     if: github.event.pull_request.draft == false
     uses: ./.github/workflows/rust-check.yml
 
-  build_docker:
-    name: Build mac docker
-    needs: rust_check
-    uses: ./.github/workflows/build-docker.yml
-
   devnet_linux:
     name: Run devnet
     needs: rust_check

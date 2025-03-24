@@ -14,6 +14,8 @@ jobs:
         with:
           submodules: true
 
+      - uses: ./.github/actions/setup-mac
+
       - name: Setup app chain and run tests
         run: |
           cargo run -p madara create app-chain &
