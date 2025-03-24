@@ -20,6 +20,11 @@ jobs:
     if: github.event.pull_request.draft == false
     uses: ./.github/workflows/rust-check.yml
 
+  build_docker:
+    name: Build mac docker
+    needs: rust_check
+    uses: ./.github/workflows/rust-check.yml
+
   devnet_linux:
     name: Run devnet
     needs: rust_check
@@ -27,7 +32,7 @@ jobs:
 
   devnet_mac:
     name: Run devnet
-    needs: rust_check
+    needs: build_docker
     uses: ./.github/workflows/devnet-mac.yml
 
   sequencer_linux:
@@ -37,7 +42,7 @@ jobs:
 
   sequencer_mac:
     name: Run sequencer
-    needs: rust_check
+    needs: build_docker
     uses: ./.github/workflows/sequencer-mac.yml
 
   appchain_linux:
@@ -47,5 +52,5 @@ jobs:
   
   appchain_mac:
     name: Run app-chain
-    needs: rust_check
+    needs: build_docker
     uses: ./.github/workflows/appchain-mac.yml
