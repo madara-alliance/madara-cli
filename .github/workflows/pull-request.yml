@@ -44,3 +44,8 @@ jobs:
     name: Run app-chain
     needs: rust_check
     uses: ./.github/workflows/appchain-linux.yml
+  
+  appchain_mac:
+    name: Run app-chain
+    needs: rust_check
+    uses: ./.github/workflows/appchain-mac.yml

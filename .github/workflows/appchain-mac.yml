@@ -1,11 +1,11 @@
-name: Task - Appchain Linux
+name: Task - Appchain Mac
 
 on:
   workflow_dispatch:
   workflow_call:
 
 jobs:
-  appchain_linux:
+  appchain_mac:
     strategy:
       fail-fast: false
     runs-on: ubuntu-latest
