@@ -27,7 +27,7 @@ jobs:
 
   devnet_mac:
     name: Run devnet
-    needs: build_docker
+    needs: rust_check
     uses: ./.github/workflows/devnet-mac.yml
 
   sequencer_linux:
@@ -37,7 +37,7 @@ jobs:
 
   sequencer_mac:
     name: Run sequencer
-    needs: build_docker
+    needs: rust_check
     uses: ./.github/workflows/sequencer-mac.yml
 
   appchain_linux:
@@ -47,5 +47,5 @@ jobs:
   
   appchain_mac:
     name: Run app-chain
-    needs: build_docker
+    needs: rust_check
     uses: ./.github/workflows/appchain-mac.yml
