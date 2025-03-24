@@ -1,0 +1,32 @@
+name: Task - Devnet Linux
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  devnet_linux:
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: ./.github/actions/setup-linux
+
+      - name: Setup dev chain and run tests
+        run: |
+          cargo run -p madara create app-chain &
+          MADARA_PID=$!
+          until [ "$(docker inspect -f '{{.State.Running}}' bootstrapper_l2 2>/dev/null)" = "true" ]; do
+            echo "Waiting for Bootstrapper L2 container to start..."
+            sleep 1
+          done
+          docker wait bootstrapper_l2
+          cd deps/scripts/transfer_from_L1
+          npm install
+          npm run transfer-l1
+          sleep 100
+          kill $MADARA_PID
