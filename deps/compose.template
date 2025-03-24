@@ -2,7 +2,7 @@ services:
   anvil:
     image: {{ IMAGE_REPOSITORY }}anvil:latest
     container_name: anvil
-    cpus: "4.0"
+    cpus: "{{ CPU_NUMBER }}"
     mem_limit: "16gb"
     ports:
       - "8545:8545"
@@ -35,7 +35,7 @@ services:
   madara:
     image: {{ IMAGE_REPOSITORY }}madara:latest
     container_name: madara
-    cpus: "4.0"
+    cpus: "{{ CPU_NUMBER }}"
     mem_limit: "16gb"
     ports:
       - "9945:9945"
@@ -83,7 +83,7 @@ services:
   pathfinder:
     image: {{ IMAGE_REPOSITORY }}pathfinder:latest
     container_name: pathfinder
-    cpus: "4.0"
+    cpus: "{{ CPU_NUMBER }}"
     mem_limit: "16gb"
     ports:
       - "9545:9545"
@@ -144,7 +144,7 @@ services:
   orchestrator:
     image: {{ IMAGE_REPOSITORY }}orchestrator:latest
     container_name: orchestrator
-    cpus: "4.0"
+    cpus: "{{ CPU_NUMBER }}"
     mem_limit: "16gb"
     volumes:
       - ./orchestrator/.env:/usr/local/bin/.env_tmp
