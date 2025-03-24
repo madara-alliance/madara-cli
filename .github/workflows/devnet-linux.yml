@@ -14,10 +14,9 @@ jobs:
         with:
           submodules: true
 
-      - uses: ./.github/actions/setup-linux
-
-      - name: Setup dev chain and run tests
+      - name: Setup dev chain
         run: |
+          cargo build
           cargo run -p madara create devnet &
           MADARA_PID=$!
           until [ "$(docker inspect -f '{{.State.Running}}' madara_runner 2>/dev/null)" = "true" ]; do

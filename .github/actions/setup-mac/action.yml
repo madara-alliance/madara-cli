@@ -1,6 +1,6 @@
 
 name: "Setup mac environment"
-description: "Loads the environment variables to be used in the workflows"
+description: "Install docker and other necessary packages for Mac"
 
 runs:
   using: "composite"
@@ -18,7 +18,6 @@ runs:
     - name: Install Docker on macOS
       shell: bash
       run: |
-        brew install netcat
         brew install --cask docker
         brew install docker-compose
         brew install colima

@@ -14,10 +14,9 @@ jobs:
         with:
           submodules: true
 
-      - uses: ./.github/actions/setup-linux
-
       - name: Setup app chain and run tests
         run: |
+          cargo build
           cargo run -p madara create app-chain &
           MADARA_PID=$!
           until [ "$(docker inspect -f '{{.State.Running}}' bootstrapper_l2 2>/dev/null)" = "true" ]; do

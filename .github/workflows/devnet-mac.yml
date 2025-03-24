@@ -16,7 +16,7 @@ jobs:
 
       - uses: ./.github/actions/setup-mac
 
-      - name: Setup dev chain and run tests
+      - name: Setup dev chain
         run: |
           cargo run -p madara create devnet &
           MADARA_PID=$!
