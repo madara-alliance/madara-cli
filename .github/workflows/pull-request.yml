@@ -39,3 +39,8 @@ jobs:
     name: Run sequencer
     needs: rust_check
     uses: ./.github/workflows/sequencer-mac.yml
+
+  appchain_linux:
+    name: Run app-chain
+    needs: rust_check
+    uses: ./.github/workflows/appchain-linux.yml
