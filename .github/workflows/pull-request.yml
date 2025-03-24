@@ -23,7 +23,7 @@ jobs:
   build_docker:
     name: Build mac docker
     needs: rust_check
-    uses: ./.github/workflows/rust-check.yml
+    uses: ./.github/workflows/build-docker.yml
 
   devnet_linux:
     name: Run devnet
