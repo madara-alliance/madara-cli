@@ -44,7 +44,9 @@ services:
       bootstrapper_l1:
         condition: service_completed_successfully
     volumes:
+    {%- if IS_NOT_CI %}
       - ./data/madara:/usr/share/madara/data
+    {%- endif %}
       - ./madara/madara-runner.sh:/usr/local/bin/runner.sh:ro
       - ./madara/configs/presets:/usr/local/bin/configs/presets
     entrypoint:
@@ -91,7 +93,9 @@ services:
       madara:
         condition: service_started
     volumes:
+    {%- if IS_NOT_CI %}
       - ./data/pathfinder:/usr/share/pathfinder/data
+    {%- endif %}
       - ./pathfinder/pathfinder-runner.sh:/usr/local/bin/runner.sh:ro
     entrypoint:
       - /usr/local/bin/runner.sh

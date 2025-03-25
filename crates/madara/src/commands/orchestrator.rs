@@ -217,6 +217,7 @@ fn populate_orchestrator_compose(
         IMAGE_REPOSITORY => repo,
         ETH_PRIV_KEY => config.eth_wallet.eth_priv_key,
         CPU_NUMBER => cpus,
+        IS_NOT_CI => !ci_info::is_ci(),
     };
 
     // Render the template
