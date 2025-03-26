@@ -9,6 +9,8 @@ jobs:
     strategy:
       fail-fast: false
     runs-on: macos-latest
+    env:
+      CPU_LIMIT: 2.0
     steps:
       - uses: actions/checkout@v4
         with:

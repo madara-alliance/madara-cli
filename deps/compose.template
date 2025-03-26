@@ -2,7 +2,7 @@ services:
   anvil:
     image: {{ IMAGE_REPOSITORY }}anvil:latest
     container_name: anvil
-    cpus: "{{ CPU_NUMBER }}"
+    cpus: "${CPU_LIMIT:-4.0}"
     mem_limit: "16gb"
     ports:
       - "8545:8545"
@@ -35,7 +35,7 @@ services:
   madara:
     image: {{ IMAGE_REPOSITORY }}madara:latest
     container_name: madara
-    cpus: "{{ CPU_NUMBER }}"
+    cpus: "${CPU_LIMIT:-4.0}"
     mem_limit: "16gb"
     ports:
       - "9945:9945"
@@ -44,9 +44,7 @@ services:
       bootstrapper_l1:
         condition: service_completed_successfully
     volumes:
-    {%- if IS_NOT_CI %}
-      - ./data/madara:/usr/share/madara/data
-    {%- endif %}
+      - ./test/madara:/usr/share/madara/data
       - ./madara/madara-runner.sh:/usr/local/bin/runner.sh:ro
       - ./madara/configs/presets:/usr/local/bin/configs/presets
     entrypoint:
@@ -85,7 +83,7 @@ services:
   pathfinder:
     image: {{ IMAGE_REPOSITORY }}pathfinder:latest
     container_name: pathfinder
-    cpus: "{{ CPU_NUMBER }}"
+    cpus: "${CPU_LIMIT:-4.0}"
     mem_limit: "16gb"
     ports:
       - "9545:9545"
@@ -93,9 +91,7 @@ services:
       madara:
         condition: service_started
     volumes:
-    {%- if IS_NOT_CI %}
-      - ./data/pathfinder:/usr/share/pathfinder/data
-    {%- endif %}
+      - ./test/pathfinder:/usr/share/pathfinder/data
       - ./pathfinder/pathfinder-runner.sh:/usr/local/bin/runner.sh:ro
     entrypoint:
       - /usr/local/bin/runner.sh
@@ -148,7 +144,7 @@ services:
   orchestrator:
     image: {{ IMAGE_REPOSITORY }}orchestrator:latest
     container_name: orchestrator
-    cpus: "{{ CPU_NUMBER }}"
+    cpus: "${CPU_LIMIT:-4.0}"
     mem_limit: "16gb"
     volumes:
       - ./orchestrator/.env:/usr/local/bin/.env_tmp
