@@ -2,6 +2,7 @@
 
 # Default values (can be overridden via command-line)
 MADARA_MODE ?= devnet
+BASE_PATH ?= ../data/madara-db
 
 # Default target
 all: build madara kill
@@ -12,7 +13,7 @@ build:
 
 # Run Madara on a specific mode (not appchain)
 madara:
-	cargo run -p madara create $(MADARA_MODE) & echo $$! > process.pid
+	cargo run -p madara create $(MADARA_MODE) --base-path $(BASE_PATH) & echo $$! > process.pid
 	@echo "Waiting for Madara container to start..."
 	@until [ "$$(docker inspect -f '{{.State.Running}}' madara_runner 2>/dev/null)" = "true" ]; do \
 	  sleep 5; \
