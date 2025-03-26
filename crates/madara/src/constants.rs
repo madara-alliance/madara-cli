@@ -1,7 +1,6 @@
 // Madara constants
 pub const MADARA_DOCKER_IMAGE: &str = "madara";
 pub const MADARA_COMPOSE_FILE: &str = "compose.yaml";
-pub const MADARA_COMPOSE_FILE_CI: &str = "compose_ci.yaml";
 
 // CLI messages
 // pub(super) const MSG_STARTING_CONTAINERS_SPINNER: &str = "Starting containers...";

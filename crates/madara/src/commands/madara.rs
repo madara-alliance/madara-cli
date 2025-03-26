@@ -6,9 +6,7 @@ use std::path::PathBuf;
 
 use crate::config::global_config::Config;
 use crate::config::madara::MadaraPresetConfiguration;
-use crate::constants::{
-    MADARA_COMPOSE_FILE, MADARA_COMPOSE_FILE_CI, MADARA_DOCKER_IMAGE, MADARA_REPO_PATH,
-};
+use crate::constants::{MADARA_COMPOSE_FILE, MADARA_DOCKER_IMAGE, MADARA_REPO_PATH};
 use crate::constants::{MADARA_RPC_API_KEY_FILE, MADARA_RUNNER_SCRIPT};
 
 use anyhow::anyhow;
@@ -56,11 +54,7 @@ fn madara_run(shell: &Shell, args: MadaraRunnerConfigMode) -> anyhow::Result<()>
     check_secrets(&args, mode)?;
 
     // TODO: check if we need to run docker::down to remove any remaining previous instance
-    let compose_file = if ci_info::is_ci() {
-        format!("{}/{}", MADARA_REPO_PATH, MADARA_COMPOSE_FILE_CI)
-    } else {
-        format!("{}/{}", MADARA_REPO_PATH, MADARA_COMPOSE_FILE)
-    };
+    let compose_file = format!("{}/{}", MADARA_REPO_PATH, MADARA_COMPOSE_FILE);
     docker::up(shell, &compose_file, false)
 }
 
@@ -205,7 +199,7 @@ fn write_env_file(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
 
     fs::write(
         ENV_FILE_PATH,
-        format!("MADARA_DATA_DIR={}{}:/tmp/madara", DBS_PATH, db_folder),
+        format!("MADARA_DATA_DIR={}{}", DBS_PATH, db_folder),
     )?;
 
     Ok(())
@@ -215,7 +209,7 @@ fn parse_devnet_params(name: &String, mode: &MadaraMode) -> anyhow::Result<Vec<S
     let devnet_params = vec![
         format!("--name {}", name),
         format!("--{}", mode).to_lowercase(),
-        "--base-path /tmp/madara".to_string(),
+        "--base-path /home/madara-db".to_string(),
         "--rpc-external".to_string(),
     ];
 
@@ -239,7 +233,7 @@ fn parse_sequencer_params(
     let sequencer_params = vec![
         format!("--name {}", name),
         format!("--{}", mode).to_lowercase(),
-        "--base-path /tmp/madara".to_string(),
+        "--base-path /home/madara-db".to_string(),
         format!("--chain-config-path {}", chain_config_path),
         "--feeder-gateway-enable".to_string(),
         "--gateway-enable".to_string(),
@@ -271,7 +265,7 @@ fn parse_full_node_params(
         format!("--name {}", name),
         format!("--network {}", network),
         format!("--full"),
-        "--base-path /tmp/madara".to_string(),
+        "--base-path /home/madara-db".to_string(),
         "--rpc-external".to_string(),
         "--l1-endpoint $RPC_API_KEY".to_string(),
     ];
