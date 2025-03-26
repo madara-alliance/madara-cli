@@ -205,7 +205,7 @@ fn write_env_file(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
 
     fs::write(
         ENV_FILE_PATH,
-        format!("MADARA_DATA_DIR={}{}", DBS_PATH, db_folder),
+        format!("MADARA_DATA_DIR={}{}:/tmp/madara", DBS_PATH, db_folder),
     )?;
 
     Ok(())
