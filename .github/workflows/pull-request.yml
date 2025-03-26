@@ -20,32 +20,37 @@ jobs:
     if: github.event.pull_request.draft == false
     uses: ./.github/workflows/rust-check.yml
 
+  rust_test:
+    name: Run test
+    needs: rust_check
+    uses: ./.github/workflows/rust-test.yml
+
   devnet_linux:
     name: Run devnet
-    needs: rust_check
+    needs: rust_test
     uses: ./.github/workflows/devnet-linux.yml
 
   devnet_mac:
     name: Run devnet
-    needs: rust_check
+    needs: rust_test
     uses: ./.github/workflows/devnet-mac.yml
 
   sequencer_linux:
     name: Run sequencer
-    needs: rust_check
+    needs: rust_test
     uses: ./.github/workflows/sequencer-linux.yml
 
   sequencer_mac:
     name: Run sequencer
-    needs: rust_check
+    needs: rust_test
     uses: ./.github/workflows/sequencer-mac.yml
 
   appchain_linux:
     name: Run app-chain
-    needs: rust_check
+    needs: rust_test
     uses: ./.github/workflows/appchain-linux.yml
   
   appchain_mac:
     name: Run app-chain
-    needs: rust_check
+    needs: rust_test
     uses: ./.github/workflows/appchain-mac.yml
