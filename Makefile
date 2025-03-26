@@ -13,7 +13,7 @@ build:
 
 # Run Madara on a specific mode (not appchain)
 madara:
-	cargo run -p madara create $(MADARA_MODE) --base-path $(BASE_PATH) & echo $$! > process.pid
+	cargo run create $(MADARA_MODE) --base-path $(BASE_PATH) & echo $$! > process.pid
 	@echo "Waiting for Madara container to start..."
 	@until [ "$$(docker inspect -f '{{.State.Running}}' madara_runner 2>/dev/null)" = "true" ]; do \
 	  sleep 5; \
@@ -22,7 +22,7 @@ madara:
 
 # Run Appchain with orchestrator and bootstrapper
 appchain:
-	cargo run -p madara create app-chain & echo $$! > process.pid
+	cargo run create app-chain & echo $$! > process.pid
 	@until [ "$$(docker inspect -f "{{.State.Running}}" bootstrapper_l2 2>/dev/null)" = "true" ]; do \
 	    echo "Waiting for Bootstrapper L2 container to start..."; \
 	    sleep 1; \
