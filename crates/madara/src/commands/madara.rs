@@ -21,8 +21,6 @@ use xshell::Shell;
 
 use super::{orchestrator, workspace_dir};
 
-// For devnet, sequencer and full node, default DBs folder is madara-cli/deps/data
-const DBS_PATH: &str = "../data/";
 const ENV_FILE_PATH: &str = "deps/madara/.env";
 const MADARA_CONFIG_FILE: &str = "deps/madara/configs/presets/devnet.yaml";
 
@@ -197,10 +195,7 @@ fn write_env_file(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
         MadaraRunnerParams::AppChain(_) => return Ok(()),
     };
 
-    fs::write(
-        ENV_FILE_PATH,
-        format!("MADARA_DATA_DIR={}{}", DBS_PATH, db_folder),
-    )?;
+    fs::write(ENV_FILE_PATH, format!("MADARA_DATA_DIR={}", db_folder))?;
 
     Ok(())
 }
