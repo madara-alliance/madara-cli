@@ -11,7 +11,6 @@ jobs:
     runs-on: macos-latest
     env:
       CPU_LIMIT: 2.0
-      MADARA_DATA_DIR: ""
     steps:
       - uses: actions/checkout@v4
         with:

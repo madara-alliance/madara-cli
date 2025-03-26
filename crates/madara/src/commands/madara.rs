@@ -199,7 +199,7 @@ fn write_env_file(args: &MadaraRunnerConfigMode) -> anyhow::Result<()> {
 
     fs::write(
         ENV_FILE_PATH,
-        format!("MADARA_DATA_DIR={}{}:/tmp/madara", DBS_PATH, db_folder),
+        format!("MADARA_DATA_DIR={}{}", DBS_PATH, db_folder),
     )?;
 
     Ok(())
@@ -209,7 +209,7 @@ fn parse_devnet_params(name: &String, mode: &MadaraMode) -> anyhow::Result<Vec<S
     let devnet_params = vec![
         format!("--name {}", name),
         format!("--{}", mode).to_lowercase(),
-        "--base-path /tmp/madara".to_string(),
+        "--base-path /home/madara-db".to_string(),
         "--rpc-external".to_string(),
     ];
 
@@ -233,7 +233,7 @@ fn parse_sequencer_params(
     let sequencer_params = vec![
         format!("--name {}", name),
         format!("--{}", mode).to_lowercase(),
-        "--base-path /tmp/madara".to_string(),
+        "--base-path /home/madara-db".to_string(),
         format!("--chain-config-path {}", chain_config_path),
         "--feeder-gateway-enable".to_string(),
         "--gateway-enable".to_string(),
@@ -265,7 +265,7 @@ fn parse_full_node_params(
         format!("--name {}", name),
         format!("--network {}", network),
         format!("--full"),
-        "--base-path /tmp/madara".to_string(),
+        "--base-path /home/madara-db".to_string(),
         "--rpc-external".to_string(),
         "--l1-endpoint $RPC_API_KEY".to_string(),
     ];
