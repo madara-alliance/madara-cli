@@ -33,9 +33,7 @@ appchain:
 # Run the transfer scripts
 transfer:
 	@echo "Running transfer scripts..."
-	@cd deps/scripts/transfer_from_L1
-	@npm install
-	@npm run transfer-l1
+	@cd deps/scripts/transfer_from_L1 && npm install && npm run transfer-l1
 
 # Kill a process
 kill:
