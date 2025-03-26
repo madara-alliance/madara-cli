@@ -213,15 +213,11 @@ fn populate_orchestrator_compose(
         (DOCKERHUB_ORGANIZATION, REMOTE_BOOTSTRAPPER_IMAGE)
     };
 
-    let cpus = if ci_info::is_ci() { "2.0" } else { "4.0" };
-
     let data = context! {
         ENABLE_DUMMY_PROVER => prover_config.prover_type == ProverType::Dummy,
         ENABLE_BOOTSTRAPER_L2_SETUP => bootstrapper_config.deploy_l2_contracts,
         IMAGE_REPOSITORY => repo,
         ETH_PRIV_KEY => config.eth_wallet.eth_priv_key,
-        CPU_NUMBER => cpus,
-        IS_NOT_CI => !ci_info::is_ci(),
     };
 
     // Render the template
