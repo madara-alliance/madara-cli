@@ -13,10 +13,10 @@ RUN apt update && apt install -y  \
 # Set the working directory
 WORKDIR /usr/src
 
-# Clone the specific branch of the repository
-RUN git clone --branch unignore_cargo_lock --depth 1 https://github.com/madara-alliance/madara-orchestrator.git
+# Clone the repository
+RUN git clone --branch main --depth 1 https://github.com/madara-alliance/madara.git
 
-WORKDIR /usr/src/madara-orchestrator
+WORKDIR /usr/src/madara
 
 # Install Python 3.9
 RUN wget https://www.python.org/ftp/python/3.9.16/Python-3.9.16.tgz \
@@ -43,19 +43,16 @@ RUN cargo fetch
 RUN python3.9 -m venv orchestrator_venv
 RUN . ./orchestrator_venv/bin/activate
 RUN pip install cairo-lang==0.13.2 "sympy<1.13.0"
-RUN mkdir -p build
+RUN mkdir -p orchestrator/build
 RUN git submodule update --init --recursive
-RUN cd cairo-lang
-RUN cd ..
-RUN cairo-compile cairo-lang/src/starkware/starknet/core/os/os.cairo --output build/os_latest.json --cairo_path cairo-lang/src
+RUN cairo-compile orchestrator/cairo-lang/src/starkware/starknet/core/os/os.cairo --output orchestrator/build/os_latest.json --cairo_path orchestrator/cairo-lang/src
 # #############################################################
 
 # Build the project
-RUN cargo build --release
+RUN cargo build --bin orchestrator --release
 
 # Install Node.js dependencies for migrations
-RUN npm install
-
+RUN cd orchestrator && npm install
 
 FROM debian:bookworm
 
@@ -70,22 +67,24 @@ RUN apt-get -y update && \
 WORKDIR /usr/local/bin
 
 # Copy the compiled binary from the builder stage
-COPY --from=builder /usr/src/madara-orchestrator/target/release/orchestrator .
+COPY --from=builder /usr/src/madara/target/release/orchestrator .
 
 # Copy Node.js files and dependencies
-COPY --from=builder /usr/src/madara-orchestrator/node_modules ./node_modules
-COPY --from=builder /usr/src/madara-orchestrator/package.json .
-COPY --from=builder /usr/src/madara-orchestrator/migrate-mongo-config.js .
-COPY --from=builder /usr/src/madara-orchestrator/migrations ./migrations
+COPY --from=builder /usr/src/madara/orchestrator/node_modules ./node_modules
+COPY --from=builder /usr/src/madara/orchestrator/package.json .
+COPY --from=builder /usr/src/madara/orchestrator/migrate-mongo-config.js .
+COPY --from=builder /usr/src/madara/orchestrator/migrations ./migrations
 
-# To be fixed by this https://github.com/keep-starknet-strange/snos/issues/404
+# # To be fixed by this https://github.com/keep-starknet-strange/snos/issues/404
 RUN mkdir -p /usr/local/cargo/git/checkouts/snos-59fe8329bb16fe65/662d170/crates/starknet-os/kzg
 RUN mkdir -p /usr/local/cargo/git/checkouts/snos-59fe8329bb16fe65/ea7d63f/crates/starknet-os/kzg
 RUN mkdir -p /usr/local/cargo/git/checkouts/snos-59fe8329bb16fe65/2c47281/crates/starknet-os/kzg
+RUN mkdir -p /usr/local/cargo/git/checkouts/snos-59fe8329bb16fe65/8acf974/crates/starknet-os/kzg
 
-COPY --from=builder /usr/src/madara-orchestrator/crates/da-clients/ethereum/trusted_setup.txt /usr/local/cargo/git/checkouts/snos-59fe8329bb16fe65/662d170/crates/starknet-os/kzg/trusted_setup.txt
-COPY --from=builder /usr/src/madara-orchestrator/crates/da-clients/ethereum/trusted_setup.txt /usr/local/cargo/git/checkouts/snos-59fe8329bb16fe65/ea7d63f/crates/starknet-os/kzg/trusted_setup.txt
-COPY --from=builder /usr/src/madara-orchestrator/crates/da-clients/ethereum/trusted_setup.txt /usr/local/cargo/git/checkouts/snos-59fe8329bb16fe65/2c47281/crates/starknet-os/kzg/trusted_setup.txt
-COPY --from=builder /usr/src/madara-orchestrator/crates/da-clients/ethereum/trusted_setup.txt /usr/src/madara-orchestrator/crates/settlement-clients/ethereum/src/trusted_setup.txt
+COPY --from=builder /usr/src/madara/orchestrator/crates/da-clients/ethereum/trusted_setup.txt /usr/local/cargo/git/checkouts/snos-59fe8329bb16fe65/662d170/crates/starknet-os/kzg/trusted_setup.txt
+COPY --from=builder /usr/src/madara/orchestrator/crates/da-clients/ethereum/trusted_setup.txt /usr/local/cargo/git/checkouts/snos-59fe8329bb16fe65/ea7d63f/crates/starknet-os/kzg/trusted_setup.txt
+COPY --from=builder /usr/src/madara/orchestrator/crates/da-clients/ethereum/trusted_setup.txt /usr/local/cargo/git/checkouts/snos-59fe8329bb16fe65/2c47281/crates/starknet-os/kzg/trusted_setup.txt
+COPY --from=builder /usr/src/madara/orchestrator/crates/da-clients/ethereum/trusted_setup.txt /usr/local/cargo/git/checkouts/snos-59fe8329bb16fe65/8acf974/crates/starknet-os/kzg/trusted_setup.txt
+COPY --from=builder /usr/src/madara/orchestrator/crates/da-clients/ethereum/trusted_setup.txt /usr/src/madara/orchestrator/crates/settlement-clients/ethereum/src/trusted_setup.txt
 
 ENTRYPOINT ["/bin/bash"]
