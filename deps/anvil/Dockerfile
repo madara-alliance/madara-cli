@@ -28,7 +28,7 @@ ENV PATH="/root/.foundry/bin:${PATH}"
 WORKDIR /app
 
 # Install Starknet and Ethers.js
-RUN npm install starknet ethers
+RUN npm install starknet ethers dotenv
 
 # Copy files into the image
 COPY MockGPSVerifier.sol /app/
