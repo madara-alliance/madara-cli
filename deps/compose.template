@@ -85,6 +85,7 @@ services:
         condition: service_completed_successfully
     volumes:
       - ./anvil/override_state.js:/app/override_state.js
+      - ./data/.env:/app/.env
     environment:
       MADARA_ORCHESTRATOR_ETHEREUM_PRIVATE_KEY: {{ ETH_PRIV_KEY }}
     command: -c "node override_state.js"
@@ -158,6 +159,7 @@ services:
     volumes:
       - ./orchestrator/.env:/usr/local/bin/.env_tmp
       - ./orchestrator/run_orchestrator.sh:/usr/local/bin/run_orchestrator.sh
+      - ./data/.env:/usr/local/bin/.env_vars
     entrypoint:
       - /usr/local/bin/run_orchestrator.sh
 {%- if ENABLE_BOOTSTRAPER_L2_SETUP %}
