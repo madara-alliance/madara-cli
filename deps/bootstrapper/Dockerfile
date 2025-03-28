@@ -128,7 +128,7 @@ RUN npm install -g --unsafe-perm ganache@7.9.0
 
 WORKDIR /app
 
-RUN git clone --branch ft/makefile_fix --recurse-submodules https://github.com/madara-alliance/madara-bootstrapper.git .
+RUN git clone --branch main --recurse-submodules https://github.com/madara-alliance/madara-bootstrapper.git .
 
 RUN make setup-linux
 
