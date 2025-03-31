@@ -20,14 +20,14 @@ use crate::{
 
 #[derive(Debug, Parser, Clone)]
 pub struct MadaraRunnerConfigDevnet {
-    #[arg(short, long, default_value = "devnet-db")]
+    #[arg(short, long, default_value = "../data/devnet-db")]
     pub base_path: String,
 }
 
 impl MadaraRunnerConfigDevnet {
     pub fn fill_values_with_prompt() -> anyhow::Result<MadaraRunnerConfigDevnet> {
         let base_path = Prompt::new("Input DB folder name:")
-            .default("devnet-db")
+            .default("../data/devnet-db")
             .ask();
 
         Ok(MadaraRunnerConfigDevnet {
@@ -46,7 +46,7 @@ impl Default for MadaraRunnerConfigDevnet {
 
 #[derive(Debug, Default, Parser, Clone)]
 pub struct MadaraRunnerConfigFullNode {
-    #[arg(short, long, default_value = "./fullnode-db")]
+    #[arg(short, long, default_value = "../data/fullnode-db")]
     pub base_path: String,
     #[arg(short, long)]
     pub network: MadaraNetwork,
@@ -57,7 +57,7 @@ pub struct MadaraRunnerConfigFullNode {
 impl MadaraRunnerConfigFullNode {
     pub fn fill_values_with_prompt() -> anyhow::Result<MadaraRunnerConfigFullNode> {
         let base_path = Prompt::new("Input DB folder name:")
-            .default("fullnode-db")
+            .default("../data/fullnode-db")
             .ask();
 
         let network = PromptSelect::new("Select Network:", MadaraNetwork::iter()).ask();
@@ -161,7 +161,7 @@ impl MadaraRunnerConfigMode {
 
 #[derive(Debug, Parser, Clone)]
 pub struct MadaraRunnerConfigSequencer {
-    #[arg(long, default_value = "sequencer-db")]
+    #[arg(long, default_value = "../data/sequencer-db")]
     pub base_path: String,
     #[arg(long, default_value = "configs/presets/devnet.yaml")]
     pub chain_config_path: String,
@@ -172,7 +172,7 @@ pub struct MadaraRunnerConfigSequencer {
 impl MadaraRunnerConfigSequencer {
     pub fn fill_values_with_prompt() -> anyhow::Result<MadaraRunnerConfigSequencer> {
         let base_path = Prompt::new("Input DB folder name:")
-            .default("sequencer-db")
+            .default("../data/sequencer-db")
             .ask();
 
         let chain_config_path = Prompt::new("Input chain config path:")
