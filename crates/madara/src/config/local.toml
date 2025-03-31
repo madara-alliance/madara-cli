@@ -2,11 +2,11 @@
 ###################################################
 [l1_config]
 # RPC endpoint for L1
-eth_rpc = "http://anvil:8545"
+eth_rpc = "https://ethereum-sepolia-rpc.publicnode.com"
 # L1 chain id: 31337 for Anvil, 11155111 for ETH Sepolia
-eth_chain_id = 31337
+eth_chain_id = 11155111
 # Address from verifier contract
-verifier_address = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+verifier_address = "0x07ec0D28e50322Eb0C159B9090ecF3aeA8346DFe"
 ###################################################
 # ETH wallet
 [eth_wallet]
