@@ -4,7 +4,7 @@ services:
   madara:
     image: gustavomoonsong/madara:latest
     container_name: "madara_runner"
-    cpus: "4.0"
+    cpus: "2.0"
     mem_limit: "16gb"
     ports:
       - 9944:9944
@@ -15,7 +15,6 @@ services:
     secrets:
       - rpc_api_key
     volumes:
-      - ${MADARA_DATA_DIR}:/tmp/madara
       - ./madara-runner.sh:/usr/local/bin/runner.sh:ro
       - ./configs/presets:/usr/local/bin/configs/presets
     entrypoint:

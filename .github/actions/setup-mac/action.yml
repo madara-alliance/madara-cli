@@ -1,0 +1,33 @@
+
+name: "Setup mac environment"
+description: "Install docker and other necessary packages for Mac"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    - uses: Swatinem/rust-cache@v2
+      with:
+        shared-key: "cache"
+    - uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: 1.81
+
+    - name: Install Docker on macOS
+      shell: bash
+      run: |
+        brew install --cask docker
+        brew install docker-compose
+        brew install colima
+        brew install qemu
+        mkdir -p ~/.docker/cli-plugins
+        ln -sfn $HOMEBREW_PREFIX/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
+        LIMACTL_PATH=$(brew --prefix)/bin/limactl
+        sudo curl -L -o $LIMACTL_PATH https://github.com/mikekazakov/lima-nohvf/raw/master/limactl && sudo chmod +x $LIMACTL_PATH
+        colima start --network-address --arch arm64 --vm-type=qemu
+
+    - name: Build cli
+      shell: bash
+      run: cargo build
