@@ -1,6 +1,6 @@
 # ==============================================
 # Image that builds stargate_contracts_old
-FROM python:3.7-slim-bullseye AS starkgate_contracts_legacy
+FROM python:3.9.21-slim@sha256:adaf6684722e23e4c7d2fdafdd44df66461a30161d817489b92a801822b65c2c AS starkgate_contracts_legacy
 
 # Set shell options for better error handling
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install Python and other dependencies in a single layer
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir cmake==3.22 && \
-    npm install -g --unsafe-perm ganache-cli@6.12.2
+    npm install -g --unsafe-perm ganache@7.4.3
 
 # Install specific solc version
 ENV SOLC_VERSION="0.6.12"
@@ -39,7 +39,7 @@ RUN if [ ! -f "$SOLC_PATH" ]; then \
 WORKDIR /app
 
 # Clone repository
-RUN git clone --single-branch --branch update-cairo-0.9.0 --recurse-submodules https://github.com/starknet-io/starkgate-contracts.git .
+RUN git clone --single-branch --branch update-0.13.3 --recurse-submodules https://github.com/madara-alliance/starkgate-contracts-legacy.git .
 
 # Build application
 RUN rm -rf build && \
