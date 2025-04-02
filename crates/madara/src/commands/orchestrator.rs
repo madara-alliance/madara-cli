@@ -2,7 +2,7 @@ use madara_cli_common::{config::global_config, docker, logger, spinner::Spinner}
 use madara_cli_config::{
     bootstrapper::BootstrapperConfig,
     madara::MadaraRunnerConfigMode,
-    pathfinder::PathfinderRunnerConfigMode,
+    madara::MadaraRunnerParams,
     prover::{ProverRunnerConfig, ProverType},
 };
 use xshell::Shell;
@@ -15,7 +15,6 @@ use crate::{
 
 use dotenvy::from_filename;
 use minijinja::{context, Environment};
-use std::env;
 use std::fs;
 
 use std::fs::Permissions;
@@ -51,24 +50,25 @@ pub(crate) fn run(args_madara: MadaraRunnerConfigMode, shell: &Shell) -> anyhow:
     // Collect Madara configuration
     commands::madara::process_params(&args_madara, &config)?;
 
-    let args_bootstrapper = BootstrapperConfig::fill_values_with_prompt()?;
+    let args = match args_madara.params {
+        MadaraRunnerParams::AppChain(args) => args,
+        _ => unreachable!("AppChain config expected"),
+    };
+
     commands::bootstrapper::process_params(&config)?;
 
     // Collect Pathfinder configuration
-    let args_pathfinder = PathfinderRunnerConfigMode::default().fill_values_with_prompt()?;
-    commands::pathfinder::parse_params(&args_pathfinder, &config)?;
+    commands::pathfinder::parse_params(&args.pathfinder_config, &config)?;
 
     // Read and load the env variables from deps/orchestrator/.env if the file was created.
     // On the first run, fallback to `ATLANTIC_API` to give the user a hint about what is needed in that field
     let _ = from_filename(ORCHESTRATOR_ENV_PATH.to_string());
-    let prev_atlantic_api = env::var("MADARA_ORCHESTRATOR_ATLANTIC_API_KEY")
-        .unwrap_or_else(|_| "ATLANTIC_API_KEY".to_string());
 
     // Collect Prover configuration
-    let args_prover = ProverRunnerConfig::default().fill_values_with_prompt(&prev_atlantic_api)?;
-    populate_orchestrator_env(&args_prover, &config)?;
-    populate_orchestrator_runner(&args_prover)?;
-    populate_orchestrator_compose(&args_prover, &args_bootstrapper, &config)?;
+    let args_prover = &args.prover_config;
+    populate_orchestrator_env(args_prover, &config)?;
+    populate_orchestrator_runner(args_prover)?;
+    populate_orchestrator_compose(args_prover, &args.bootstrapper_config, &config)?;
 
     // Build all images
     if args_prover.build_images {
@@ -209,11 +209,15 @@ fn populate_orchestrator_compose(
         DOCKERHUB_ORGANIZATION
     };
 
+    let cpus = if ci_info::is_ci() { "2.0" } else { "4.0" };
+
     let data = context! {
         ENABLE_DUMMY_PROVER => prover_config.prover_type == ProverType::Dummy,
         ENABLE_BOOTSTRAPER_L2_SETUP => bootstrapper_config.deploy_l2_contracts,
         IMAGE_REPOSITORY => repo,
         ETH_PRIV_KEY => config.eth_wallet.eth_priv_key,
+        CPU_NUMBER => cpus,
+        IS_NOT_CI => !ci_info::is_ci(),
     };
 
     // Render the template

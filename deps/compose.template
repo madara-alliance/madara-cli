@@ -2,7 +2,7 @@ services:
   anvil:
     image: {{ IMAGE_REPOSITORY }}anvil:latest
     container_name: anvil
-    cpus: "4.0"
+    cpus: "{{ CPU_NUMBER }}"
     mem_limit: "16gb"
     ports:
       - "8545:8545"
@@ -35,7 +35,7 @@ services:
   madara:
     image: {{ IMAGE_REPOSITORY }}madara:latest
     container_name: madara
-    cpus: "4.0"
+    cpus: "{{ CPU_NUMBER }}"
     mem_limit: "16gb"
     ports:
       - "9945:9945"
@@ -44,7 +44,9 @@ services:
       bootstrapper_l1:
         condition: service_completed_successfully
     volumes:
+    {%- if IS_NOT_CI %}
       - ./data/madara:/usr/share/madara/data
+    {%- endif %}
       - ./madara/madara-runner.sh:/usr/local/bin/runner.sh:ro
       - ./madara/configs/presets:/usr/local/bin/configs/presets
     entrypoint:
@@ -83,7 +85,7 @@ services:
   pathfinder:
     image: {{ IMAGE_REPOSITORY }}pathfinder:latest
     container_name: pathfinder
-    cpus: "4.0"
+    cpus: "{{ CPU_NUMBER }}"
     mem_limit: "16gb"
     ports:
       - "9545:9545"
@@ -91,7 +93,9 @@ services:
       madara:
         condition: service_started
     volumes:
+    {%- if IS_NOT_CI %}
       - ./data/pathfinder:/usr/share/pathfinder/data
+    {%- endif %}
       - ./pathfinder/pathfinder-runner.sh:/usr/local/bin/runner.sh:ro
     entrypoint:
       - /usr/local/bin/runner.sh
@@ -127,6 +131,11 @@ services:
     depends_on:
       madara:
         condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     attach: false
 
 {%- if ENABLE_DUMMY_PROVER %}
@@ -144,16 +153,16 @@ services:
   orchestrator:
     image: {{ IMAGE_REPOSITORY }}orchestrator:latest
     container_name: orchestrator
-    cpus: "4.0"
+    cpus: "{{ CPU_NUMBER }}"
     mem_limit: "16gb"
     volumes:
       - ./orchestrator/.env:/usr/local/bin/.env_tmp
       - ./orchestrator/run_orchestrator.sh:/usr/local/bin/run_orchestrator.sh
     entrypoint:
       - /usr/local/bin/run_orchestrator.sh
-{%- if ENABLE_BOOTSTRAPER_L2_SETUP %}
     depends_on:
       bootstrapper_l2:
         condition: service_completed_successfully
-{%- endif %}
+      localstack:
+        condition: service_healthy 
     attach: false

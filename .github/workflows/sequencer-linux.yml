@@ -1,0 +1,27 @@
+name: Task - Sequencer Linux
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  sequencer_linux:
+    strategy:
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup sequencer chain
+        run: |
+          cargo build
+          cargo run -p madara create sequencer &
+          MADARA_PID=$!
+          until [ "$(docker inspect -f '{{.State.Running}}' madara_runner 2>/dev/null)" = "true" ]; do
+            echo "Waiting for Madara container to start..."
+            sleep 1
+          done
+          echo "Madara is now running!"
+          kill $MADARA_PID

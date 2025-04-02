@@ -1,12 +1,16 @@
-use clap::ValueEnum;
+use clap::{Parser, ValueEnum};
+use std::env;
 use strum::{EnumIter, IntoEnumIterator};
 
 use madara_cli_common::{Prompt, PromptConfirm, PromptSelect};
 
-#[derive(Default)]
+#[derive(Debug, Default, Parser, Clone)]
 pub struct ProverRunnerConfig {
+    #[arg(long, default_value = ProverType::Dummy.to_string().to_lowercase())]
     pub prover_type: ProverType,
+    #[arg(long, default_value = ProverType::Dummy.to_string())]
     pub url: String,
+    #[arg(long, default_value = "false")]
     pub build_images: bool,
 }
 
@@ -19,16 +23,16 @@ pub enum ProverType {
 }
 
 impl ProverRunnerConfig {
-    pub fn fill_values_with_prompt(
-        self,
-        prev_atlantic_api: &str,
-    ) -> anyhow::Result<ProverRunnerConfig> {
+    pub fn fill_values_with_prompt() -> anyhow::Result<ProverRunnerConfig> {
+        let prev_atlantic_api = env::var("MADARA_ORCHESTRATOR_ATLANTIC_API_KEY")
+            .unwrap_or_else(|_| "ATLANTIC_API_KEY".to_string());
+
         let prover_type = PromptSelect::new("Select Prover:", ProverType::iter()).ask();
 
         let url = match prover_type {
             ProverType::Dummy => prev_atlantic_api.to_string(),
             ProverType::Atlantic => Prompt::new("Input Atlantic prover API key:")
-                .default(prev_atlantic_api)
+                .default(&prev_atlantic_api)
                 .ask(),
             ProverType::Stwo => panic!("Stwo prover is not supported yet"),
         };
