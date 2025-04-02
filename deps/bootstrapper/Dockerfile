@@ -145,6 +145,12 @@ COPY --from=starkgate_contracts_legacy /app/build/Release/src/starkware/starknet
 COPY --from=starkgate_contracts_legacy /app/build/Release/src/starkware/starknet/std_contracts/upgradability_proxy/proxy.json /app/artifacts/proxy_starkgate.json
 COPY --from=starkgate_contracts_legacy /app/build/Release/src/starkware/starknet/std_contracts/ERC20/ERC20.json /app/artifacts/ERC20.json
 
+# Enable forge optimizer
+RUN mkdir -p /root/.foundry && \
+    echo '[profile.default]' > /root/.foundry/foundry.toml && \
+    echo 'optimizer = true' >> /root/.foundry/foundry.toml && \
+    echo 'optimizer_runs = 200' >> /root/.foundry/foundry.toml
+
 RUN export PATH="/usr/local/bin:$PATH" && cargo build --release --workspace --bin madara-bootstrapper
 
 # ==============================================
