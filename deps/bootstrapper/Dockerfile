@@ -1,6 +1,6 @@
 # ==============================================
 # Image that builds stargate_contracts_old
-FROM python:3.9.21-slim AS starkgate_contracts_legacy
+FROM python:3.9.21-slim@sha256:adaf6684722e23e4c7d2fdafdd44df66461a30161d817489b92a801822b65c2c AS starkgate_contracts_legacy
 
 # Set shell options for better error handling
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Install Python and other dependencies in a single layer
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir cmake==3.22 && \
-    npm install -g --unsafe-perm ganache-cli@6.12.2
+    npm install -g --unsafe-perm ganache@7.4.3
 
 # Install specific solc version
 ENV SOLC_VERSION="0.6.12"
