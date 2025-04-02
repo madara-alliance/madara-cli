@@ -22,14 +22,14 @@ services:
     command: -c "sleep 5 && ./mock_verifier_contract.sh {{ ETH_PRIV_KEY }}"
 
   bootstrapper_l1:
-    image: {{ IMAGE_REPOSITORY }}bootstrapper:latest
+    image: {{ IMAGE_REPOSITORY }}bootstrapper:1.1.0
     container_name: bootstrapper_l1
     depends_on:
       mock_verifier_contract:
         condition: service_completed_successfully
     volumes:
       - ./bootstrapper/devnet.json:/app/src/configs/devnet.json
-    command: -c "sleep 5 && cargo run --release -- --mode setup-l1 --config src/configs/devnet.json"
+    command: -c "sleep 5 && ./madara-bootstrapper --mode setup-l1 --config src/configs/devnet.json"
     attach: false
   
   madara:
@@ -52,7 +52,7 @@ services:
     restart: unless-stopped
 
   bootstrapper_l2:
-    image: {{ IMAGE_REPOSITORY }}bootstrapper:latest
+    image: {{ IMAGE_REPOSITORY }}bootstrapper:1.1.0
     container_name: bootstrapper_l2
     depends_on:
       madara:
@@ -60,7 +60,7 @@ services:
     volumes:
       - ./bootstrapper/devnet.json:/app/src/configs/devnet.json
 {%- if ENABLE_BOOTSTRAPER_L2_SETUP %}
-    command: -c "sleep 5 && cargo run --release -- --mode setup-l2 --config src/configs/devnet.json"
+    command: -c "sleep 5 && ./madara-bootstrapper --mode setup-l2 --config src/configs/devnet.json"
 {%- else %}
     command: -c "sleep 5 && echo 'Bootstrapper L2 contracts are disabled'"
 {%- endif %}
