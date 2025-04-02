@@ -1,4 +1,5 @@
 services:
+{%- if LOCAL_NETWORK %}
   anvil:
     image: {{ IMAGE_REPOSITORY }}anvil:latest
     container_name: anvil
@@ -21,13 +22,16 @@ services:
       anvil:
         condition: service_started
     command: -c "sleep 5 && ./mock_verifier_contract.sh {{ ETH_PRIV_KEY }}"
+{%- endif %}
 
   bootstrapper_l1:
     image: bootstrapper:latest
     container_name: bootstrapper_l1
+{%- if LOCAL_NETWORK %}
     depends_on:
       mock_verifier_contract:
         condition: service_completed_successfully
+{%- endif %}
     volumes:
       - ./bootstrapper/:/app/bootstrapper
       - ./data/:/app/data
