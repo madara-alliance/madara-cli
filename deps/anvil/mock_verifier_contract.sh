@@ -35,3 +35,6 @@ fi
 # Extract contract address from forge create output
 VERIFIER_ADDRESS=$(echo "$VERIFIER_RESULT" | grep "Deployed to" | awk '{print $3}')
 echo -e "📦 Verifier deployed at: $VERIFIER_ADDRESS\n"
+
+# Update env file with verifier address
+echo "verifier_address=\"$VERIFIER_ADDRESS\"" > data/.env
