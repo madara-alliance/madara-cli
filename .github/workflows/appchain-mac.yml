@@ -20,5 +20,4 @@ jobs:
 
       - name: Setup app chain and run tests
         run: |
-          make run-appchain
-          make stop-appchain
+          make run-appchain-transfer-ci

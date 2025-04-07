@@ -5,7 +5,7 @@ MADARA_MODE ?= devnet
 BASE_PATH ?= ../data/madara-db
 
 # Default target
-all: build madara stop-madara
+all: build madara
 
 # Build the project
 build:
@@ -13,7 +13,7 @@ build:
 
 # Run Madara on a specific mode (not appchain)
 madara:
-	cargo run create $(MADARA_MODE) --base-path $(BASE_PATH)
+	cargo run create $(MADARA_MODE) --base-path $(BASE_PATH)&
 	@echo "Waiting for Madara container to start..."
 	@until [ "$$(docker inspect -f '{{.State.Running}}' madara_runner 2>/dev/null)" = "true" ]; do \
 	  sleep 5; \
@@ -22,7 +22,7 @@ madara:
 
 # Run Appchain with orchestrator and bootstrapper
 appchain:
-	cargo run create app-chain & echo $$! > process.pid
+	cargo run create app-chain&
 	@until [ "$$(docker inspect -f "{{.State.Running}}" bootstrapper_l2 2>/dev/null)" = "true" ]; do \
 	    echo "Waiting for Bootstrapper L2 container to start..."; \
 	    sleep 1; \
@@ -43,6 +43,6 @@ stop-madara:
 stop-appchain:
 	@cd deps && docker compose down
 
-run-madara: build madara
+run-madara-ci: build madara stop-madara
 
-run-appchain: build appchain transfer
+run-appchain-transfer-ci: build appchain transfer stop-appchain

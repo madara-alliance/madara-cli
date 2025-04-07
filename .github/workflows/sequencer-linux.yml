@@ -16,5 +16,4 @@ jobs:
 
       - name: Setup sequencer chain
         run: |
-          make run-madara MADARA_MODE=sequencer
-          make stop-madara
+          make run-madara-ci MADARA_MODE=sequencer
