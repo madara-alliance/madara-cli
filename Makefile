@@ -5,7 +5,7 @@ MADARA_MODE ?= devnet
 BASE_PATH ?= ../data/madara-db
 
 # Default target
-all: build madara kill
+all: build madara stop-madara
 
 # Build the project
 build:
@@ -43,6 +43,6 @@ stop-madara:
 stop-appchain:
 	@cd deps && docker compose down
 
-run-madara: build madara stop-madara
+run-madara: build madara
 
-run-appchain: build appchain transfer stop-appchain
+run-appchain: build appchain transfer

@@ -21,3 +21,4 @@ jobs:
       - name: Setup sequencer chain
         run: |
           make run-madara MADARA_MODE=sequencer BASE_PATH=/home/db
+          make stop-madara
