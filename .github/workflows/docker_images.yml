@@ -1,4 +1,4 @@
-name: "Build and Publish Docker Images"
+name: "Docker Images"
 on:
   workflow_dispatch:
     inputs:
@@ -30,7 +30,7 @@ jobs:
         id: hash
         run: echo "hash=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       
-      - name: Set up QEMU # to build multitarget containers
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
       
       - name: Set up Docker Buildx
