@@ -13,7 +13,7 @@ build:
 
 # Run Madara on a specific mode (not appchain)
 madara:
-	cargo run create $(MADARA_MODE) --base-path $(BASE_PATH) & echo $$! > process.pid
+	cargo run create $(MADARA_MODE) --base-path $(BASE_PATH)
 	@echo "Waiting for Madara container to start..."
 	@until [ "$$(docker inspect -f '{{.State.Running}}' madara_runner 2>/dev/null)" = "true" ]; do \
 	  sleep 5; \
@@ -37,8 +37,7 @@ transfer:
 
 # Kill a process
 kill:
-	@kill $$(cat process.pid)
-	@rm -f process.pid
+	@docker compose down
 
 run-madara: build madara kill
 
