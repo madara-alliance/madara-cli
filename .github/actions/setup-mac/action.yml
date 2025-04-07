@@ -18,6 +18,8 @@ runs:
     - name: Install Docker on macOS
       shell: bash
       run: |
+        mkdir -m 777 ./data/madara
+        mkdir -m 777 ./data/pathfinder
         brew install --cask docker
         brew install docker-compose
         brew install colima
