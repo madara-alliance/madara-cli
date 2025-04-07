@@ -22,7 +22,7 @@ services:
     command: -c "sleep 5 && ./mock_verifier_contract.sh {{ ETH_PRIV_KEY }}"
 
   bootstrapper_l1:
-    image: {{ IMAGE_REPOSITORY }}bootstrapper:1.1.0
+    image: {{ IMAGE_REPOSITORY }}bootstrapper:${BOOTSTRAPPER_VERSION}
     container_name: bootstrapper_l1
     depends_on:
       mock_verifier_contract:
@@ -52,7 +52,7 @@ services:
     restart: unless-stopped
 
   bootstrapper_l2:
-    image: {{ IMAGE_REPOSITORY }}bootstrapper:1.1.0
+    image: {{ IMAGE_REPOSITORY }}bootstrapper:${BOOTSTRAPPER_VERSION}
     container_name: bootstrapper_l2
     depends_on:
       madara:

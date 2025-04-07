@@ -161,7 +161,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Create app directory
 WORKDIR /app
 
-# Copy built artifacts AND the Cargo.toml file
+# Copy built artifacts
 COPY --from=builder /app/src/contracts/ /app/src/contracts/
 COPY --from=builder /app/target/release/madara-bootstrapper /app/
 COPY --from=builder /app/artifacts/ /app/artifacts/
