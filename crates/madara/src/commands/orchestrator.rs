@@ -11,8 +11,9 @@ use crate::{
     commands,
     config::global_config::Config,
     constants::{
-        DEFAULT_LOCAL_CONFIG_FILE, DEPS_REPO_PATH, DOCKERHUB_ORGANIZATION,
-        REMOTE_BOOTSTRAPPER_IMAGE,
+        DEFAULT_LOCAL_CONFIG_FILE, DEPS_REPO_PATH, DOCKERHUB_ORGANIZATION, REMOTE_ANVIL_IMAGE,
+        REMOTE_BOOTSTRAPPER_IMAGE, REMOTE_MADARA_IMAGE, REMOTE_ORCHESTRATOR_IMAGE,
+        REMOTE_PATHFINDER_IMAGE,
     },
 };
 
@@ -207,10 +208,25 @@ fn populate_orchestrator_compose(
     env.add_template("compose_template", &template)
         .expect("Failed to add template");
 
-    let (repo, version) = if prover_config.build_images {
-        ("", "latest")
+    // Call correct image version depending if it's building locally
+    let (
+        repo,
+        anvil_version,
+        bootstrapper_version,
+        madara_version,
+        pathfinder_version,
+        orchestrator_version,
+    ) = if prover_config.build_images {
+        ("", "latest", "latest", "latest", "latest", "latest")
     } else {
-        (DOCKERHUB_ORGANIZATION, REMOTE_BOOTSTRAPPER_IMAGE)
+        (
+            DOCKERHUB_ORGANIZATION,
+            REMOTE_ANVIL_IMAGE,
+            REMOTE_BOOTSTRAPPER_IMAGE,
+            REMOTE_MADARA_IMAGE,
+            REMOTE_PATHFINDER_IMAGE,
+            REMOTE_ORCHESTRATOR_IMAGE,
+        )
     };
 
     let data = context! {
@@ -228,7 +244,19 @@ fn populate_orchestrator_compose(
     // Write the env file for the orchestrator
     fs::write(
         COMPOSE_ENV_FILE,
-        format!("BOOTSTRAPPER_VERSION={}", version),
+        format!(
+            "
+            ANVIL_VERSION={}\n
+            BOOTSTRAPPER_VERSION={}\n
+            MADARA_VERSION={}\n
+            PATHFINDER_VERSION={}\n
+            ORCHESTRATOR_VERSION={}",
+            anvil_version,
+            bootstrapper_version,
+            madara_version,
+            pathfinder_version,
+            orchestrator_version
+        ),
     )?;
 
     Ok(())

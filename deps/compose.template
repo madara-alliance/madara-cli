@@ -1,6 +1,6 @@
 services:
   anvil:
-    image: {{ IMAGE_REPOSITORY }}anvil:1.0.0
+    image: {{ IMAGE_REPOSITORY }}anvil:${ANVIL_VERSION}
     container_name: anvil
     cpus: "${CPU_LIMIT:-4.0}"
     mem_limit: "16gb"
@@ -10,7 +10,7 @@ services:
     attach: false
 
   mock_verifier_contract:
-    image: {{ IMAGE_REPOSITORY }}anvil:1.0.0
+    image: {{ IMAGE_REPOSITORY }}anvil:${ANVIL_VERSION}
     container_name: mock_verifier
     working_dir: /app
     entrypoint: /bin/bash
@@ -33,7 +33,7 @@ services:
     attach: false
   
   madara:
-    image: {{ IMAGE_REPOSITORY }}madara:5bbb3a
+    image: {{ IMAGE_REPOSITORY }}madara:${MADARA_VERSION}
     container_name: madara
     cpus: "${CPU_LIMIT:-4.0}"
     mem_limit: "16gb"
@@ -67,7 +67,7 @@ services:
     attach: false
 
   override_state:
-    image: {{ IMAGE_REPOSITORY }}anvil:1.0.0
+    image: {{ IMAGE_REPOSITORY }}anvil:${ANVIL_VERSION}
     container_name: override_state
     working_dir: /app
     entrypoint: /bin/bash
@@ -81,7 +81,7 @@ services:
     command: -c "node override_state.js"
 
   pathfinder:
-    image: {{ IMAGE_REPOSITORY }}pathfinder:1.0.0
+    image: {{ IMAGE_REPOSITORY }}pathfinder:${PATHFINDER_VERSION}
     container_name: pathfinder
     cpus: "${CPU_LIMIT:-4.0}"
     mem_limit: "16gb"
@@ -147,7 +147,7 @@ services:
 {%- endif %}
 
   orchestrator:
-    image: {{ IMAGE_REPOSITORY }}orchestrator:1.0.0
+    image: {{ IMAGE_REPOSITORY }}orchestrator:${ORCHESTRATOR_VERSION}
     container_name: orchestrator
     cpus: "${CPU_LIMIT:-4.0}"
     mem_limit: "16gb"
