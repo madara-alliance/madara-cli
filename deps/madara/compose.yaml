@@ -15,7 +15,7 @@ services:
     secrets:
       - rpc_api_key
     volumes:
-      - ${MADARA_DATA_DIR}:/home/madara-db
+      - ${MADARA_DATA_DIR}:/usr/share/database
       - ./madara-runner.sh:/usr/local/bin/runner.sh:ro
       - ./configs/presets:/usr/local/bin/configs/presets
     entrypoint:

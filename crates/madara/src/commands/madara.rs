@@ -204,7 +204,7 @@ fn parse_devnet_params(name: &String, mode: &MadaraMode) -> anyhow::Result<Vec<S
     let devnet_params = vec![
         format!("--name {}", name),
         format!("--{}", mode).to_lowercase(),
-        "--base-path /home/madara-db".to_string(),
+        "--base-path /usr/share/database".to_string(),
         "--rpc-external".to_string(),
     ];
 
@@ -228,7 +228,7 @@ fn parse_sequencer_params(
     let sequencer_params = vec![
         format!("--name {}", name),
         format!("--{}", mode).to_lowercase(),
-        "--base-path /home/madara-db".to_string(),
+        "--base-path /usr/share/database".to_string(),
         format!("--chain-config-path {}", chain_config_path),
         "--feeder-gateway-enable".to_string(),
         "--gateway-enable".to_string(),
@@ -260,7 +260,7 @@ fn parse_full_node_params(
         format!("--name {}", name),
         format!("--network {}", network),
         format!("--full"),
-        "--base-path /home/madara-db".to_string(),
+        "--base-path /usr/share/database".to_string(),
         "--rpc-external".to_string(),
         "--l1-endpoint $RPC_API_KEY".to_string(),
     ];
