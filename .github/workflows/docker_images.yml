@@ -10,10 +10,6 @@ on:
         description: 'The Docker Hub organization to publish to'
         required: true
         default: 'ftheirs'
-  push:
-    paths:
-      - "deps/**"
-      - ".github/workflows/docker_images.yml"
 
 jobs:
   build_docker_image:
@@ -22,23 +18,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       
-      - name: Set image name from input or default to madara
+      - name: Set image name from input
         id: image_name
-        run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "name=${{ github.event.inputs.image_name }}" >> $GITHUB_OUTPUT
-          else
-            echo "name=madara" >> $GITHUB_OUTPUT
-          fi
+        run: echo "name=${{ github.event.inputs.image_name }}" >> $GITHUB_OUTPUT
       
       - name: Set organization name
         id: org_name
-        run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "org=${{ github.event.inputs.organization }}" >> $GITHUB_OUTPUT
-          else
-            echo "org=ftheirs" >> $GITHUB_OUTPUT
-          fi
+        run: echo "org=${{ github.event.inputs.organization }}" >> $GITHUB_OUTPUT
       
       - name: Git commit hash
         id: hash
@@ -61,5 +47,5 @@ jobs:
         with:
           context: deps/${{ steps.image_name.outputs.name }}
           platforms: linux/amd64,linux/arm64
-          push: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch' }}
+          push: true
           tags: ${{ steps.org_name.outputs.org }}/${{ steps.image_name.outputs.name }}:${{ steps.hash.outputs.hash }},${{ steps.org_name.outputs.org }}/${{ steps.image_name.outputs.name }}:latest
