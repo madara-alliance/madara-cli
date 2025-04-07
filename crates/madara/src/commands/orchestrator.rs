@@ -10,7 +10,10 @@ use xshell::Shell;
 use crate::{
     commands,
     config::global_config::Config,
-    constants::{DEFAULT_LOCAL_CONFIG_FILE, DEPS_REPO_PATH, DOCKERHUB_ORGANIZATION},
+    constants::{
+        DEFAULT_LOCAL_CONFIG_FILE, DEPS_REPO_PATH, DOCKERHUB_ORGANIZATION,
+        REMOTE_BOOTSTRAPPER_IMAGE,
+    },
 };
 
 use dotenvy::from_filename;
@@ -28,6 +31,7 @@ const ORCHESTRATOR_ENV_TEMPLATE_FILE: &str = ".env.template";
 const ORCHESTRATOR_ENV_PATH: &str = "deps/orchestrator/.env";
 const ORCHESTRATOR_RUNNER_TEMPLATE_FILE: &str = "run_orchestrator.template";
 const ORCHESTRATOR_RUNNER_FILE: &str = "run_orchestrator.sh";
+const COMPOSE_ENV_FILE: &str = "deps/.env";
 
 pub(crate) fn init() -> anyhow::Result<()> {
     let use_default = global_config().default;
@@ -203,10 +207,10 @@ fn populate_orchestrator_compose(
     env.add_template("compose_template", &template)
         .expect("Failed to add template");
 
-    let repo = if prover_config.build_images {
-        ""
+    let (repo, version) = if prover_config.build_images {
+        ("", "latest")
     } else {
-        DOCKERHUB_ORGANIZATION
+        (DOCKERHUB_ORGANIZATION, REMOTE_BOOTSTRAPPER_IMAGE)
     };
 
     let cpus = if ci_info::is_ci() { "2.0" } else { "4.0" };
@@ -224,6 +228,12 @@ fn populate_orchestrator_compose(
     let tmpl = env.get_template("compose_template").unwrap();
     let rendered = tmpl.render(&data).expect("Template rendering failed");
     fs::write(compose_output, rendered).expect("Failed to write compose.yaml");
+
+    // Write the env file for the orchestrator
+    fs::write(
+        COMPOSE_ENV_FILE,
+        format!("BOOTSTRAPPER_VERSION={}", version),
+    )?;
 
     Ok(())
 }
