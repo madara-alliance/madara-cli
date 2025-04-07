@@ -35,10 +35,14 @@ transfer:
 	@echo "Running transfer scripts..."
 	@cd deps/scripts/transfer_from_L1 && npm install && npm run transfer-l1
 
-# Kill a process
-kill:
-	@docker compose down
+# Stop a madara instance
+stop-madara:
+	@cd deps/madara && docker compose down
 
-run-madara: build madara kill
+# Stop a appchain instance
+stop-appchain:
+	@cd deps && docker compose down
 
-run-appchain: build appchain transfer kill
+run-madara: build madara stop-madara
+
+run-appchain: build appchain transfer stop-appchain
