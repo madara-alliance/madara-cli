@@ -11,6 +11,8 @@ jobs:
     runs-on: macos-latest
     env:
       CPU_LIMIT: 2.0
+      PATHFINDER_DATA_DIR: /tmp/pathfinder
+      MADARA_DATA_DIR: /tmp/madara
     steps:
       - uses: actions/checkout@v4
         with:
