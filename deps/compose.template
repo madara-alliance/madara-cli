@@ -44,7 +44,7 @@ services:
       bootstrapper_l1:
         condition: service_completed_successfully
     volumes:
-      - {MADARA_DATA_DIR}:/usr/share/madara/data
+      - ${MADARA_DATA_DIR}:/usr/share/madara/data
       - ./madara/madara-runner.sh:/usr/local/bin/runner.sh:ro
       - ./madara/configs/presets:/usr/local/bin/configs/presets
     entrypoint:
@@ -91,7 +91,7 @@ services:
       madara:
         condition: service_started
     volumes:
-      - {PATHFINDER_DATA_DIR}:/usr/share/pathfinder/data
+      - ${PATHFINDER_DATA_DIR}:/usr/share/pathfinder/data
       - ./pathfinder/pathfinder-runner.sh:/usr/local/bin/runner.sh:ro
     entrypoint:
       - /usr/local/bin/runner.sh
