@@ -1,12 +1,13 @@
 services:
   anvil:
-    image: {{ IMAGE_REPOSITORY }}anvil:latest
+    image: ghcr.io/foundry-rs/foundry:v1.0.0
     container_name: anvil
     cpus: "{{ CPU_NUMBER }}"
     mem_limit: "16gb"
     ports:
       - "8545:8545"
-    command: /bin/bash -c "anvil --host 0.0.0.0 --block-time 1 --code-size-limit 300000"
+    entrypoint: ["anvil", "--host", "0.0.0.0", "--block-time", "1", "--code-size-limit", "300000"]
+
     attach: false
 
   mock_verifier_contract:
