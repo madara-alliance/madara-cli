@@ -127,7 +127,7 @@ RUN npm install -g --unsafe-perm ganache@7.9.0
 
 WORKDIR /app
 
-RUN git clone --branch ft/makefile_fix --recurse-submodules https://github.com/madara-alliance/madara-bootstrapper.git .
+RUN git clone --recurse-submodules https://github.com/madara-alliance/madara-bootstrapper.git .
 
 RUN make setup-linux
 
@@ -147,7 +147,30 @@ COPY --from=starkgate_contracts_legacy /app/build/Release/src/starkware/starknet
 
 RUN export PATH="/usr/local/bin:$PATH" && cargo build --release --workspace --bin madara-bootstrapper
 
-# Environment variables
-ENV RUST_LOG=info RUST_BACKTRACE=1
+# ==============================================
+# Final runner image that only contains necessary binaries and artifacts
+FROM ubuntu:22.04 AS runner
+
+# Install minimal runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    libssl-dev \
+    libgmp10 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create app directory
+WORKDIR /app
+
+# Copy built artifacts
+COPY --from=builder /app/src/contracts/ /app/src/contracts/
+COPY --from=builder /app/target/release/madara-bootstrapper /app/
+COPY --from=builder /app/artifacts/ /app/artifacts/
+
+# Set environment variables
+ENV RUST_LOG=info
+ENV CARGO_MANIFEST_DIR=/app
+
+# Set executable permissions
+RUN chmod +x /app/madara-bootstrapper
 
 ENTRYPOINT ["/bin/bash"]

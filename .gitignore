@@ -9,3 +9,5 @@ deps/data/*
 deps/madara/.secrets
 deps/madara/.env
 deps/madara/madara-runner.sh
+
+deps/.env

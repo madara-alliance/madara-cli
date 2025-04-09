@@ -19,3 +19,7 @@ pub const DOCKERHUB_ORGANIZATION: &str = "gustavomoonsong/";
 pub const DEFAULT_LOCAL_CONFIG_FILE: &str = "crates/madara/src/config/local.toml";
 
 pub const DEFAULT_TMP_DATA_DIRECTORY: &str = "deps/data";
+
+// Images version
+
+pub const REMOTE_BOOTSTRAPPER_IMAGE: &str = "1.1.0";
