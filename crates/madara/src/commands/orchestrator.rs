@@ -11,8 +11,9 @@ use crate::{
     commands,
     config::global_config::Config,
     constants::{
-        DEFAULT_LOCAL_CONFIG_FILE, DEPS_REPO_PATH, DOCKERHUB_ORGANIZATION,
-        REMOTE_BOOTSTRAPPER_IMAGE,
+        DEFAULT_LOCAL_CONFIG_FILE, DEPS_REPO_PATH, DOCKERHUB_ORGANIZATION, REMOTE_ANVIL_IMAGE,
+        REMOTE_BOOTSTRAPPER_IMAGE, REMOTE_MADARA_IMAGE, REMOTE_ORCHESTRATOR_IMAGE,
+        REMOTE_PATHFINDER_IMAGE,
     },
 };
 
@@ -207,21 +208,32 @@ fn populate_orchestrator_compose(
     env.add_template("compose_template", &template)
         .expect("Failed to add template");
 
-    let (repo, version) = if prover_config.build_images {
-        ("", "latest")
+    // Call correct image version depending if it's building locally
+    let (
+        repo,
+        anvil_version,
+        bootstrapper_version,
+        madara_version,
+        pathfinder_version,
+        orchestrator_version,
+    ) = if prover_config.build_images {
+        ("", "latest", "latest", "latest", "latest", "latest")
     } else {
-        (DOCKERHUB_ORGANIZATION, REMOTE_BOOTSTRAPPER_IMAGE)
+        (
+            DOCKERHUB_ORGANIZATION,
+            REMOTE_ANVIL_IMAGE,
+            REMOTE_BOOTSTRAPPER_IMAGE,
+            REMOTE_MADARA_IMAGE,
+            REMOTE_PATHFINDER_IMAGE,
+            REMOTE_ORCHESTRATOR_IMAGE,
+        )
     };
-
-    let cpus = if ci_info::is_ci() { "2.0" } else { "4.0" };
 
     let data = context! {
         ENABLE_DUMMY_PROVER => prover_config.prover_type == ProverType::Dummy,
         ENABLE_BOOTSTRAPER_L2_SETUP => bootstrapper_config.deploy_l2_contracts,
         IMAGE_REPOSITORY => repo,
         ETH_PRIV_KEY => config.eth_wallet.eth_priv_key,
-        CPU_NUMBER => cpus,
-        IS_NOT_CI => !ci_info::is_ci(),
     };
 
     // Render the template
@@ -232,7 +244,21 @@ fn populate_orchestrator_compose(
     // Write the env file for the orchestrator
     fs::write(
         COMPOSE_ENV_FILE,
-        format!("BOOTSTRAPPER_VERSION={}", version),
+        format!(
+            "
+            ANVIL_VERSION={}\n
+            BOOTSTRAPPER_VERSION={}\n
+            MADARA_VERSION={}\n
+            PATHFINDER_VERSION={}\n
+            ORCHESTRATOR_VERSION={}\n
+            PATHFINDER_DATA_DIR=../data/pathfinder\n
+            MADARA_DATA_DIR=../data/pathfinder",
+            anvil_version,
+            bootstrapper_version,
+            madara_version,
+            pathfinder_version,
+            orchestrator_version
+        ),
     )?;
 
     Ok(())
