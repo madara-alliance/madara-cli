@@ -1,7 +1,6 @@
 // Madara constants
 pub const MADARA_DOCKER_IMAGE: &str = "madara";
 pub const MADARA_COMPOSE_FILE: &str = "compose.yaml";
-pub const MADARA_COMPOSE_FILE_CI: &str = "compose_ci.yaml";
 
 // CLI messages
 // pub(super) const MSG_STARTING_CONTAINERS_SPINNER: &str = "Starting containers...";
@@ -21,5 +20,8 @@ pub const DEFAULT_LOCAL_CONFIG_FILE: &str = "crates/madara/src/config/local.toml
 pub const DEFAULT_TMP_DATA_DIRECTORY: &str = "deps/data";
 
 // Images version
-
+pub const REMOTE_ANVIL_IMAGE: &str = "1.0.0";
 pub const REMOTE_BOOTSTRAPPER_IMAGE: &str = "1.1.0";
+pub const REMOTE_MADARA_IMAGE: &str = "5bbb3a";
+pub const REMOTE_PATHFINDER_IMAGE: &str = "1.0.0";
+pub const REMOTE_ORCHESTRATOR_IMAGE: &str = "1.0.0";

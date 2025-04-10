@@ -9,6 +9,10 @@ jobs:
     strategy:
       fail-fast: false
     runs-on: macos-latest
+    env:
+      CPU_LIMIT: 2.0
+      PATHFINDER_DATA_DIR: /tmp/pathfinder
+      MADARA_DATA_DIR: /tmp/madara
     steps:
       - uses: actions/checkout@v4
         with:
@@ -18,16 +22,4 @@ jobs:
 
       - name: Setup app chain and run tests
         run: |
-          cargo run -p madara create app-chain &
-          MADARA_PID=$!
-          until [ "$(docker inspect -f '{{.State.Running}}' bootstrapper_l2 2>/dev/null)" = "true" ]; do
-            echo "Waiting for Bootstrapper L2 container to start..."
-            sleep 1
-          done
-          echo "Waiting for Bootstrapper L2 container to finish..."
-          docker wait bootstrapper_l2
-          echo "Running transfer scripts..."
-          cd deps/scripts/transfer_from_L1
-          npm install
-          npm run transfer-l1
-          kill $MADARA_PID
+          make run-appchain-transfer-ci
