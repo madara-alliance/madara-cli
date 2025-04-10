@@ -127,7 +127,7 @@ RUN npm install -g --unsafe-perm ganache@7.9.0
 
 WORKDIR /app
 
-RUN git clone --recurse-submodules https://github.com/madara-alliance/madara-bootstrapper.git .
+RUN git clone --branch monorepo/bootstrapper --recurse-submodules https://github.com/madara-alliance/madara.git .
 
 RUN make setup-linux
 
@@ -162,7 +162,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Copy built artifacts
-COPY --from=builder /app/src/contracts/ /app/src/contracts/
+COPY --from=builder /app/bootstrapper/crates/bootstrapper/src/contracts/ /app/bootstrapper/crates/bootstrapper/src/contracts/
 COPY --from=builder /app/target/release/madara-bootstrapper /app/
 COPY --from=builder /app/artifacts/ /app/artifacts/
 
