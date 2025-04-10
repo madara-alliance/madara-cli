@@ -73,7 +73,7 @@ services:
     attach: false
 
   override_state:
-    image: {{ IMAGE_REPOSITORY }}anvil:latest
+    image: {{ IMAGE_REPOSITORY }}ubuntu_cli:latest
     container_name: override_state
     working_dir: /app
     entrypoint: /bin/bash
@@ -81,7 +81,7 @@ services:
       bootstrapper_l2:
         condition: service_completed_successfully
     volumes:
-      - ./anvil/override_state.js:/app/override_state.js
+      - ./helper/override_state.js:/app/override_state.js
     environment:
       MADARA_ORCHESTRATOR_ETHEREUM_PRIVATE_KEY: {{ ETH_PRIV_KEY }}
     command: -c "node override_state.js"
@@ -117,14 +117,14 @@ services:
         condition: service_started
     attach: false
 
-  snos_block_zero_workaround:
+  init_mongo:
     image: mongo
     depends_on:
       bootstrapper_l2:
         condition: service_completed_successfully
     entrypoint: [ "bash", "-c", "mongosh --host mongodb --eval 'load(\"/init.js\")'" ]
     volumes:
-      - ./block_zero_workaround.js:/init.js
+      - ./helper/init_mongo.js:/init.js
 
   localstack:
     image: localstack/localstack@sha256:763947722c6c8d33d5fbf7e8d52b4bddec5be35274a0998fdc6176d733375314
