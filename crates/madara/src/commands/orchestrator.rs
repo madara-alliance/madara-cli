@@ -251,8 +251,8 @@ fn populate_orchestrator_compose(
             MADARA_VERSION={}\n
             PATHFINDER_VERSION={}\n
             ORCHESTRATOR_VERSION={}\n
-            PATHFINDER_DATA_DIR=../data/pathfinder\n
-            MADARA_DATA_DIR=../data/pathfinder",
+            PATHFINDER_DATA_DIR=./data/pathfinder\n
+            MADARA_DATA_DIR=./data/madara",
             anvil_version,
             bootstrapper_version,
             madara_version,
