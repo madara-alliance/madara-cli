@@ -6,17 +6,20 @@ services:
     mem_limit: "16gb"
     ports:
       - "8545:8545"
-    entrypoint: ["anvil", "--host", "0.0.0.0", "--block-time", "1", "--code-size-limit", "300000"]
+    volumes:
+      - ./data/anvil:/tmp/anvil
+    entrypoint: ["anvil", "--host", "0.0.0.0", "--block-time", "1", "--code-size-limit", "300000", "--dump-state", "/tmp/anvil/state.json"]
 
     attach: false
 
   mock_verifier_contract:
-    image: {{ IMAGE_REPOSITORY }}anvil:latest
+    image: ghcr.io/foundry-rs/foundry:v1.0.0
     container_name: mock_verifier
-    working_dir: /app
+    working_dir: /tmp
     entrypoint: /bin/bash
     volumes:
-      - ./anvil/mock_verifier_contract.sh:/app/mock_verifier_contract.sh
+      - ./helper/mock_verifier_contract.sh:/tmp/mock_verifier_contract.sh
+      - ./helper/MockGPSVerifier.sol:/tmp/MockGPSVerifier.sol
     depends_on:
       anvil:
         condition: service_started
