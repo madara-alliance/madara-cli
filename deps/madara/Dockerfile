@@ -18,7 +18,7 @@ RUN git clone https://github.com/madara-alliance/madara . && \
     git submodule update --init --recursive
 
 # Build the application in release mode
-RUN cargo build --release
+RUN cargo build --release --bin madara
 # Stage 2: Create the final runtime image
 FROM debian:bookworm
 # Install runtime dependencies
