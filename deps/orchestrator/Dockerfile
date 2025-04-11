@@ -11,16 +11,14 @@ RUN apt update && apt install -y  \
     npm
 
 # Set the working directory
-WORKDIR /usr/src
+WORKDIR /usr/src/madara/
 
 # Clone the repository
 ENV ORCHESTRATOR_VER="bab56d9a6ef3c39aa82767c8530eeff43a3e0dd3"
-RUN echo Cloning Orchestrator at commit ${ORCHESTRATOR_VER}_VER}
+RUN echo Cloning Orchestrator at commit ${ORCHESTRATOR_VER}
 RUN git clone https://github.com/madara-alliance/madara . && \
-    git checkout ${ORCHESTRATOR_VER}_VER} && \
+    git checkout ${ORCHESTRATOR_VER} && \
     git submodule update --init --recursive
-
-WORKDIR /usr/src/madara
 
 # Install Python 3.9
 RUN wget https://www.python.org/ftp/python/3.9.16/Python-3.9.16.tgz \
@@ -48,7 +46,6 @@ RUN python3.9 -m venv orchestrator_venv
 RUN . ./orchestrator_venv/bin/activate
 RUN pip install cairo-lang==0.13.2 "sympy<1.13.0"
 RUN mkdir -p orchestrator/build
-RUN git submodule update --init --recursive
 RUN cairo-compile orchestrator/cairo-lang/src/starkware/starknet/core/os/os.cairo --output orchestrator/build/os_latest.json --cairo_path orchestrator/cairo-lang/src
 # #############################################################
 
