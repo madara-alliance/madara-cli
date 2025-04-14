@@ -56,15 +56,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set image name
-        id: imagename
-        run: |
-          if [ "${{ matrix.image }}" = "helper" ]; then
-            echo "name=ubuntu_cli" >> $GITHUB_OUTPUT
-          else
-            echo "name=${{ matrix.image }}" >> $GITHUB_OUTPUT
-          fi
-
       # Build and push the image
       - name: Build and push image
         uses: docker/build-push-action@v4
@@ -73,8 +64,8 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ env.DOCKER_ORGANIZATION }}/${{ steps.imagename.outputs.name }}:latest
-            ${{ env.DOCKER_ORGANIZATION }}/${{ steps.imagename.outputs.name }}:${{ github.event.inputs.version }}-${{ steps.hash.outputs.hash }}
-            ghcr.io/${{ github.repository_owner }}/${{ steps.imagename.outputs.name }}:latest
-            ghcr.io/${{ github.repository_owner }}/${{ steps.imagename.outputs.name }}:${{ github.event.inputs.version }}-${{ steps.hash.outputs.hash }}
+            ${{ env.DOCKER_ORGANIZATION }}/${{ matrix.image }}:latest
+            ${{ env.DOCKER_ORGANIZATION }}/${{ matrix.image }}:${{ github.event.inputs.version }}-${{ steps.hash.outputs.hash }}
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}:latest
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}:${{ github.event.inputs.version }}-${{ steps.hash.outputs.hash }}
         continue-on-error: false

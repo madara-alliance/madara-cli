@@ -71,7 +71,7 @@ services:
     attach: false
 
   override_state:
-    image: {{ IMAGE_REPOSITORY }}ubuntu_cli:${UBUNTU_CLI_VERSION}
+    image: {{ IMAGE_REPOSITORY }}helper:${HELPER_VERSION}
     container_name: override_state
     working_dir: /app
     entrypoint: /bin/bash
