@@ -7,7 +7,7 @@ services:
     ports:
       - "8545:8545"
     volumes:
-      - ./data/anvil:/tmp/anvil
+      - ${ANVIL_DATA_DIR}:/tmp/anvil
     entrypoint: ["anvil", "--host", "0.0.0.0", "--block-time", "1", "--code-size-limit", "300000", "--dump-state", "/tmp/anvil/state.json"]
 
     attach: false
