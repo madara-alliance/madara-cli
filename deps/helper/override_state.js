@@ -2,6 +2,7 @@
 /// override the state on the core contract
 const starknet = require("starknet");
 const ethers = require("ethers");
+const dorenv = require("dotenv");
 
 // Using anvil key with funds
 const MADARA_ORCHESTRATOR_ETHEREUM_PRIVATE_KEY = process.env.MADARA_ORCHESTRATOR_ETHEREUM_PRIVATE_KEY;
@@ -66,7 +67,10 @@ async function overrideStateOnCoreContract(
 
 async function main() {
   let block_number = await starknet_provider.getBlockNumber();
-  let core_contract_address = "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0"
+  // Load environment variables
+  dotenv.config();
+  let core_contract_address = process.env.starknet_contract_address;
+  console.log("Core contract address: ", core_contract_address);
   await overrideStateOnCoreContract(block_number, core_contract_address)
 }
 
