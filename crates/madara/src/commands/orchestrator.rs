@@ -246,19 +246,21 @@ fn populate_orchestrator_compose(
         COMPOSE_ENV_FILE,
         format!(
             "
-            HELPER_VERSION={}\n
-            BOOTSTRAPPER_VERSION={}\n
-            MADARA_VERSION={}\n
-            PATHFINDER_VERSION={}\n
-            ORCHESTRATOR_VERSION={}\n
-            ANVIL_DATA_DIR=./data/anvil,
-            PATHFINDER_DATA_DIR=./data/pathfinder\n
-            MADARA_DATA_DIR=./data/madara",
-            helper_version,
+            ANVIL_DATA_DIR=./data/anvil
+            BOOTSTRAPPER_CONFIG_DIR=./bootstrapper
+            BOOTSTRAPPER_VERSION={}
+            DATA_DIR=./data
+            HELPER_VERSION={}
+            MADARA_DATA_DIR=./data/madara
+            MADARA_VERSION={}
+            ORCHESTRATOR_VERSION={}
+            PATHFINDER_DATA_DIR=./data/pathfinder
+            PATHFINDER_VERSION={}",
             bootstrapper_version,
+            helper_version,
             madara_version,
-            pathfinder_version,
-            orchestrator_version
+            orchestrator_version,
+            pathfinder_version
         ),
     )?;
 
