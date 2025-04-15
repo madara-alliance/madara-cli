@@ -25,11 +25,14 @@ appchain:
 	cargo run create app-chain&
 	@until [ "$$(docker inspect -f "{{.State.Running}}" bootstrapper_l2 2>/dev/null)" = "true" ]; do \
 	    echo "Waiting for Bootstrapper L2 container to start..."; \
-	    sleep 1; \
+	    sleep 5; \
 	  done
 	@echo "Waiting for Bootstrapper L2 container to finish..."
 	@docker wait bootstrapper_l2
-	@echo "Waiting for Block Zero Workaround..."
+	@until [ "$$(docker inspect -f "{{.State.Running}}" snos_block_zero_workaround-1 2>/dev/null)" = "true" ]; do \
+	    echo "Waiting for Block Zero Workaround..."; \
+	    sleep 5; \
+	  done
 	@docker wait snos_block_zero_workaround-1
 
 # Run the transfer scripts
