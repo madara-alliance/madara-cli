@@ -13,7 +13,7 @@ pub struct BootstrapperConfiguration {
     pub rollup_seq_url: String,
     pub rollup_declare_v0_seq_url: String,
     pub rollup_priv_key: String,
-    pub eth_chain_id: u32,
+    pub eth_chain_id: u64,
     pub l1_deployer_address: String,
     pub l1_wait_time: String,
     pub sn_os_program_hash: String,

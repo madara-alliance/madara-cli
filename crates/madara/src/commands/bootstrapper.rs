@@ -34,6 +34,8 @@ pub fn process_params(global_config: &Config) -> anyhow::Result<()> {
     );
 
     config.eth_rpc = global_config.l1_config.eth_rpc;
+    config.eth_chain_id = global_config.l1_config.eth_chain_id;
+    config.verifier_address = global_config.l1_config.verifier_address;
     config.eth_priv_key = eth_wallet.eth_priv_key;
     config.l1_deployer_address = eth_wallet.l1_deployer_address;
     config.l1_multisig_address = eth_wallet.l1_multisig_address;
