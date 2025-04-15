@@ -29,11 +29,8 @@ appchain:
 	  done
 	@echo "Waiting for Bootstrapper L2 container to finish..."
 	@docker wait bootstrapper_l2
-	@until [ "$$(docker inspect -f "{{.State.Running}}" snos_block_zero_workaround-1 2>/dev/null)" = "true" ]; do \
-	    echo "Waiting for Block Zero Workaround..."; \
-	    sleep 5; \
-	  done
-	@docker wait snos_block_zero_workaround-1
+	@echo "Waiting for Block Zero Workaround..."
+	@sleep 15
 
 # Run the transfer scripts
 transfer:
