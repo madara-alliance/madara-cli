@@ -63,7 +63,7 @@ pub fn parse_params(params: &PathfinderRunnerConfigMode, config: &Config) -> any
     let pathfinder_params = vec![
         format!("--network {}", network.to_string()).to_lowercase(),
         format!("--chain-id {}", config.madara.app_chain_id),
-        "--ethereum.url http://anvil:8545".to_string(),
+        format!("--ethereum.url {}", config.l1_config.eth_rpc),
         format!("--gateway-url {}", gateway_url),
         format!("--feeder-gateway-url {}", feeder_gateway_url),
         "--storage.state-tries archive".to_string(),
