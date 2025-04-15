@@ -30,6 +30,11 @@ appchain:
 	@echo "Waiting for Bootstrapper L2 container to finish..."
 	@docker wait bootstrapper_l2
 
+# Run madara test
+test:
+	@echo "Running madara tests..."
+	@cd deps/tests/js_tests && npm install && npm test
+
 # Run the transfer scripts
 transfer:
 	@echo "Running transfer scripts..."
@@ -42,6 +47,8 @@ stop-madara:
 # Stop a appchain instance
 stop-appchain:
 	@cd deps && docker compose down
+
+run-devnet-ci: build madara test stop-madara
 
 run-madara-ci: build madara stop-madara
 
