@@ -1,5 +1,5 @@
 #!/bin/bash
-source data/.env
+source /tmp/data/.env
 
 # Check for required arguments
 if [ "$#" -ne 2 ]; then
