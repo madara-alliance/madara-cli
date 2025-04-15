@@ -54,6 +54,8 @@ services:
       - ${MADARA_DATA_DIR}:/usr/share/madara/data
       - ./madara/madara-runner.sh:/usr/local/bin/runner.sh:ro
       - ./madara/configs/presets:/usr/local/bin/configs/presets
+      - ${DATA_DIR}:/tmp/data
+      - ./helper/:/tmp/
     entrypoint:
       - /usr/local/bin/runner.sh
     restart: unless-stopped
@@ -164,6 +166,7 @@ services:
     volumes:
       - ./orchestrator/.env:/usr/local/bin/.env_tmp
       - ./orchestrator/run_orchestrator.sh:/usr/local/bin/run_orchestrator.sh
+      - ${DATA_DIR}/.env:/usr/local/bin/.env_vars
     entrypoint:
       - /usr/local/bin/run_orchestrator.sh
     depends_on:
