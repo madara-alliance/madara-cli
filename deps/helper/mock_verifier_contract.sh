@@ -24,7 +24,7 @@ VERIFIER_ADDRESS=$(echo "$VERIFIER_RESULT" | grep "Deployed to" | awk '{print $3
 echo -e "📦 Verifier deployed at: $VERIFIER_ADDRESS\n"
 
 # Check if .env file exists
-ENV_FILE="data/.env"
+ENV_FILE="/tmp/data/.env"
 if [ -f "$ENV_FILE" ]; then
     # Check if verifier_address exists in .env file
     CURRENT_ADDRESS=$(grep "^verifier_address=" "$ENV_FILE" | cut -d= -f2)
