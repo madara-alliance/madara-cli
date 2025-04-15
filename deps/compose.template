@@ -85,6 +85,7 @@ services:
         condition: service_completed_successfully
     volumes:
       - ./helper/override_state.js:/app/override_state.js
+      - ${DATA_DIR}/.env:/app/.env
     environment:
       MADARA_ORCHESTRATOR_ETHEREUM_PRIVATE_KEY: {{ ETH_PRIV_KEY }}
     command: -c "node override_state.js"
