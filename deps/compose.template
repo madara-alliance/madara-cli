@@ -20,6 +20,7 @@ services:
     volumes:
       - ./helper/mock_verifier_contract.sh:/tmp/mock_verifier_contract.sh
       - ./helper/MockGPSVerifier.sol:/tmp/MockGPSVerifier.sol
+      - ${DATA_DIR}:/tmp/data
     depends_on:
       anvil:
         condition: service_started
@@ -32,8 +33,10 @@ services:
       mock_verifier_contract:
         condition: service_completed_successfully
     volumes:
-      - ./bootstrapper/devnet.json:/app/src/configs/devnet.json
-    command: -c "sleep 5 && ./madara-bootstrapper --mode setup-l1 --config src/configs/devnet.json"
+      - ${BOOTSTRAPPER_CONFIG_DIR}:/app/config
+      - ${DATA_DIR}:/tmp/data
+      - ./helper/:/tmp/
+    command: -c "/tmp/update_config.sh config/devnet.json bootstrapper_l1 && sleep 5 && ./madara-bootstrapper --mode setup-l1 --config config/devnet.json --output-file ./bootstrapper_l1.json && /tmp/json_to_env.sh bootstrapper_l1.json"
     attach: false
   
   madara:
@@ -62,9 +65,11 @@ services:
       madara:
         condition: service_started
     volumes:
-      - ./bootstrapper/devnet.json:/app/src/configs/devnet.json
+      - ${BOOTSTRAPPER_CONFIG_DIR}:/app/config
+      - ${DATA_DIR}:/tmp/data
+      - ./helper/:/tmp/
 {%- if ENABLE_BOOTSTRAPER_L2_SETUP %}
-    command: -c "sleep 5 && ./madara-bootstrapper --mode setup-l2 --config src/configs/devnet.json"
+    command: -c "/tmp/update_config.sh config/devnet.json bootstrapper_l2 && sleep 5 && ./madara-bootstrapper --mode setup-l2 --config config/devnet.json --output-file ./bootstrapper_l2.json && /tmp/json_to_env.sh bootstrapper_l2.json"
 {%- else %}
     command: -c "sleep 5 && echo 'Bootstrapper L2 contracts are disabled'"
 {%- endif %}
