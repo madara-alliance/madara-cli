@@ -13,7 +13,7 @@ if [ "$#" -ne 1 ]; then
 fi
 
 JSON_FILE="$1"
-OUTPUT_FILE="data/.env"
+OUTPUT_FILE="/tmp/data/.env"
 
 # Validate the JSON file
 if ! jq empty "$JSON_FILE" 2>/dev/null; then
