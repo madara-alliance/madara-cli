@@ -2,7 +2,7 @@
 /// override the state on the core contract
 const starknet = require("starknet");
 const ethers = require("ethers");
-const dorenv = require("dotenv");
+const dotenv = require("dotenv");
 
 // Using anvil key with funds
 const MADARA_ORCHESTRATOR_ETHEREUM_PRIVATE_KEY = process.env.MADARA_ORCHESTRATOR_ETHEREUM_PRIVATE_KEY;
