@@ -33,7 +33,7 @@ appchain:
 # Run madara test
 test:
 	@echo "Running madara tests..."
-	@cd deps/tests/js_tests && npm install && npm test
+	@cd deps/scripts/madara_tests && npm install && npm test
 
 # Run the transfer scripts
 transfer:
