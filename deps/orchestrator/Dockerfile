@@ -14,7 +14,7 @@ RUN apt update && apt install -y  \
 WORKDIR /usr/src/madara/
 
 # Clone the repository
-ENV ORCHESTRATOR_VER="bab56d9a6ef3c39aa82767c8530eeff43a3e0dd3"
+ENV ORCHESTRATOR_VER="a99088a96a8126d33fef4fabba76a70032e601cf"
 RUN echo Cloning Orchestrator at commit ${ORCHESTRATOR_VER}
 RUN git clone https://github.com/madara-alliance/madara . && \
     git checkout ${ORCHESTRATOR_VER} && \

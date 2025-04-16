@@ -127,7 +127,11 @@ RUN npm install -g --unsafe-perm ganache@7.9.0
 
 WORKDIR /app
 
-RUN git clone --branch monorepo/bootstrapper --recurse-submodules https://github.com/madara-alliance/madara.git .
+ENV BOOTSTRAPPER_VER="a99088a96a8126d33fef4fabba76a70032e601cf"
+RUN echo Cloning Bootstrapper at commit ${BOOTSTRAPPER_VER}}
+RUN git clone https://github.com/madara-alliance/madara . && \
+    git checkout ${BOOTSTRAPPER_VER} && \
+    git submodule update --init --recursive
 
 RUN make setup-linux
 

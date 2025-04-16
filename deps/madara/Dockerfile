@@ -1,8 +1,6 @@
 # Stage 1: Build the application
 FROM rust:1.81 AS builder
 
-ENV MADARA_VER="bab56d9a6ef3c39aa82767c8530eeff43a3e0dd3"
-
 # Install build dependencies
 RUN apt-get -y update && \
     apt-get install -y clang && \
@@ -12,6 +10,7 @@ RUN apt-get -y update && \
 # Set the working directory
 WORKDIR /usr/src/madara/
 
+ENV MADARA_VER="a99088a96a8126d33fef4fabba76a70032e601cf"
 RUN echo Cloning Madara at commit ${MADARA_VER}
 RUN git clone https://github.com/madara-alliance/madara . && \
     git checkout ${MADARA_VER} && \
