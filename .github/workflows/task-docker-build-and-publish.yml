@@ -6,7 +6,7 @@ on:
         description: 'Version tag (e.g., v1.0.0)'
         required: true
       specific_image:
-        description: 'Build only this image (leave empty to build all images)'
+        description: 'Build only this image [madara, orchestrator, bootstrapper, pathfinder, helper] (leave empty to build all images)'
         required: false
         default: ''
 
