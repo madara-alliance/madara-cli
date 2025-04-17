@@ -31,7 +31,7 @@ appchain:
 	@docker wait bootstrapper_l2
 	@until [ "$$(docker inspect -f "{{.State.Running}}" workaround 2>/dev/null)" = "true" ]; do \
 	    echo "Waiting for Block Zero Workaround..."; \
-	    sleep 5; \
+	    sleep 1; \
 	  done
 	@echo "Waiting for Block Zero Workaround..."
 	@docker wait workaround

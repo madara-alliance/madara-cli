@@ -128,7 +128,7 @@ services:
       snos_block_zero_workaround:
         condition: service_completed_successfully
     volumes:
-      - ./scripts/transfer_from_L1/init_accounts.js:/app/init.js
+      - ./scripts/transfer_from_L1/init_accounts.js:/app/init_accounts.js
       - ./scripts/transfer_from_L1/config.yaml:/app/config.yaml
       - ./scripts/transfer_from_L1/package.json:/app/package.json
     command: -c "sleep 5 && npm install && npm run transfer-l1"
