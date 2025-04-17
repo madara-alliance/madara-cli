@@ -10,8 +10,8 @@ RUN apt-get -y update && \
 # Set the working directory
 WORKDIR /usr/src/madara/
 
-ENV MADARA_VER="a99088a96a8126d33fef4fabba76a70032e601cf"
-RUN echo Cloning Madara at commit ${MADARA_VER}
+ENV MADARA_VER="main"
+RUN echo Cloning Madara at branch ${MADARA_VER}
 RUN git clone https://github.com/madara-alliance/madara . && \
     git checkout ${MADARA_VER} && \
     git submodule update --init --recursive
