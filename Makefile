@@ -1,7 +1,6 @@
 .PHONY: build run-ci
 
 # Default values (can be overridden via command-line)
-MADARA_URL ?= 127.0.0.1
 MADARA_MODE ?= devnet
 BASE_PATH ?= ../data/madara-db
 
@@ -28,14 +27,14 @@ appchain:
 	    echo "Waiting for Bootstrapper L2 container to start..."; \
 	    sleep 5; \
 	  done
-	@for i in {1. .5}; do \
- 		curl -X POST http://$(MADARA_URL):9945 -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"starknet_V0_8_0_chainId","params":[]}'; \
-		sleep 5; \
-	  done
 	@echo "Waiting for Bootstrapper L2 container to finish..."
 	@docker wait bootstrapper_l2
+	@until [ "$$(docker inspect -f "{{.State.Running}}" workaround 2>/dev/null)" = "true" ]; do \
+	    echo "Waiting for Block Zero Workaround..."; \
+	    sleep 5; \
+	  done
 	@echo "Waiting for Block Zero Workaround..."
-	@sleep 60
+	@docker wait workaround
 
 # Run the transfer scripts
 transfer:

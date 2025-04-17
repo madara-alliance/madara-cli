@@ -115,14 +115,7 @@ services:
     depends_on:
       bootstrapper_l2:
         condition: service_completed_successfully
-    entrypoint: [ "bash", "-c", "
-                  apt-get update && apt-get install -y curl;
-                  curl -X POST http://madara:9945 -H 'Content-Type: application/json' -d '{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"starknet_V0_8_0_chainId\",\"params\":[]}';
-                  echo 'Checking init script...';
-                  ls -l /init.js || echo 'File not found';
-                  cat /init.js || echo 'Cannot read file';
-                  mongosh --host mongodb --eval 'load(\"/init.js\")';
-                " ]
+    entrypoint: [ "bash", "-c", "mongosh --host mongodb --eval 'load(\"/init.js\")';" ]
     volumes:
       - ./block_zero_workaround.js:/init.js
 
