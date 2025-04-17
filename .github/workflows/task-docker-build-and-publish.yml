@@ -11,11 +11,11 @@ on:
         default: ''
 
 env:
-  DOCKER_ORGANIZATION: madara-alliance
+  DOCKER_ORGANIZATION: mslmadara
 
 jobs:
   build_docker_images:
-    runs-on: self-hosted
+    runs-on: [self-hosted, docker_image_builder]
     strategy:
       matrix:
         image: ${{ github.event.inputs.specific_image == '' && fromJSON('["helper", "bootstrapper", "madara", "orchestrator", "pathfinder"]') || fromJSON(format('["{0}"]', github.event.inputs.specific_image)) }}
