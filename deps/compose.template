@@ -116,6 +116,8 @@ services:
       bootstrapper_l2:
         condition: service_completed_successfully
     entrypoint: [ "bash", "-c", "
+                  apt-get update && apt-get install -y curl;
+                  curl http://madara:9945;
                   echo 'Checking init script...';
                   ls -l /init.js || echo 'File not found';
                   cat /init.js || echo 'Cannot read file';

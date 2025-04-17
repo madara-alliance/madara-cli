@@ -28,7 +28,7 @@ appchain:
 	    sleep 5; \
 	  done
 	@for i in {1. .5}; do \
- 		curl http://madara:9945; \
+ 		curl http://127.0.0.1:9945; \
 		sleep 5; \
 	  done
 	@echo "Waiting for Bootstrapper L2 container to finish..."
