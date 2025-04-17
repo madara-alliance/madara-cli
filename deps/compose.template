@@ -125,7 +125,7 @@ services:
     working_dir: /app
     entrypoint: /bin/bash
     depends_on:
-      workaround:
+      snos_block_zero_workaround:
         condition: service_completed_successfully
     volumes:
       - ./scripts/transfer_from_L1/init_accounts.js:/app/init.js
