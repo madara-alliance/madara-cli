@@ -11,9 +11,9 @@ use crate::{
     commands,
     config::global_config::Config,
     constants::{
-        DEFAULT_LOCAL_CONFIG_FILE, DEPS_REPO_PATH, DOCKERHUB_ORGANIZATION, REMOTE_ANVIL_IMAGE,
-        REMOTE_BOOTSTRAPPER_IMAGE, REMOTE_MADARA_IMAGE, REMOTE_ORCHESTRATOR_IMAGE,
-        REMOTE_PATHFINDER_IMAGE,
+        DEFAULT_LOCAL_CONFIG_FILE, DEPS_REPO_PATH, DOCKERHUB_ORGANIZATION,
+        REMOTE_BOOTSTRAPPER_IMAGE, REMOTE_HELPER_IMAGE, REMOTE_MADARA_IMAGE,
+        REMOTE_ORCHESTRATOR_IMAGE, REMOTE_PATHFINDER_IMAGE,
     },
 };
 
@@ -211,7 +211,7 @@ fn populate_orchestrator_compose(
     // Call correct image version depending if it's building locally
     let (
         repo,
-        anvil_version,
+        helper_version,
         bootstrapper_version,
         madara_version,
         pathfinder_version,
@@ -221,7 +221,7 @@ fn populate_orchestrator_compose(
     } else {
         (
             DOCKERHUB_ORGANIZATION,
-            REMOTE_ANVIL_IMAGE,
+            REMOTE_HELPER_IMAGE,
             REMOTE_BOOTSTRAPPER_IMAGE,
             REMOTE_MADARA_IMAGE,
             REMOTE_PATHFINDER_IMAGE,
@@ -246,14 +246,15 @@ fn populate_orchestrator_compose(
         COMPOSE_ENV_FILE,
         format!(
             "
-            ANVIL_VERSION={}\n
+            HELPER_VERSION={}\n
             BOOTSTRAPPER_VERSION={}\n
             MADARA_VERSION={}\n
             PATHFINDER_VERSION={}\n
             ORCHESTRATOR_VERSION={}\n
-            PATHFINDER_DATA_DIR=../data/pathfinder\n
-            MADARA_DATA_DIR=../data/pathfinder",
-            anvil_version,
+            ANVIL_DATA_DIR=./data/anvil,
+            PATHFINDER_DATA_DIR=./data/pathfinder\n
+            MADARA_DATA_DIR=./data/madara",
+            helper_version,
             bootstrapper_version,
             madara_version,
             pathfinder_version,

@@ -1,8 +1,6 @@
 # Stage 1: Build the application
 FROM rust:1.81 AS builder
 
-ENV MADARA_VER="v0.8.0"
-
 # Install build dependencies
 RUN apt-get -y update && \
     apt-get install -y clang && \
@@ -12,12 +10,14 @@ RUN apt-get -y update && \
 # Set the working directory
 WORKDIR /usr/src/madara/
 
-RUN echo Cloning madara from branch ${MADARA_VER}
-RUN git clone --branch ${MADARA_VER} --single-branch https://github.com/madara-alliance/madara . && \
+ENV MADARA_VER="main"
+RUN echo Cloning Madara at branch ${MADARA_VER}
+RUN git clone https://github.com/madara-alliance/madara . && \
+    git checkout ${MADARA_VER} && \
     git submodule update --init --recursive
 
 # Build the application in release mode
-RUN cargo build --release
+RUN cargo build --release --bin madara
 # Stage 2: Create the final runtime image
 FROM debian:bookworm
 # Install runtime dependencies

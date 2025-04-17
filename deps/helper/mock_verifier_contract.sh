@@ -1,21 +1,8 @@
 #!/bin/bash
 
-# Check if jq is installed
-if ! command -v jq &> /dev/null; then
-    echo "Error: jq is required but not installed. Please install jq first."
-    exit 1
-fi
-
-# Check if curl is installed
-if ! command -v curl &> /dev/null; then
-    echo "Error: curl is required but not installed. Please install curl first."
-    exit 1
-fi
-
 # Default Anvil private key
 PRIVATE_KEY="$1"  # Accept private key as a command-line argument
 ANVIL_URL="http://anvil:8545"
-
 
 # Deploy the verifier contract using forge create
 echo -e "🚀 Deploying verifier contract...\n"

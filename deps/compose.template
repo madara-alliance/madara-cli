@@ -1,21 +1,25 @@
 services:
   anvil:
-    image: {{ IMAGE_REPOSITORY }}anvil:${ANVIL_VERSION}
+    image: ghcr.io/foundry-rs/foundry:v1.0.0
     container_name: anvil
     cpus: "${CPU_LIMIT:-4.0}"
     mem_limit: "16gb"
     ports:
       - "8545:8545"
-    command: /bin/bash -c "anvil --host 0.0.0.0 --block-time 1 --code-size-limit 300000"
+    volumes:
+      - ${ANVIL_DATA_DIR}:/tmp/anvil
+    entrypoint: ["anvil", "--host", "0.0.0.0", "--block-time", "1", "--code-size-limit", "300000", "--dump-state", "/tmp/anvil/state.json"]
+
     attach: false
 
   mock_verifier_contract:
-    image: {{ IMAGE_REPOSITORY }}anvil:${ANVIL_VERSION}
+    image: ghcr.io/foundry-rs/foundry:v1.0.0
     container_name: mock_verifier
-    working_dir: /app
+    working_dir: /tmp
     entrypoint: /bin/bash
     volumes:
-      - ./anvil/mock_verifier_contract.sh:/app/mock_verifier_contract.sh
+      - ./helper/mock_verifier_contract.sh:/tmp/mock_verifier_contract.sh
+      - ./helper/MockGPSVerifier.sol:/tmp/MockGPSVerifier.sol
     depends_on:
       anvil:
         condition: service_started
@@ -67,7 +71,7 @@ services:
     attach: false
 
   override_state:
-    image: {{ IMAGE_REPOSITORY }}anvil:${ANVIL_VERSION}
+    image: {{ IMAGE_REPOSITORY }}helper:${HELPER_VERSION}
     container_name: override_state
     working_dir: /app
     entrypoint: /bin/bash
@@ -75,7 +79,7 @@ services:
       bootstrapper_l2:
         condition: service_completed_successfully
     volumes:
-      - ./anvil/override_state.js:/app/override_state.js
+      - ./helper/override_state.js:/app/override_state.js
     environment:
       MADARA_ORCHESTRATOR_ETHEREUM_PRIVATE_KEY: {{ ETH_PRIV_KEY }}
     command: -c "node override_state.js"
@@ -109,14 +113,14 @@ services:
         condition: service_started
     attach: false
 
-  snos_block_zero_workaround:
+  init_mongo:
     image: mongo
     depends_on:
       bootstrapper_l2:
         condition: service_completed_successfully
     entrypoint: [ "bash", "-c", "mongosh --host mongodb --eval 'load(\"/init.js\")'" ]
     volumes:
-      - ./block_zero_workaround.js:/init.js
+      - ./helper/init_mongo.js:/init.js
 
   localstack:
     image: localstack/localstack@sha256:763947722c6c8d33d5fbf7e8d52b4bddec5be35274a0998fdc6176d733375314

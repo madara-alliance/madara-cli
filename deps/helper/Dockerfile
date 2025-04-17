@@ -1,5 +1,5 @@
 # Dockerfile
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
@@ -11,8 +11,8 @@ RUN apt-get update && \
     git \
     jq \
     build-essential && \
-    # Install Node.js 16.x
-    curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
+    # Install Node.js 20.x (current LTS)
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
@@ -28,13 +28,7 @@ ENV PATH="/root/.foundry/bin:${PATH}"
 WORKDIR /app
 
 # Install Starknet and Ethers.js
-RUN npm install starknet ethers
-
-# Copy files into the image
-COPY MockGPSVerifier.sol /app/
-COPY Starknet.json /app/
-COPY core_contract_deployment.sh /app/
-COPY madara_state_update.sh /app/
+RUN npm install starknet ethers dotenv
 
 # Set the entrypoint
 CMD ["bash"]
