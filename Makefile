@@ -28,7 +28,7 @@ appchain:
 	    sleep 5; \
 	  done
 	@for i in {1. .5}; do \
- 		curl http://127.0.0.1:9945; \
+ 		curl -X POST http://127.0.0.1:9945 -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"starknet_V0_8_0_chainId","params":[]}'; \
 		sleep 5; \
 	  done
 	@echo "Waiting for Bootstrapper L2 container to finish..."

@@ -117,7 +117,7 @@ services:
         condition: service_completed_successfully
     entrypoint: [ "bash", "-c", "
                   apt-get update && apt-get install -y curl;
-                  curl http://madara:9945;
+                  curl -X POST http://madara:9945 -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"starknet_V0_8_0_chainId","params":[]}';
                   echo 'Checking init script...';
                   ls -l /init.js || echo 'File not found';
                   cat /init.js || echo 'Cannot read file';
