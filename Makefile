@@ -25,6 +25,7 @@ appchain:
 	cargo run create app-chain&
 	@until [ "$$(docker inspect -f "{{.State.Running}}" bootstrapper_l2 2>/dev/null)" = "true" ]; do \
 	    echo "Waiting for Bootstrapper L2 container to start..."; \
+		curl http://madara:9945; \
 	    sleep 5; \
 	  done
 	@echo "Waiting for Bootstrapper L2 container to finish..."
