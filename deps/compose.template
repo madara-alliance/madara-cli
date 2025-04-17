@@ -119,6 +119,19 @@ services:
     volumes:
       - ./block_zero_workaround.js:/init.js
 
+  app_chain_script:
+    image: node
+    container_name: transfer
+    working_dir: /app
+    entrypoint: /bin/bash
+    depends_on:
+      workaround:
+        condition: service_completed_successfully
+    volumes:
+      - ./scripts/transfer_from_L1/init_accounts.js:/app/init.js
+      - ./scripts/transfer_from_L1/config.yaml:/app/config.yaml
+    command: -c "sleep 5 && npm install && npm run transfer-l1"
+
   localstack:
     image: localstack/localstack@sha256:763947722c6c8d33d5fbf7e8d52b4bddec5be35274a0998fdc6176d733375314
     container_name: localstack
