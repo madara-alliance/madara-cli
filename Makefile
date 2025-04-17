@@ -38,6 +38,11 @@ appchain:
 
 # Run the transfer scripts
 transfer:
+	@until [ "$$(docker inspect -f "{{.State.Running}}" transfer 2>/dev/null)" = "true" ]; do \
+	    sleep 1; \
+	  done
+	@echo "Waiting for transfer scripts..."
+	@docker wait transfer
 	@echo "Running transfer scripts..."
 	@cd deps/scripts/transfer_from_L1 && npm install && npm run transfer-l1
 
