@@ -22,11 +22,10 @@ sed -e "s/^MADARA_ORCHESTRATOR_MIN_BLOCK_NO_TO_PROCESS=.*/MADARA_ORCHESTRATOR_MI
     -e "s/^MADARA_ORCHESTRATOR_GPS_VERIFIER_CONTRACT_ADDRESS=.*/MADARA_ORCHESTRATOR_GPS_VERIFIER_CONTRACT_ADDRESS=$verifier_address/" \
     -e "s/^MADARA_ORCHESTRATOR_ATLANTIC_VERIFIER_CONTRACT_ADDRESS=.*/MADARA_ORCHESTRATOR_ATLANTIC_VERIFIER_CONTRACT_ADDRESS=$verifier_address/" \
     -e "s/^MADARA_ORCHESTRATOR_L1_CORE_CONTRACT_ADDRESS=.*/MADARA_ORCHESTRATOR_L1_CORE_CONTRACT_ADDRESS=$starknet_contract_address/" \
-    -e "s/^MADARA_ORCHESTRATOR_MAX_BLOCK_NO_TO_PROCESS=.*/MADARA_ORCHESTRATOR_MAX_BLOCK_NO_TO_PROCESS=${MADARA_ORCHESTRATOR_MAX_BLOCK_NO_TO_PROCESS:-}/" \
     .env_tmp > .env
 
 # Orchestrator setup
 ./orchestrator setup --aws --aws-s3 --aws-sqs --aws-sns --aws-event-bridge --event-bridge-type {{ EVENT_BRIDGE_TYPE | default("rule") }}
 
 # Orchestrator run
-RUST_LOG=info ./orchestrator run --{{ PROVER_TYPE | default("sharp") }} --{{ AWS_ENABLED | default("aws") }} --{{ SETTLEMENT_NETWORK | default("settle-on-ethereum") }} --aws-s3 --aws-sqs --aws-sns --{{ DA_NETWORK | default("da-on-ethereum") }} --mongodb
+RUST_LOG=info ./orchestrator run --{{ PROVER_TYPE | default("sharp") }} --{{ AWS_ENABLED | default("aws") }} --{{ SETTLEMENT_NETWORK | default("settle-on-ethereum") }} --aws-s3 --aws-sqs --aws-sns --{{ DA_NETWORK | default("da-on-ethereum") }} --mongodb --max-block-to-process {{ MADARA_ORCHESTRATOR_MAX_BLOCK_NO_TO_PROCESS }}
