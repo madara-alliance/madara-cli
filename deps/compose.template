@@ -1,4 +1,5 @@
 services:
+{%- if LOCAL_DEPLOY %}
   anvil:
     image: ghcr.io/foundry-rs/foundry:v1.0.0
     container_name: anvil
@@ -9,8 +10,8 @@ services:
     volumes:
       - ${ANVIL_DATA_DIR}:/tmp/anvil
     entrypoint: ["anvil", "--host", "0.0.0.0", "--block-time", "1", "--code-size-limit", "300000", "--dump-state", "/tmp/anvil/state.json"]
-
     attach: false
+{%- endif %}
 
   mock_verifier_contract:
     image: ghcr.io/foundry-rs/foundry:v1.0.0
@@ -21,10 +22,14 @@ services:
       - ./helper/mock_verifier_contract.sh:/tmp/mock_verifier_contract.sh
       - ./helper/MockGPSVerifier.sol:/tmp/MockGPSVerifier.sol
       - ${DATA_DIR}:/tmp/data
+{%- if LOCAL_DEPLOY %}
     depends_on:
       anvil:
         condition: service_started
     command: -c "sleep 5 && ./mock_verifier_contract.sh {{ ETH_PRIV_KEY }}"
+{%- else %}
+    command: -c "sleep 5"
+{%- endif %}
 
   bootstrapper_l1:
     image: {{ IMAGE_REPOSITORY }}bootstrapper:${BOOTSTRAPPER_VERSION}
@@ -77,6 +82,7 @@ services:
 {%- endif %}
     attach: false
 
+{%- if LOCAL_DEPLOY %}
   override_state:
     image: {{ IMAGE_REPOSITORY }}helper:${HELPER_VERSION}
     container_name: override_state
@@ -91,6 +97,7 @@ services:
     environment:
       MADARA_ORCHESTRATOR_ETHEREUM_PRIVATE_KEY: {{ ETH_PRIV_KEY }}
     command: -c "node override_state.js"
+{%- endif %}
 
   pathfinder:
     image: {{ IMAGE_REPOSITORY }}pathfinder:${PATHFINDER_VERSION}
