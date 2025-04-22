@@ -94,6 +94,10 @@ fn create_runner_script(
             script.push_str("  exit 1\n");
             script.push_str("fi\n\n");
         }
+        MadaraMode::AppChain => {
+            script.push_str("/tmp/update_config.sh configs/presets/devnet.yaml madara\n");
+            script.push_str("\n");
+        }
         _ => {}
     }
 

@@ -13,15 +13,15 @@ pub const MADARA_RPC_API_KEY_FILE: &str = ".secrets/rpc_api.secret";
 
 pub const DEPS_REPO_PATH: &str = "deps";
 
-pub const DOCKERHUB_ORGANIZATION: &str = "gustavomoonsong/";
+pub const DOCKERHUB_ORGANIZATION: &str = "mslmadara/";
 
 pub const DEFAULT_LOCAL_CONFIG_FILE: &str = "crates/madara/src/config/local.toml";
 
 pub const DEFAULT_TMP_DATA_DIRECTORY: &str = "deps/data";
 
 // Images version
-pub const REMOTE_HELPER_IMAGE: &str = "1.0.0";
-pub const REMOTE_BOOTSTRAPPER_IMAGE: &str = "1.1.0";
-pub const REMOTE_MADARA_IMAGE: &str = "5bbb3a";
-pub const REMOTE_PATHFINDER_IMAGE: &str = "1.0.0";
-pub const REMOTE_ORCHESTRATOR_IMAGE: &str = "1.0.0";
+pub const REMOTE_HELPER_IMAGE: &str = "v0.0.1-8647f74";
+pub const REMOTE_BOOTSTRAPPER_IMAGE: &str = "v0.0.1-8647f74";
+pub const REMOTE_MADARA_IMAGE: &str = "v0.0.1-8647f74";
+pub const REMOTE_PATHFINDER_IMAGE: &str = "v0.0.1-8647f74";
+pub const REMOTE_ORCHESTRATOR_IMAGE: &str = "v0.0.1-8647f74";

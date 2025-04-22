@@ -65,6 +65,16 @@ pub(crate) fn run(args_madara: MadaraRunnerConfigMode, shell: &Shell) -> anyhow:
     // Collect Pathfinder configuration
     commands::pathfinder::parse_params(&args.pathfinder_config, &config)?;
 
+    // Creates an env file with verifier address from config file
+    let env_file_path = "deps/data/.env";
+    if std::path::Path::new(env_file_path).exists() {
+        fs::remove_file(env_file_path)?;
+    }
+    fs::write(
+        &env_file_path,
+        format!("verifier_address={}\n", config.l1_config.verifier_address),
+    )?;
+
     // Read and load the env variables from deps/orchestrator/.env if the file was created.
     // On the first run, fallback to `ATLANTIC_API` to give the user a hint about what is needed in that field
     let _ = from_filename(ORCHESTRATOR_ENV_PATH.to_string());
@@ -72,7 +82,7 @@ pub(crate) fn run(args_madara: MadaraRunnerConfigMode, shell: &Shell) -> anyhow:
     // Collect Prover configuration
     let args_prover = &args.prover_config;
     populate_orchestrator_env(args_prover, &config)?;
-    populate_orchestrator_runner(args_prover)?;
+    populate_orchestrator_runner(args_prover, &config)?;
     populate_orchestrator_compose(args_prover, &args.bootstrapper_config, &config)?;
 
     // Build all images
@@ -144,7 +154,6 @@ fn populate_orchestrator_env(
         MADARA_ORCHESTRATOR_ETHEREUM_PRIVATE_KEY => config.eth_wallet.eth_priv_key,
         MADARA_ORCHESTRATOR_ETHEREUM_SETTLEMENT_RPC_URL => config.l1_config.eth_rpc,
         VERIFIER_CONTRACT_ADDRESS => config.l1_config.verifier_address,
-        MADARA_ORCHESTRATOR_MAX_BLOCK_NO_TO_PROCESS => config.orchestrator. maximum_block_to_process
     };
 
     // Render the template
@@ -155,7 +164,10 @@ fn populate_orchestrator_env(
     Ok(())
 }
 
-fn populate_orchestrator_runner(prover_config: &ProverRunnerConfig) -> anyhow::Result<()> {
+fn populate_orchestrator_runner(
+    prover_config: &ProverRunnerConfig,
+    config: &Config,
+) -> anyhow::Result<()> {
     let runner_template = format!(
         "{}/{}",
         ORCHESTRATOR_REPO_PATH, ORCHESTRATOR_RUNNER_TEMPLATE_FILE
@@ -177,8 +189,20 @@ fn populate_orchestrator_runner(prover_config: &ProverRunnerConfig) -> anyhow::R
         ProverType::Stwo => panic!("Not supported yet"),
     };
 
-    let data = context! {
-        PROVER_TYPE => prover,
+    let max_block_to_process = config.orchestrator.maximum_block_to_process.map_or_else(
+        || "".to_string(),
+        |val| format!("--max-block-to-process {}", val.to_string()),
+    );
+
+    let data = if max_block_to_process.is_empty() {
+        context! {
+            PROVER_TYPE => prover
+        }
+    } else {
+        context! {
+            PROVER_TYPE => prover,
+            MADARA_ORCHESTRATOR_MAX_BLOCK_NO_TO_PROCESS => max_block_to_process
+        }
     };
 
     // Render the template
@@ -199,6 +223,7 @@ fn populate_orchestrator_compose(
 ) -> anyhow::Result<()> {
     let compose_template = format!("{}/{}", DEPS_REPO_PATH, ORCHESTRATOR_COMPOSE_TEMPLATE_FILE);
     let compose_output = format!("{}/{}", DEPS_REPO_PATH, ORCHESTRATOR_COMPOSE_FILE);
+    let local_deploy = config.l1_config.eth_chain_id == 31337;
 
     // Read the template file
     let template = fs::read_to_string(compose_template).expect("Failed to read compose.template");
@@ -234,6 +259,7 @@ fn populate_orchestrator_compose(
         ENABLE_BOOTSTRAPER_L2_SETUP => bootstrapper_config.deploy_l2_contracts,
         IMAGE_REPOSITORY => repo,
         ETH_PRIV_KEY => config.eth_wallet.eth_priv_key,
+        LOCAL_DEPLOY => local_deploy,
     };
 
     // Render the template
@@ -246,19 +272,21 @@ fn populate_orchestrator_compose(
         COMPOSE_ENV_FILE,
         format!(
             "
-            HELPER_VERSION={}\n
-            BOOTSTRAPPER_VERSION={}\n
-            MADARA_VERSION={}\n
-            PATHFINDER_VERSION={}\n
-            ORCHESTRATOR_VERSION={}\n
-            ANVIL_DATA_DIR=./data/anvil,
-            PATHFINDER_DATA_DIR=./data/pathfinder\n
-            MADARA_DATA_DIR=./data/madara",
-            helper_version,
+            ANVIL_DATA_DIR=./data/anvil
+            BOOTSTRAPPER_CONFIG_DIR=./bootstrapper
+            BOOTSTRAPPER_VERSION={}
+            DATA_DIR=./data
+            HELPER_VERSION={}
+            MADARA_DATA_DIR=./data/madara
+            MADARA_VERSION={}
+            ORCHESTRATOR_VERSION={}
+            PATHFINDER_DATA_DIR=./data/pathfinder
+            PATHFINDER_VERSION={}",
             bootstrapper_version,
+            helper_version,
             madara_version,
-            pathfinder_version,
-            orchestrator_version
+            orchestrator_version,
+            pathfinder_version
         ),
     )?;
 

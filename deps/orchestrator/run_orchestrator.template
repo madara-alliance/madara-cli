@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Configure Orchestrator to start on the following block after Bootstrapper finishes the L2 configuration
 # RPC call to get Madara last block and then replace the MIN_BLOCK from .env file with X+1 value
@@ -17,10 +17,14 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Block number: $LAST_BLOCK_NUMBER"
-awk -v val="$LAST_BLOCK_NUMBER" '/MADARA_ORCHESTRATOR_MIN_BLOCK_NO_TO_PROCESS=/{$0="MADARA_ORCHESTRATOR_MIN_BLOCK_NO_TO_PROCESS="val}1' .env_tmp > .new_env && mv .new_env .env
+source .env_vars
+sed -e "s/^MADARA_ORCHESTRATOR_GPS_VERIFIER_CONTRACT_ADDRESS=.*/MADARA_ORCHESTRATOR_GPS_VERIFIER_CONTRACT_ADDRESS=$verifier_address/" \
+    -e "s/^MADARA_ORCHESTRATOR_ATLANTIC_VERIFIER_CONTRACT_ADDRESS=.*/MADARA_ORCHESTRATOR_ATLANTIC_VERIFIER_CONTRACT_ADDRESS=$verifier_address/" \
+    -e "s/^MADARA_ORCHESTRATOR_L1_CORE_CONTRACT_ADDRESS=.*/MADARA_ORCHESTRATOR_L1_CORE_CONTRACT_ADDRESS=$starknet_contract_address/" \
+    .env_tmp > .env
 
 # Orchestrator setup
 ./orchestrator setup --aws --aws-s3 --aws-sqs --aws-sns --aws-event-bridge --event-bridge-type {{ EVENT_BRIDGE_TYPE | default("rule") }}
 
 # Orchestrator run
-RUST_LOG=info ./orchestrator run --{{ PROVER_TYPE | default("sharp") }} --{{ AWS_ENABLED | default("aws") }} --{{ SETTLEMENT_NETWORK | default("settle-on-ethereum") }} --aws-s3 --aws-sqs --aws-sns --{{ DA_NETWORK | default("da-on-ethereum") }} --mongodb
+RUST_LOG=info ./orchestrator run --{{ PROVER_TYPE | default("sharp") }} --{{ AWS_ENABLED | default("aws") }} --{{ SETTLEMENT_NETWORK | default("settle-on-ethereum") }} --aws-s3 --aws-sqs --aws-sns --{{ DA_NETWORK | default("da-on-ethereum") }} --mongodb --min-block-to-process $LAST_BLOCK_NUMBER {{ MADARA_ORCHESTRATOR_MAX_BLOCK_NO_TO_PROCESS | default("") }}
