@@ -189,9 +189,20 @@ fn populate_orchestrator_runner(
         ProverType::Stwo => panic!("Not supported yet"),
     };
 
-    let data = context! {
-        PROVER_TYPE => prover,
-        MADARA_ORCHESTRATOR_MAX_BLOCK_NO_TO_PROCESS => config.orchestrator. maximum_block_to_process
+    let max_block_to_process = config.orchestrator.maximum_block_to_process.map_or_else(
+        || "".to_string(),
+        |val| format!("--max-block-to-process {}", val.to_string()),
+    );
+
+    let data = if max_block_to_process.is_empty() {
+        context! {
+            PROVER_TYPE => prover
+        }
+    } else {
+        context! {
+            PROVER_TYPE => prover,
+            MADARA_ORCHESTRATOR_MAX_BLOCK_NO_TO_PROCESS => max_block_to_process
+        }
     };
 
     // Render the template
