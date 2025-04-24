@@ -18,6 +18,7 @@ use crate::{
     pathfinder::PathfinderRunnerConfigMode, prover::ProverRunnerConfig,
 };
 
+/// A development environment similar to a Sequencer, but with predeployed contracts and pre-funded accounts
 #[derive(Debug, Parser, Clone)]
 pub struct MadaraRunnerConfigDevnet {
     #[arg(short, long, default_value = "../data/devnet-db")]
@@ -44,6 +45,7 @@ impl Default for MadaraRunnerConfigDevnet {
     }
 }
 
+/// A node that synchronizes the state and re-executes transactions to verify them
 #[derive(Debug, Default, Parser, Clone)]
 pub struct MadaraRunnerConfigFullNode {
     #[arg(short, long, default_value = "../data/fullnode-db")]
@@ -90,8 +92,8 @@ pub struct MadaraPreset {
 
 #[derive(Debug, Clone)]
 pub enum MadaraRunnerParams {
-    Devnet(MadaraRunnerConfigDevnet),
     Sequencer(MadaraRunnerConfigSequencer),
+    Devnet(MadaraRunnerConfigDevnet),
     FullNode(MadaraRunnerConfigFullNode),
     AppChain(MadaraRunnerConfigAppChain),
 }
@@ -159,6 +161,7 @@ impl MadaraRunnerConfigMode {
     }
 }
 
+/// A standalone node responsible for creating new blocks and ordering transactions
 #[derive(Debug, Parser, Clone)]
 pub struct MadaraRunnerConfigSequencer {
     #[arg(long, default_value = "../data/sequencer-db")]
@@ -208,7 +211,7 @@ impl Default for MadaraRunnerConfigSequencer {
     }
 }
 
-/// Configuration for Madara Appchain Runner
+/// Spin up your own Madara L2/L3 chain with complete infrastructure
 #[derive(Debug, Clone, Parser)]
 pub struct MadaraRunnerConfigAppChain {
     #[arg(long, default_value = "configs/presets/devnet.yaml")]
@@ -295,14 +298,14 @@ impl FromArgMatches for MadaraRunnerParams {
 
 impl Subcommand for MadaraRunnerParams {
     fn augment_subcommands(cmd: Command) -> Command {
-        cmd.subcommand(MadaraRunnerConfigDevnet::augment_args(Command::new(
-            "devnet",
-        )))
-        .subcommand(MadaraRunnerConfigFullNode::augment_args(Command::new(
+        cmd.subcommand(MadaraRunnerConfigFullNode::augment_args(Command::new(
             "full-node",
         )))
         .subcommand(MadaraRunnerConfigSequencer::augment_args(Command::new(
             "sequencer",
+        )))
+        .subcommand(MadaraRunnerConfigDevnet::augment_args(Command::new(
+            "devnet",
         )))
         .subcommand(MadaraRunnerConfigAppChain::augment_args(Command::new(
             "app-chain",
@@ -311,14 +314,14 @@ impl Subcommand for MadaraRunnerParams {
     }
 
     fn augment_subcommands_for_update(cmd: Command) -> Command {
-        cmd.subcommand(MadaraRunnerConfigDevnet::augment_args(Command::new(
-            "devnet",
-        )))
-        .subcommand(MadaraRunnerConfigFullNode::augment_args(Command::new(
+        cmd.subcommand(MadaraRunnerConfigFullNode::augment_args(Command::new(
             "full-node",
         )))
         .subcommand(MadaraRunnerConfigSequencer::augment_args(Command::new(
             "sequencer",
+        )))
+        .subcommand(MadaraRunnerConfigDevnet::augment_args(Command::new(
+            "devnet",
         )))
         .subcommand(MadaraRunnerConfigAppChain::augment_args(Command::new(
             "app-chain",
