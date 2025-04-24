@@ -7,6 +7,31 @@ This Command Line Interface (CLI) is designed to simplify the process of setting
 * **Devnet**: A local development network that functions like a Sequencer but comes with predeployed and funded accounts, as well as test contracts for development purposes. Ideal for developers building and testing applications on StarkNet.
 * **AppChain**: A comprehensive suite of tools (including Madara, Orchestrator, Bootstrapper, and others) that enables hassle-free deployment of L2 or L3 solutions with settlement in Ethereum or Starknet. This mode provides everything needed for a production-ready blockchain deployment.
 
+## Prerequisites
+
+Before using the Madara CLI, ensure you have the following installed:
+
+- **Docker** (version 20.10.0 or higher) and Docker Compose
+- **Rust** (version 1.70.0 or higher)
+- Minimum hardware requirements:
+  - 4 CPU cores
+  - 8GB RAM
+  - 50GB free disk space (more recommended for FullNode and Sequencer modes)
+- Open ports: 9944 (P2P), 9933 (RPC), 9615 (Metrics)
+
+## Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/madara-alliance/madara-cli.git
+   cd madara-cli
+   ```
+
+2. Build the CLI:
+   ```bash
+   cargo build
+   ```
+
 ## Containerized Solution
 
 Madara CLI runs in a containerized environment, providing all necessary Dockerfiles to build the images locally. The containerization approach ensures:
@@ -87,3 +112,52 @@ cargo run create MODE
 Where `MODE` is one of: `devnet`, `full-node`, `sequencer`, or `app-chain`.
 
 This will execute the CLI with the specified mode using default configurations. While this approach might not fully adapt to all specific needs, it provides a quick way to test the CLI.
+
+## Examples
+
+### Running a Local Devnet
+
+For local development and testing:
+
+```bash
+# Start a devnet with default settings
+cargo run create devnet
+
+# Access the RPC endpoint at http://localhost:9944
+```
+
+### Setting Up a Full Node
+
+To synchronize with an existing network:
+
+```bash
+# Start a full node connected to the Sepolia testnet
+cargo run create full-node
+
+# Specify network and RPC endpoint
+cargo run create full-node --network testnet --rpc-api-url https://valid-sepolia-rpc
+```
+
+### Deploying an AppChain with Custom Configuration
+
+To deploy a custom L2/L3 solution:
+
+```bash
+# First create a configuration file
+cargo run init
+
+# Edit parameters as needed, then deploy
+cargo run create app-chain --config-file deps/data/my-config.toml
+```
+
+## Troubleshooting
+
+### Common Issues
+
+| Issue | Solution |
+|-------|----------|
+| Docker permission errors | Run with `sudo` or add your user to the Docker group |
+| Port conflicts | Ensure ports 9944, 9933, and 9615 are available or change them in the configuration |
+| Out of disk space | Free up disk space or use a volume with sufficient capacity |
+| AppChain deployment fails | Check L1 connection, wallet balance, and network configuration |
+| Connection refused | Ensure Docker is running and network settings are correct |
