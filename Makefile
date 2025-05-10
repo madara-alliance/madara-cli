@@ -25,13 +25,24 @@ appchain:
 	cargo run create app-chain&
 	@until [ "$$(docker inspect -f "{{.State.Running}}" bootstrapper_l2 2>/dev/null)" = "true" ]; do \
 	    echo "Waiting for Bootstrapper L2 container to start..."; \
-	    sleep 1; \
+	    sleep 5; \
 	  done
 	@echo "Waiting for Bootstrapper L2 container to finish..."
 	@docker wait bootstrapper_l2
+	@until [ "$$(docker inspect -f "{{.State.Running}}" workaround 2>/dev/null)" = "true" ]; do \
+	    echo "Waiting for Block Zero Workaround..."; \
+	    sleep 1; \
+	  done
+	@echo "Waiting for Block Zero Workaround..."
+	@docker wait workaround
 
 # Run the transfer scripts
 transfer:
+	@until [ "$$(docker inspect -f "{{.State.Running}}" transfer 2>/dev/null)" = "true" ]; do \
+	    sleep 1; \
+	  done
+	@echo "Waiting for transfer scripts..."
+	@docker wait transfer
 	@echo "Running transfer scripts..."
 	@cd deps/scripts/transfer_from_L1 && npm install && npm run transfer-l1
 
